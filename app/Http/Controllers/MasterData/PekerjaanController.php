@@ -9,6 +9,7 @@ use App\Models\Pekerjaan;
 use App\Models\Provinsi;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -42,17 +43,17 @@ class PekerjaanController extends Controller
             ->get();
 
         $kategori = [
-            'operasional' => 'Operasional', 
-            'pajak' => 'Pajak', 
-            'notaris' => 'Notaris', 
-            'ppat' => 'PPAT', 
-            'legalisasi' => 'Legalisasi', 
-            "pnbp_voucher" => "PNBP/ Voucher", 
-            "waarmerking" => "Waarmerking", 
-            "surat-keluar" => "Surat Keluar", 
-            "wasiat" => "Wasiat", 
+            'operasional' => 'Operasional',
+            'pajak' => 'Pajak',
+            'notaris' => 'Notaris',
+            'ppat' => 'PPAT',
+            'legalisasi' => 'Legalisasi',
+            "pnbp_voucher" => "PNBP/ Voucher",
+            "waarmerking" => "Waarmerking",
+            "surat-keluar" => "Surat Keluar",
+            "wasiat" => "Wasiat",
             'covernot' => 'Covernot'
-            ];
+        ];
 
         return view("pages.MasterData.Pekerjaan.create", compact("provinsi", "kategori"));
     }
@@ -130,7 +131,12 @@ class PekerjaanController extends Controller
 
 
             DB::commit();
-            return redirect()->route("master-data.pekerjaan.index")->with("success", "Berhasil Tambah Pekerjaan");
+
+            Cache::forget('master_pekerjaan');
+
+            return redirect()
+                ->route("master-data.pekerjaan.index")
+                ->with("success", "Berhasil Tambah Pekerjaan");
         } catch (Exception $th) {
             DB::rollBack();
             dd($th);
@@ -380,6 +386,7 @@ class PekerjaanController extends Controller
                 HargaPekerjaan::where('pekerjaan_id', $id)->delete();
 
                 DB::commit();
+                Cache::forget('master_pekerjaan');
                 return redirect()
                     ->route('master-data.pekerjaan.index')
                     ->with('success', 'Berhasil update Pekerjaan');
@@ -435,6 +442,7 @@ class PekerjaanController extends Controller
             }
 
             DB::commit();
+            Cache::forget('master_pekerjaan');
 
             return redirect()
                 ->route('master-data.pekerjaan.index')
@@ -464,6 +472,7 @@ class PekerjaanController extends Controller
             $pekerjaan->delete();
 
             DB::commit();
+            Cache::forget('master_pekerjaan');
             return redirect()
                 ->route('master-data.pekerjaan.index')
                 ->with('success', 'Pekerjaan berhasil dihapus');
