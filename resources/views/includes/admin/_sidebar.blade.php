@@ -569,7 +569,7 @@
                         </a>
                         <a href="{{ route('setting.penomoran.index') }}"
                             class="dropdown-item {{ request()->is('setting/penomoran*') ? 'active' : '' }}">
-                            Penomoran
+                            Setting Penomoran
                         </a>
 
                         <a href="{{ route('setting.wa.index') }}"
