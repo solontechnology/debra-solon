@@ -205,7 +205,7 @@
                         @endcan
                     </div>
                 </li>
-                <li class="nav-item">
+                {{-- <li class="nav-item">
                     <a class="nav-link" href="#">
                         <span
                             class="nav-link-icon d-md-none d-lg-inline-block"><!-- Download SVG icon from http://tabler-icons.io/i/home -->
@@ -223,7 +223,7 @@
                             CRM
                         </span>
                     </a>
-                </li>
+                </li> --}}
                 @can('berkas-bermasalah/list')
                     <li class="nav-item dropdown {{ request()->is('berkas-bermasalah*') ? 'active' : '' }}">
                         <a class="nav-link dropdown-toggle" href="#navbar-help" data-bs-toggle="dropdown"
