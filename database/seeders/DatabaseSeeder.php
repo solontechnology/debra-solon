@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
         // ]);
 
         $this->call(RolePermissionSeeder::class);
+        $this->call(PenomoranSettingSeeder::class);
         // $this->call([
         //     ProvinsiSeeder::class,
         //     KotaSeeder::class,

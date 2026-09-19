@@ -454,12 +454,12 @@
                                         Waarmerking
                                     </a>
                                 @endcan
-                                {{-- @can('laporan/covernot/list')
-                                    <a href="#"
+                                @can('laporan/covernot/list')
+                                    <a href="{{ route('laporan.nomor-notaris', 'covernot') }}"
                                         class="dropdown-item {{ request()->is('laporan/nomor-notaris/covernot*') ? 'active' : '' }}">
                                         Cover Not
                                     </a>
-                                @endcan --}}
+                                @endcan
                                 @can('laporan/surat-keluar/list')
                                     <a href="{{ route('laporan.nomor-notaris', 'surat-keluar') }}"
                                         class="dropdown-item {{ request()->is('laporan/nomor-notaris/surat-keluar*') ? 'active' : '' }}">
@@ -566,6 +566,10 @@
                         <a href="{{ route('setting.perusahaan.index') }}"
                             class="dropdown-item {{ request()->is('setting/perusahaan*') ? 'active' : '' }}">
                             Setting Perusahaan
+                        </a>
+                        <a href="{{ route('setting.penomoran.index') }}"
+                            class="dropdown-item {{ request()->is('setting/penomoran*') ? 'active' : '' }}">
+                            Penomoran
                         </a>
 
                         <a href="{{ route('setting.wa.index') }}"

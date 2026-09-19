@@ -48,13 +48,13 @@ use App\Http\Controllers\PnbpController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\SearchWilayahController\Job;
+use App\Http\Controllers\Setting\PenomoranController;
 use App\Http\Controllers\Setting\PerusahaanController;
 use App\Http\Controllers\Setting\StepOpsController;
 use App\Http\Controllers\Setting\WaController;
 use App\Http\Controllers\UserController;
-use Illuminate\Support\Facades\Route;
-
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Route;
 
 // 1. Halaman Utama / Landing Page
 Route::get('/', function () {
@@ -491,6 +491,15 @@ Route::middleware('auth')->group(function () {
             Route::resource("perusahaan", PerusahaanController::class);
             Route::resource("step-ops", StepOpsController::class);
             Route::get("wa", [WaController::class, "index"])->name("wa.index");
+            Route::get(
+                "penomoran",
+                [PenomoranController::class, "index"]
+            )->name("penomoran.index");
+
+            Route::put(
+                "penomoran",
+                [PenomoranController::class, "update"]
+            )->name("penomoran.update");
         });
 });
 Route::prefix('wilayah')->group(function () {

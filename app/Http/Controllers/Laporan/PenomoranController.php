@@ -93,6 +93,20 @@ class PenomoranController extends Controller
             compact('item', 'masterPekerjaan')
         );
     }
+    public function update(Request $request)
+    {
+        $item = NomorPpat::findOrFail($request->id);
+
+        $item->update([
+            'form_order_id' => $request->group_proses,
+            'notaris_pengambil' => $request->notaris_pengambil,
+            'nama_debitur_notaris_pengambil' => $request->nama_debitur_notaris_pengambil,
+            'objek_notaris_pengambil' => $request->objek_notaris_pengambil,
+            'tanggal' => $request->tanggal_nomor,
+        ]);
+
+        return back()->with('success', 'Berhasil update data');
+    }
     // public function update(Request $request)
     // {
     //     $request->validate([
@@ -123,18 +137,4 @@ class PenomoranController extends Controller
     //         return back()->with('error', $e->getMessage());
     //     }
     // }
-    public function update(Request $request)
-    {
-        $item = NomorPpat::findOrFail($request->id);
-
-        $item->update([
-            'form_order_id' => $request->group_proses,
-            'notaris_pengambil' => $request->notaris_pengambil,
-            'nama_debitur_notaris_pengambil' => $request->nama_debitur_notaris_pengambil,
-            'objek_notaris_pengambil' => $request->objek_notaris_pengambil,
-            'tanggal' => $request->tanggal_nomor,
-        ]);
-
-        return back()->with('success', 'Berhasil update data');
-    }
 }

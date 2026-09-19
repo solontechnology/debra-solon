@@ -45,13 +45,13 @@
                             <span class="badge bg-danger text-white">Mendekati Expired</span>
                         </td>
                     </tr>
-                @empty
-                    <tr>
-                        <td colspan="4" class="text-center py-4 text-muted">
-                            <p class="mb-0">Tidak ada data PPAT yang expired dalam 1 minggu ke depan.</p>
-                        </td>
-                    </tr>
-                @endforelse
+                    @empty
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">
+                                <p class="mb-0">Tidak ada data PPAT yang expired dalam 1 minggu ke depan.</p>
+                            </td>
+                        </tr>
+                    @endforelse
             </tbody>
         </table>
     </div>

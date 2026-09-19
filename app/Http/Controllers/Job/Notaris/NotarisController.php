@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\Job\UpdateStatusJobDivisiController;
 use App\Models\JobDivisiFormOrder;
 use App\Models\NomorPpat;
+use App\Models\PenomoranSetting;
 use App\Models\StatusJobOps;
 use App\Models\User;
 use App\Services\Akta\InputNomorServis;
@@ -123,10 +124,67 @@ class NotarisController extends Controller
                 return redirect()->back()->with("success", "Berhasil simpan nomor rekanan");
             }
 
+            // $kategori = $request->kategori;
+            // $tanggal_nomor = $request->tanggal_nomor;
+
+            // $nomor = $this->inputNomorServis->execute($kategori, $tanggal_nomor);
             $kategori = $request->kategori;
             $tanggal_nomor = $request->tanggal_nomor;
+            // dd([
+            //     'kategori_dari_form' => $request->kategori,
+            //     'semua_setting' => PenomoranSetting::pluck('kategori')->toArray(),
+            // ]);
 
-            $nomor = $this->inputNomorServis->execute($kategori, $tanggal_nomor);
+            $setting = PenomoranSetting::where(
+                'kategori',
+                $kategori
+            )->first();
+
+            if (!$setting) {
+                throw new Exception(
+                    "Pengaturan penomoran untuk kategori {$kategori} belum tersedia."
+                );
+            }
+
+            if ($setting->mode === 'manual') {
+
+                $request->validate([
+                    'nomor' => 'required|string|max:255',
+                ], [
+                    'nomor.required' => 'Nomor harus diisi',
+                ]);
+
+                $nomor = $request->nomor;
+
+                // Cek nomor duplikat
+                $queryDuplicate = NomorPpat::query()
+                    ->where('kategori', $kategori)
+                    ->where('nomor', $nomor)
+                    ->where('rekanan', 0);
+
+                $tanggal = Carbon::parse($tanggal_nomor);
+
+                if ($setting->reset_period === 'month') {
+                    $queryDuplicate
+                        ->whereMonth('tanggal', $tanggal->month)
+                        ->whereYear('tanggal', $tanggal->year);
+                } else {
+                    $queryDuplicate
+                        ->whereYear('tanggal', $tanggal->year);
+                }
+
+                if ($queryDuplicate->exists()) {
+                    throw new Exception(
+                        "Nomor {$nomor} sudah digunakan pada periode tersebut."
+                    );
+                }
+            } else {
+
+                $nomor = $this->inputNomorServis->execute(
+                    $kategori,
+                    $tanggal_nomor
+                );
+            }
 
             $item = NomorPpat::create([
                 "nomor" => $nomor,

@@ -1,14 +1,16 @@
 <!-- Button trigger modal -->
-<button type="button" class="btn btn-outline-info d-inline-flex align-items-center gap-2 px-3 py-1.5 shadow-sm fw-medium" data-bs-toggle="modal" data-bs-target="#modalPPat{{ $key }}">
+<button type="button" class="btn btn-outline-info d-inline-flex align-items-center gap-2 px-3 py-1.5 shadow-sm fw-medium"
+    data-bs-toggle="modal" data-bs-target="#modalPPat{{ $key }}">
     <i class="bi bi-file-earmark-text"></i>
     <span>Nomor {{ strtoupper($tipe) }}</span>
 </button>
 
 <!-- Modal -->
-<div class="modal fade" id="modalPPat{{ $key }}" tabindex="-1" aria-labelledby="modalPPat{{ $key }}Label" aria-hidden="true">
+<div class="modal fade" id="modalPPat{{ $key }}" tabindex="-1" aria-labelledby="modalPPat{{ $key }}Label"
+    aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow rounded-4">
-            
+
             {{-- Header Modal: Bersih dengan badge status --}}
             <div class="modal-header bg-white border-bottom py-3 px-4">
                 <div>
@@ -16,22 +18,33 @@
                         Form Penginputan Nomor {{ strtoupper($tipe) }}
                     </h1>
                     <div class="d-flex align-items-center gap-2 mt-1">
-                        <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1 fw-medium text-uppercase" style="font-size: 0.70rem;">
+                        <span
+                            class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1 fw-medium text-uppercase"
+                            style="font-size: 0.70rem;">
                             Proses: {{ $nama_proses }}
                         </span>
                     </div>
                 </div>
-                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
             </div>
 
             {{-- Body Modal: Padding lega dan form control shadow-sm --}}
             <div class="modal-body p-4">
-                <form action="{{ route('job.notaris.simpanNomorPPAT') }}" id="form_ppat{{ $key }}" method="post">
+                <form action="{{ route('job.notaris.simpanNomorPPAT') }}" id="form_ppat{{ $key }}"
+                    method="post">
                     @csrf
                     <input type="text" value="{{ $formOrder->id }}" name="form_id" hidden>
                     <input type="text" value="{{ $formOrder->kategori }}" name="kategori" hidden>
-                    
-                    @if ($formOrder->nomorPpat)
+                    {{-- {{ dd($formOrder->kategori) }} --}}
+                    @php
+                        $penomoranSetting = \App\Models\PenomoranSetting::where(
+                            'kategori',
+                            $formOrder->kategori,
+                        )->first();
+                    @endphp
+
+                    {{-- @if ($formOrder->nomorPpat)
                         <div class="mb-4">
                             <label class="form-label fw-semibold text-secondary small mb-2 required">
                                 Nomor {{ strtoupper($tipe) }}
@@ -41,6 +54,35 @@
                             <div class="form-text mt-2 text-muted small">
                                 <i class="bi bi-clock-history me-1"></i>
                                 {{ \Carbon\Carbon::parse($formOrder->nomorPpat->tanggal)->format('d/M/Y') }}
+                            </div>
+                        </div>
+                    @endif --}}
+                    @if ($formOrder->nomorPpat)
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold text-secondary small mb-2 required">
+                                Nomor {{ strtoupper($tipe) }}
+                            </label>
+
+                            <input type="text" autocomplete="off" class="form-control shadow-sm"
+                                value="{{ $formOrder->nomorPpat->nomor ?? '' }}" name="nomor" readonly>
+
+                            <div class="form-text mt-2 text-muted small">
+                                <i class="bi bi-clock-history me-1"></i>
+                                {{ \Carbon\Carbon::parse($formOrder->nomorPpat->tanggal)->format('d/M/Y') }}
+                            </div>
+                        </div>
+                    @elseif ($penomoranSetting?->mode === 'manual')
+                        <div class="mb-4 form_manual_nomor">
+                            <label class="form-label fw-semibold text-secondary small mb-2 required">
+                                Nomor {{ strtoupper($tipe) }}
+                            </label>
+
+                            <input type="text" autocomplete="off" class="form-control shadow-sm" name="nomor"
+                                placeholder="Masukkan nomor {{ strtolower($tipe) }}">
+
+                            <div class="form-text mt-2 text-muted small">
+                                <i class="bi bi-pencil-square me-1"></i>
+                                Nomor diinput secara manual.
                             </div>
                         </div>
                     @endif
@@ -55,7 +97,7 @@
 
                     <div class="mb-4">
                         <label class="form-label fw-semibold text-secondary small mb-2">
-                            Tanggal Perpanjangan
+                            Tanggal Perpanjangan / Expired
                         </label>
                         <input type="date" autocomplete="off"
                             value="{{ $formOrder->nomorPpat->tanggal_expired ?? '' }}" class="form-control shadow-sm"
@@ -69,7 +111,8 @@
                             @endphp
                             <input class="form-check-input" name="rekanan" {{ $rekanan ? 'checked' : '' }}
                                 type="checkbox" role="switch" id="switchCheckNotarisRekanan{{ $key }}">
-                            <label class="form-check-label fw-medium ms-2" for="switchCheckNotarisRekanan{{ $key }}">
+                            <label class="form-check-label fw-medium ms-2"
+                                for="switchCheckNotarisRekanan{{ $key }}">
                                 Notaris Rekanan
                             </label>
                         </div>
@@ -80,7 +123,8 @@
                             <label class="form-label fw-semibold text-secondary small mb-2 required">
                                 Nomor {{ strtoupper($tipe) }} Rekanan
                             </label>
-                            <input type="text" autocomplete="off" class="form-control shadow-sm" name="nomor_rekanan">
+                            <input type="text" autocomplete="off" class="form-control shadow-sm"
+                                name="nomor_rekanan">
                         </div>
                     @endif
                 </form>
@@ -88,9 +132,11 @@
 
             {{-- Footer Modal: Background light dengan tombol terstruktur --}}
             <div class="modal-footer bg-light border-top-0 py-3 px-4 rounded-bottom-4">
-                <button type="button" class="btn btn-outline-secondary px-4 fw-medium" data-bs-dismiss="modal">Tutup</button>
+                <button type="button" class="btn btn-outline-secondary px-4 fw-medium"
+                    data-bs-dismiss="modal">Tutup</button>
                 @if (!$formOrder->nomorPpat)
-                    <button type="button" class="btn btn-primary px-4 fw-medium shadow-sm d-flex align-items-center gap-2 btn__simpant_ppt{{ $key }}">
+                    <button type="button"
+                        class="btn btn-primary px-4 fw-medium shadow-sm d-flex align-items-center gap-2 btn__simpant_ppt{{ $key }}">
                         <i class="bi bi-save"></i>
                         <span>Simpan</span>
                     </button>
@@ -113,7 +159,7 @@
         <script>
             // Sembunyikan default saat load
             $(".form_rekanan").hide();
-            
+
             // Toggle form rekanan saat switch diubah
             $("#switchCheckNotarisRekanan{{ $key }}").on("change", function() {
                 if ($(this).is(":checked")) {
