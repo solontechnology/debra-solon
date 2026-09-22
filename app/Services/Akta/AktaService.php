@@ -220,4 +220,80 @@ class AktaService
                 ];
             });
     }
+
+    public function getItemsForExport(Request $request, string $tipe)
+    {
+        return JobDivisiFormOrder::with([
+            'jobDivisi.jenisAkad',
+            'jobDivisi.listBank',
+            'jobDivisi.debitur',
+            'jobDivisi.objek',
+            'statusJobOps.createdBy',
+            'statusJobOps.user',
+            'statusJobOps.nextUser',
+            'nomorPpat',
+        ])
+            ->whereNotIn("status", ["rejected", "Dibatalkan", "pending"])
+            ->whereIn('kategori', [
+                'notaris',
+                'ppat',
+                'legalisasi',
+                'waarmerking',
+                'surat-keluar',
+                'wasiat',
+                'covernot'
+            ])
+            ->where('kategori', $tipe)
+            ->whereHas("jobDivisi")
+            ->orderBy("id", "desc")
+            ->when($request->parent, function ($query, $parent) {
+                return $query->whereHas('jobDivisi', function ($query) use ($parent) {
+                    return $query->where('kode', 'LIKE', "%$parent%");
+                });
+            })
+            ->when($request->nomor_akta, function ($query, $nomorAkta) {
+                return $query->whereHas('nomorPpat', function ($query) use ($nomorAkta) {
+                    return $query->where('nomor', 'LIKE', "%$nomorAkta%");
+                });
+            })
+            ->when($request->proses, function ($query, $proses) {
+                return $query->where('nama', $proses);
+            })
+            ->when($request->status, function ($query, $status) {
+                return $this->applyStatusFilter($query, $status);
+            })
+            ->when($request->penugasan, function ($query, $penugasan) {
+                return $query->whereHas('statusJobOps', function ($q) use ($penugasan) {
+                    $q->where('user_id', $penugasan)
+                        ->whereRaw('status_job_ops.id = (select max(s2.id) from status_job_ops s2 where s2.job_divisi_form_order_id = job_divisi_form_orders.id)');
+                });
+            })
+            ->when($request->penugasan_qc, function ($query, $penugasanQc) {
+                return $query->whereHas('statusJobOps', function ($q) use ($penugasanQc) {
+                    $q->where('next_user', $penugasanQc)
+                        ->whereRaw('status_job_ops.id = (select max(s2.id) from status_job_ops s2 where s2.job_divisi_form_order_id = job_divisi_form_orders.id)');
+                });
+            })
+            ->when($request->nomor_objek, function ($query, $nomorObjek) {
+                return $query->whereHas('jobDivisi.objek', function ($q) use ($nomorObjek) {
+                    $q->where('no_sertifikat', 'LIKE', "%{$nomorObjek}%");
+                });
+            })
+            ->when($request->nama_debitur, function ($query, $namaDebitur) {
+                return $query->whereHas('jobDivisi.debitur', function ($q) use ($namaDebitur) {
+                    $q->where('nama', 'LIKE', "%{$namaDebitur}%");
+                });
+            })
+            ->when($request->bank, function ($query, $bank) {
+                return $query->whereHas('jobDivisi.listBank', function ($q) use ($bank) {
+                    $q->where('banks.id', $bank);
+                });
+            })
+            ->when($request->status_akad, function ($query, $statusAkad) {
+                return $query->whereHas('jobDivisi', function ($q) use ($statusAkad) {
+                    $q->where('status', $statusAkad);
+                });
+            })
+            ->get();
+    }
 }

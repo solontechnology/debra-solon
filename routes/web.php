@@ -6,6 +6,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Export\ExportJobDivisiController;
 use App\Http\Controllers\Export\ExportQuotationJobDivisiController;
+use App\Http\Controllers\Export\ExportJobOpsController;
+use App\Http\Controllers\Export\ExportAktaController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\Finance\FinanceJobDivisiController;
 use App\Http\Controllers\Finance\FinanceReportController;
@@ -62,12 +64,18 @@ Route::get('/', function () {
 });
 
 // 2. Halaman Login yang Sebenarnya
+
 Route::get('/login', function () {
     $keyPath = storage_path('app/keys/public.pem');
     $publicKey = File::exists($keyPath) ? File::get($keyPath) : null;
 
+    if (!file_exists($keyPath)) {
+        dd("STOP! The file is completely missing at: " . $keyPath);
+    }
+    
     return view('pages.login', compact('publicKey'));
 })->middleware('guest')->name('login');
+
 
 // Route proses login & logout
 Route::post("proses-login", [AuthController::class, "prosesLogin"])->name("prosesLogin");
@@ -131,6 +139,13 @@ Route::middleware('auth')->group(function () {
             Route::get("export-job-divisi", [ExportJobDivisiController::class, "index"])
                 ->name("export-job-divisi");
 
+
+            Route::get("export-job-ops", [ExportJobOpsController::class, "export"])
+                ->name("export-job-ops");
+
+
+            Route::get('/job/akta/{tipe}/export', [ExportAktaController::class, 'export'])
+                ->name('export-akta');
 
 
             Route::get("export-quotation-job-divisi/{id}", [ExportJobDivisiController::class, "printQuotation"])
