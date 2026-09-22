@@ -50,7 +50,7 @@
                             </td>
                             <td class="text-secondary small">
                                 <i class="bi bi-calendar-event me-1 text-muted"></i>
-                                {{ $ppat->created_at->translatedFormat('d M Y') }}
+                                {{ $ppat->tanggal }}
                             </td>
                             <td>
                                 <span class="text-danger fw-bold small">
@@ -59,11 +59,19 @@
                                 </span>
                             </td>
                             <td class="pe-4 text-center">
-                                <span
-                                    class="badge bg-danger-subtle text-danger border border-danger-subtle d-inline-flex align-items-center gap-1 px-2.5 py-1.5 fw-medium">
-                                    <i class="bi bi-exclamation-triangle-fill"></i>
-                                    Mendekati Expired
-                                </span>
+                                @if (\Carbon\Carbon::parse($ppat->tanggal_expired)->startOfDay()->lt(now()->startOfDay()))
+                                    <span
+                                        class="badge bg-danger-subtle text-danger border border-danger-subtle d-inline-flex align-items-center gap-1 px-2.5 py-1.5 fw-medium">
+                                        <i class="bi bi-exclamation-triangle-fill"></i>
+                                        Silahkan Ambil Nomor Baru
+                                    </span>
+                                @else
+                                    <span
+                                        class="badge bg-warning-subtle text-warning border border-warning-subtle d-inline-flex align-items-center gap-1 px-2.5 py-1.5 fw-medium">
+                                        <i class="bi bi-clock-history"></i>
+                                        Mendekati Expired
+                                    </span>
+                                @endif
                             </td>
                         </tr>
                     @empty
