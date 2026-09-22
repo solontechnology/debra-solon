@@ -4,7 +4,7 @@ return [
     'akta' => [
         'default' => [
             'notaris' => [
-                ['name' => 'Penugasan'],
+                // ['name' => 'Penugasan'],
                 ['name' => 'Draft'],
                 ['name' => 'Salinan'],
                 ['name' => 'Minuta'],
@@ -19,10 +19,10 @@ return [
 
         'debra' => [
             'notaris' => [
-                [
-                    'name' => 'Penugasan Draft',
-                    'penugasan' => true,
-                ],
+                // [
+                //     'name' => 'Penugasan Draft',
+                //     'penugasan' => true,
+                // ],
                 ['name' => 'Draft'],
 
                 // [
@@ -31,15 +31,15 @@ return [
                 // ],
                 // ['name' => 'Renvoi Minuta Akta'],
 
-                [
-                    'name' => 'Penugasan Salinan',
-                    'penugasan' => true,
-                ],
+                // [
+                //     'name' => 'Penugasan Salinan',
+                //     'penugasan' => true,
+                // ],
                 ['name' => 'Salinan'],
-                [
-                    'name' => 'Penugasan Minuta',
-                    'penugasan' => true,
-                ],
+                // [
+                //     'name' => 'Penugasan Minuta',
+                //     'penugasan' => true,
+                // ],
 
                 ['name' => 'Minuta'],
                 ['name' => 'Menunggu ttd Notaris'],

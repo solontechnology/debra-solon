@@ -120,6 +120,7 @@ class AuthController extends Controller
             $loginType => $decryptedEmail,
             'password' => $decryptedPassword
         ];
+        
 
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();

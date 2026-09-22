@@ -14,20 +14,20 @@
 
     $isStaffStep = !$isPenugasanStep;
 
-    $canAccess =
-        $isSuperAdmin ||
-        (
-            $isPenugasanStep &&
-            auth()->user()->can('job/akta/penugasan')
-        ) ||
-        (
-            $isStaffStep &&
-            $assignedStaffId == $currentUserId
-        );
+    // $canAccess =
+    //     $isSuperAdmin ||
+    //     (
+    //         $isPenugasanStep &&
+    //         auth()->user()->can('job/akta/penugasan')
+    //     ) ||
+    //     (
+    //         $isStaffStep &&
+    //         $assignedStaffId == $currentUserId
+    //     );
 @endphp
 
 <div>
-    @if ($canAccess)
+    {{-- @if ($canAccess) --}}
         @if ($currentStatus !== 'Selesai')
             @if ($currentStatus !== '')
                 <button type="button" class="btn btn-primary btn-md"
@@ -136,5 +136,5 @@
 
             </form>
         @endif
-    @endif
+    {{-- @endif --}}
 </div>

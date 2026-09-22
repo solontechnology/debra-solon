@@ -2,6 +2,8 @@
 
 @section('title')
     Job Divisi {{ $jobDivisi->kode }}
+    <br>
+    Debitur : {{ $jobDivisi->debitur->pluck('nama')->join(', ') ?: '-' }}
 @endsection
 
 @push('page-title')

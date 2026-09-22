@@ -53,7 +53,7 @@
                     <div class="col-12 col-md-auto">
                         <label class="form-label text-white opacity-75 small">Bulan Analisa</label>
                         <input type="month" name="filter_month" class="form-control shadow-sm"
-                            value="{{ request('filter_month', date('Y-m')) }}">
+                            value="{{ request('filter_month') }}">
                     </div>
                     {{-- Filter Satuan Grafik --}}
                     <div class="col-12 col-md-auto">
@@ -83,6 +83,11 @@
                         <button class="btn btn-light text-primary fw-semibold shadow-sm w-100">
                             Terapkan Filter
                         </button>
+                    </div>
+                    <div class="col-12 col-md-auto"> 
+                        <a href="/dashboard" class="btn btn-outline-light fw-semibold shadow-sm w-100">
+                            Reset 
+                        </a> 
                     </div>
                 </form>
             </div>
