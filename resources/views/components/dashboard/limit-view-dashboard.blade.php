@@ -24,7 +24,7 @@
                         <th scope="col" class="ps-4 py-3" style="width: 60px;">No</th>
                         <th scope="col" class="py-3">Parent</th>
                         <th scope="col" class="py-3">Proses</th>
-                        <th scope="col" class="py-3">Nomor</th>
+                        <th scope="col" class="py-3">Nomor Akta</th>
                         <th scope="col" class="py-3">Tanggal Input</th>
                         <th scope="col" class="py-3">Tanggal Expired</th>
                         <th scope="col" class="pe-4 py-3 text-center" style="width: 160px;">Status</th>
