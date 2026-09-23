@@ -107,7 +107,10 @@
                                 <td>
                                     <div class="d-flex align-items-center gap-1 text-secondary">
                                         <i class="bi bi-calendar2-event small"></i>
-                                        <span>{{ $item->tanggal_akad ? $item->tanggal_akad : $item->tanggal_rencana_akad }}</span>
+                                        <span>{{ 
+                                        // $item->tanggal_akad ? $item->tanggal_akad : 
+                                        $item->tanggal_rencana_akad 
+                                        }}</span>
                                     </div>
                                 </td>
                                 <td>
