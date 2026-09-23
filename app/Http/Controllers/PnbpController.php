@@ -171,12 +171,13 @@ class PnbpController extends Controller
             DB::commit();
 
             return redirect()
-                ->route("job.pnbp.index")
+                // ->route("job.pnbp.index")
+                ->back()
                 ->with("success", "PNBP berhasil ditugaskan");
         } catch (Exception $e) {
 
             DB::rollBack();
-            dd($e);
+            // dd($e);
             return redirect()
                 ->route("job.pnbp.index")
                 ->with("error", "Terjadi kesalahan server");
