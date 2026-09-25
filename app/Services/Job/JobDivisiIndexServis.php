@@ -34,7 +34,7 @@ class JobDivisiIndexServis
             "debitur",
             "pembatalan.user",
             "pembatalan.user2",
-            "formOrder",
+            "formOrder.nomorPpat",
             "finance"
         )
             ->orderBy("is_pending", "desc")
@@ -70,8 +70,32 @@ class JobDivisiIndexServis
             }, function ($query) {
                 return $query->where("status", "!=", "Selesai");
             })
+            // ->paginate(12)
+            // ->withQueryString();
             ->paginate(12)
             ->withQueryString();
+
+        $items->getCollection()->transform(function ($item) {
+            $tanggalEstimasiInternal = $item->tanggal_estimasi_selesai;
+
+            $tanggalExpiredTerbesar = $item->formOrder
+                ->map(fn($formOrder) => $formOrder->nomorPpat?->tanggal_expired)
+                ->filter()
+                ->max();
+
+            if (!$tanggalEstimasiInternal) {
+                $item->tanggal_estimasi_selesai = $tanggalExpiredTerbesar;
+            } elseif (!$tanggalExpiredTerbesar) {
+                $item->tanggal_estimasi_selesai = $tanggalEstimasiInternal;
+            } else {
+                $item->tanggal_estimasi_selesai = max(
+                    $tanggalEstimasiInternal,
+                    $tanggalExpiredTerbesar
+                );
+            }
+
+            return $item;
+        });
 
         return [
             "items" => $items,

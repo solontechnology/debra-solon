@@ -196,6 +196,9 @@ class NotarisController extends Controller
                 "kategori" => $request->kategori
             ]);
 
+            $this->updateEstimasiJobDivisi(
+                JobDivisiFormOrder::findOrFail($request->form_id)
+            );
             DB::commit();
 
             return redirect()->back()->with("success", "Berhasil simpan Nomor ");
@@ -203,5 +206,75 @@ class NotarisController extends Controller
             DB::rollBack();
             return redirect()->back()->with("error", $th->getMessage());
         }
+    }
+
+    private function updateEstimasiJobDivisi(JobDivisiFormOrder $formOrder): void
+    {
+        $jobDivisi = $formOrder->jobDivisi;
+
+        if (!$jobDivisi) {
+            return;
+        }
+
+        $formOrders = JobDivisiFormOrder::with('nomorPpat')
+            ->where('job_divisi_id', $jobDivisi->id)
+            ->get();
+
+        $tanggalExpiredTerbesar = $formOrders
+            ->map(fn($formOrder) => $formOrder->nomorPpat?->tanggal_expired)
+            ->filter()
+            ->map(fn($tanggal) => Carbon::parse($tanggal))
+            ->max();
+
+        // Tidak ada tanggal expired
+        if (!$tanggalExpiredTerbesar) {
+            return;
+        }
+
+        $tanggalEstimasi = $jobDivisi->tanggal_estimasi_selesai
+            ? Carbon::parse($jobDivisi->tanggal_estimasi_selesai)
+            : null;
+
+        $tanggalEksternal = $jobDivisi->tanggal_estimasi_selesai_eksternal
+            ? Carbon::parse($jobDivisi->tanggal_estimasi_selesai_eksternal)
+            : null;
+
+        // Kalau expired terbesar tidak lebih besar dari estimasi sekarang,
+        // jangan ubah apa-apa.
+        if (
+            $tanggalEstimasi &&
+            !$tanggalExpiredTerbesar->gt($tanggalEstimasi)
+        ) {
+            return;
+        }
+
+        /*
+     * Hitung selisih internal -> eksternal SEBELUM internal berubah.
+     */
+        $selisihHari = 0;
+
+        if ($tanggalEstimasi && $tanggalEksternal) {
+            $selisihHari = $tanggalEstimasi->diffInDays(
+                $tanggalEksternal,
+                false
+            );
+        }
+
+        /*
+     * Internal mengikuti expired terbesar.
+     */
+        $tanggalEstimasiBaru = $tanggalExpiredTerbesar->copy();
+
+        /*
+     * Eksternal ikut bergeser dengan selisih yang sama.
+     */
+        $tanggalEksternalBaru = $tanggalEstimasiBaru
+            ->copy()
+            ->addDays($selisihHari);
+
+        $jobDivisi->update([
+            'tanggal_estimasi_selesai' => $tanggalEstimasiBaru->toDateString(),
+            'tanggal_estimasi_selesai_eksternal' => $tanggalEksternalBaru->toDateString(),
+        ]);
     }
 }

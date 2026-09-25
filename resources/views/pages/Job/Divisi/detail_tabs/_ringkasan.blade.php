@@ -202,6 +202,8 @@
                         @endif
 
                         @if ($jobDivisi->tanggal_estimasi_selesai_eksternal)
+                        {{-- {{dd($jobDivisi)}} --}}
+
                             <div class="col-md-4">
                                 <label class="form-label fw-semibold text-dark small">
                                     Tanggal SLA Eksternal

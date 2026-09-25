@@ -107,19 +107,30 @@
                                 <td>
                                     <div class="d-flex align-items-center gap-1 text-secondary">
                                         <i class="bi bi-calendar2-event small"></i>
-                                        <span>{{ 
-                                        // $item->tanggal_akad ? $item->tanggal_akad : 
-                                        $item->tanggal_rencana_akad 
-                                        }}</span>
+                                        <span>{{ // $item->tanggal_akad ? $item->tanggal_akad :
+                                            $item->tanggal_rencana_akad }}</span>
                                     </div>
                                 </td>
                                 <td>
                                     <span class="badge bg-light text-secondary border">
+                                        {{-- {{ dd([
+                                            'job_divisi_id' => $item->id,
+                                            'estimasi_internal' => $item->tanggal_estimasi_selesai,
+                                            'expired' => $item->formOrder->map(function ($formOrder) {
+                                                return [
+                                                    'form_order_id' => $formOrder->id,
+                                                    'tanggal_expired' => $formOrder->nomorPpat?->tanggal_expired,
+                                                ];
+                                            }),
+                                            'hasil' => $item->tanggal_estimasi_selesai_eksternal,
+                                        ]) }} --}}
                                         {{ $item->tanggal_estimasi_selesai ?: '-' }}
                                     </span>
                                 </td>
                                 <td>
                                     <span class="badge bg-light text-secondary border">
+                                        {{-- {{dd($item)}} --}}
+                                        
 
                                         {{ $item->tanggal_estimasi_selesai_eksternal ?: '-' }}
                                     </span>

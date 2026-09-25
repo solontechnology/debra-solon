@@ -471,6 +471,7 @@ class JobDivisiController extends Controller
                 }
 
                 $jobDivisi->update($formUpdate);
+                $this->updateEstimasiSelesai($jobDivisi);
             }
 
             if ($request->foto_akad) {
@@ -509,6 +510,63 @@ class JobDivisiController extends Controller
         }
     }
 
+    private function updateEstimasiSelesai(JobDivisi $jobDivisi): void
+    {
+        $jobDivisi->load('formOrder.nomorPpat');
+
+        $tanggalEstimasi = $jobDivisi->tanggal_estimasi_selesai
+            ? Carbon::parse($jobDivisi->tanggal_estimasi_selesai)
+            : null;
+
+        $tanggalEksternal = $jobDivisi->tanggal_estimasi_selesai_eksternal
+            ? Carbon::parse($jobDivisi->tanggal_estimasi_selesai_eksternal)
+            : null;
+
+        $tanggalExpiredTerbesar = $jobDivisi->formOrder
+            ->map(fn($formOrder) => $formOrder->nomorPpat?->tanggal_expired)
+            ->filter()
+            ->map(fn($tanggal) => Carbon::parse($tanggal))
+            ->max();
+
+        // Tidak ada tanggal expired
+        if (!$tanggalExpiredTerbesar) {
+            return;
+        }
+
+        // Expired tidak lebih besar dari estimasi sekarang
+        if (
+            $tanggalEstimasi &&
+            !$tanggalExpiredTerbesar->gt($tanggalEstimasi)
+        ) {
+            return;
+        }
+
+        /*
+     * Simpan selisih internal -> eksternal sebelum tanggal internal berubah
+     */
+        $selisihHari = 0;
+
+        if ($tanggalEstimasi && $tanggalEksternal) {
+            $selisihHari = $tanggalEstimasi->diffInDays($tanggalEksternal, false);
+        }
+
+        /*
+     * Internal berubah mengikuti tanggal expired terbesar.
+     */
+        $tanggalEstimasiBaru = $tanggalExpiredTerbesar->copy();
+
+        /*
+     * Eksternal ikut bergeser dengan selisih yang sama.
+     */
+        $tanggalEksternalBaru = $tanggalEstimasiBaru
+            ->copy()
+            ->addDays($selisihHari);
+
+        $jobDivisi->update([
+            'tanggal_estimasi_selesai' => $tanggalEstimasiBaru->toDateString(),
+            'tanggal_estimasi_selesai_eksternal' => $tanggalEksternalBaru->toDateString(),
+        ]);
+    }
     public function batalAkad(Request $request, $id)
     {
         $request->validate([
