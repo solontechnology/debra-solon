@@ -38,65 +38,53 @@ class ExportAktaCovernot implements FromCollection, WithHeadings, WithMapping
         ];
     }
 
-    /**
-     * @param mixed $item
-     */
-    public function map($item): array
+
+public function map($item): array
     {
-        /** @var \App\Models\JobDivisiFormOrder $item */
         $this->rowNumber++;
 
-        // Safely extract covernote using your fail-safe logic
-        $covernote = null;
-        $relation = $item->nomorPpat;
-
-        if ($relation instanceof \Illuminate\Database\Eloquent\Collection) {
-            $covernote = $relation->first();
-        } elseif ($relation instanceof \Illuminate\Database\Eloquent\Model) {
-            $covernote = $relation;
-        } elseif (is_iterable($relation)) {
-            $covernote = collect($relation)->first();
-        } else {
-            $covernote = $item->nomorPpat()->first();
+        // 1. Safely handle the relation (in case it's a Collection or from activeCovernote)
+        $nomorPpat = $item->activeCovernote ?? $item->nomorPpat;
+        if ($nomorPpat instanceof \Illuminate\Support\Collection) {
+            $nomorPpat = $nomorPpat->first();
         }
 
-        // Format dates safely
+
         $tanggalCovernote = '-';
-        if ($covernote && !empty($covernote->tanggal_covernote)) {
-            $tanggalCovernote = date('Y-m-d', strtotime($covernote->tanggal_covernote));
+        if (!empty($nomorPpat) && !empty($nomorPpat->tanggal)) {
+            $tanggalCovernote = date('Y-m-d', strtotime($nomorPpat->tanggal));
         }
+
 
         $expiredCovernote = '-';
-        if ($covernote && !empty($covernote->expired_covernote)) {
-            $expiredCovernote = date('Y-m-d', strtotime($covernote->expired_covernote));
+        if (!empty($nomorPpat) && !empty($nomorPpat->tanggal_expired)) {
+            $expiredCovernote = date('Y-m-d', strtotime($nomorPpat->tanggal_expired));
         }
 
-        // Handle Debitur (using collection check or direct property depending on relationship)
         $namaDebitur = '-';
-        if ($item->jobDivisi->debitur) {
+        if (!empty($item->jobDivisi->debitur)) {
             $namaDebitur = $item->jobDivisi->debitur instanceof \Illuminate\Support\Collection 
                 ? $item->jobDivisi->debitur->pluck('nama')->implode(', ') 
                 : ($item->jobDivisi->debitur->nama ?? '-');
         }
 
-        // Handle Objek
         $namaObjek = '-';
-        if ($item->jobDivisi->objek) {
+        if (!empty($item->jobDivisi->objek)) {
             $namaObjek = $item->jobDivisi->objek instanceof \Illuminate\Support\Collection 
                 ? $item->jobDivisi->objek->pluck('no_sertifikat')->implode(', ') 
                 : ($item->jobDivisi->objek->no_sertifikat ?? '-');
         }
 
         return [
-            $this->rowNumber,                                                               
-            $item->jobDivisi->kode ?? '-',                                                  
-            $item->jobDivisi->jenisAkad->nama ?? '-',                                       
-            $namaDebitur,                                                                   
-            $item->jobDivisi->bank->nama ?? '-', // Fixed to match listBank relation
-            $namaObjek,                                                                     
-            $covernote->nomor_covernote ?? '-',                                             
-            $tanggalCovernote,                                                              
-            $expiredCovernote,                                                              
+            $this->rowNumber,                                                       
+            $item->jobDivisi->kode ?? '-',                                          
+            $item->jobDivisi->jenisAkad->nama ?? '-',                               
+            $namaDebitur,                                                           
+            $item->jobDivisi->bank->nama ?? '-', 
+            $namaObjek,                                                             
+            $nomorPpat->nomor_covernote ?? $nomorPpat->nomor ?? '-', // Fixed undefined $covernote variable here
+            $tanggalCovernote,                                                      
+            $expiredCovernote,                                                      
         ];
     }
 }

@@ -17,6 +17,7 @@ class ExportAktaController extends Controller
 
     public function export(Request $request, $tipe) 
     {
+        // 1. Get the items using your existing AktaService function
         $rawItems = $this->aktaService->getItemsForExport($request, $tipe);
 
         $client = config('app.notaris', 'default');
@@ -27,24 +28,22 @@ class ExportAktaController extends Controller
         $items = collect();
 
         foreach ($rawItems as $item) {
-            // Calculate workflow status for the item
+
             $status = $item->statusJobOps->last()->status ?? 'Belum dikerjakan';
             $nextStep = $this->getNextStep($workflow, $status);
             $item->nextStep = $nextStep['name'] ?? $status;
 
-            // Since nomorPpat is defined as hasOne, it is a single model object (or null)
-            $item->activeCovernote = $item->nomorPpat;
+            $nomorPpat = $item->nomorPpat;
+            $item->activeCovernote = $nomorPpat instanceof \Illuminate\Support\Collection 
+                ? $nomorPpat->first() 
+                : $nomorPpat;
 
             $items->push($item);
         }
 
         $fileName = 'job-' . strtolower($tipe) . '.xlsx';
 
-        if (strtolower($tipe) === 'covernot') {
-            return Excel::download(new ExportAktaCovernot($items), $fileName);
-        }
-
-        return Excel::download(new ExportJobOps($items), $fileName);
+        return Excel::download(new ExportAktaCovernot($items), $fileName);
     }
 
     private function getNextStep(array $workflow, string $currentStatus): ?array
