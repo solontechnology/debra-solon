@@ -1,10 +1,13 @@
 <?php
 
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\Job\HistoryJobDivisiController;
 use App\Http\Controllers\Laporan\InvoiceHistoryController;
 use App\Http\Controllers\Laporan\PekerjaanStaff\Detail\detailLaporanPekerjaanStaffController;
 use App\Http\Controllers\Laporan\PekerjaanStaff\Home\homeLaporanPekerjaanStaffController;
 use App\Http\Controllers\Laporan\PenomoranController;
+use App\Http\Controllers\Laporan\HistoryJobDivisi\Home\homeHistoryJobDivisiController;
+use App\Http\Controllers\Laporan\HistoryJobDivisi\Detail\detailHistoryJobDivisiController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -40,10 +43,28 @@ Route::middleware('auth')->group(function () {
     Route::get('/laporan/detail-pekerjaan-staff/{encryptedId}/export', [detailLaporanPekerjaanStaffController::class, 'exportDetailLaporanPekerjaanToExcel'])
         ->name('laporan.detail-pekerjaan-staff.export');
 
-    Route::get(
-        'laporan/list-job-divisi-history',
-        [InvoiceHistoryController::class, 'index']
-    )->name('laporan.list-job-divisi-history');
+
+    // END Laporan Pekerjaan (Halaman List Home & Detail Staff)
+
+
+    // START Laporan Pekerjaan (Halaman List Home & Detail)
+
+    Route::get('laporan/list-job-divisi-history', [homeHistoryJobDivisiController::class, 'index'])
+        ->name('laporan.list-job-divisi-history');
+
+    Route::get('laporan/list-job-divisi-history/show', [homeHistoryJobDivisiController::class, 'show'])
+        ->name('laporan.list-job-divisi-history.show');
+
+    Route::get('laporan/list-job-divisi-history/{encryptedId}', [detailHistoryJobDivisiController::class, 'index'])
+        ->name('laporan.list-job-divisi-history.detail');
+
+    Route::get('/laporan/detail-pekerjaan/list-job-divisi-history/{encryptedId}/export', [detailHistoryJobDivisiController::class, 'exportDetailLaporanToExcel'])
+        ->name('laporan.detail-pekerjaan.export');
+
+    // Route::get(
+    //     'laporan/list-job-divisi-history',
+    //     [InvoiceHistoryController::class, 'index']
+    // )->name('laporan.list-job-divisi-history');
 
     // END Laporan Pekerjaan (Halaman List Home & Detail Staff)
 });

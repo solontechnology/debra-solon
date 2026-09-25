@@ -83,8 +83,20 @@
                 <h5 class="fw-bold m-0 text-dark">Daftar Job {{ strtoupper($tipe) }}</h5>
                 <p class="text-muted small m-0">Kelola dan pantau seluruh berkas proses {{ $tipe }}</p>
             </div>
+
+            
             <div class="d-flex align-items-center gap-2">
-                @include('pages.Job.Akta._modal-filter')
+                            {{-- Tampilkan tombol Export HANYA jika $tipe adalah 'covernot' --}}
+                <div class="d-flex align-items-center gap-2">
+                        
+                        <a href="{{ route('job.export-akta', array_merge(request()->query(), ['tipe' => strtolower($tipe)])) }}" 
+                        class="btn btn-success d-inline-flex align-items-center justify-content-center gap-2 shadow-sm px-3">
+                            <i class="bi bi-file-earmark-excel fs-6"></i>
+                            <span>Export Excel</span>
+                        </a>
+
+                        @include('pages.Job.Akta._modal-filter')
+                </div>
             </div>
         </div>
 

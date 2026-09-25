@@ -489,6 +489,7 @@
                                 History Pekerjaan Staff
                             </a>
                         @endcan
+
                         @can('laporan/list-job-divisi-history')
                             <a href="{{ route('laporan.list-job-divisi-history') }}"
                                 class="dropdown-item {{ request()->routeIs('laporan.list-job-divisi-history') ? 'active' : '' }}">
