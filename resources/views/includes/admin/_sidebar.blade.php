@@ -72,7 +72,11 @@
                                     </a>
                                     <a href="{{ route('master-data.kecamatan.index') }}"
                                         class="dropdown-item {{ request()->is('master-data/lokasi/kecamatan*') ? 'active' : '' }}">
-                                        kecamatan
+                                        Kecamatan
+                                    </a>
+                                    <a href="{{ route('master-data.desa.index') }}"
+                                        class="dropdown-item {{ request()->is('master-data/lokasi/desa*') ? 'active' : '' }}">
+                                        Desa
                                     </a>
                                 </div>
                             </div>

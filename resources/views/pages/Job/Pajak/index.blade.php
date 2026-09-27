@@ -7,6 +7,9 @@
 @section('content')
     <div class="card">
         <div class="card-body">
+            <div class="d-flex justify-content-end">
+                @include('pages.Job.Pajak._filter')
+            </div>
             <div class="table-responsive">
                 <table class="table table-bordered table-striped">
                     <thead>
@@ -89,6 +92,9 @@
                         @endforelse
                     </tbody>
                 </table>
+            </div>
+            <div class="mt-3">
+                {{ $items->links('pagination::bootstrap-5') }}
             </div>
         </div>
     </div>

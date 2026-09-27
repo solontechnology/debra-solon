@@ -31,6 +31,7 @@ use App\Http\Controllers\Job\Step2JobDivisiController;
 use App\Http\Controllers\Job\SuratKeluarController;
 use App\Http\Controllers\Job\WaarmerkingController;
 use App\Http\Controllers\Job\WasiatController;
+use App\Http\Controllers\Lokasi\DesaController;
 use App\Http\Controllers\Lokasi\KecamatanController;
 use App\Http\Controllers\Lokasi\KotaController;
 use App\Http\Controllers\Lokasi\ProvinsiController;
@@ -100,6 +101,7 @@ Route::middleware('auth')->group(function () {
                 Route::resource('provinsi', ProvinsiController::class);
                 Route::resource('kota', KotaController::class);
                 Route::resource('kecamatan', KecamatanController::class);
+                Route::resource('desa', DesaController::class);
             });
 
             Route::resource('divisi', DivisiController::class);
