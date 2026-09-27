@@ -72,8 +72,8 @@
                         <label class="form-label required">
                             Nominal Pembayaran
                         </label>
-{{-- {{ dd($item) }} --}}
-                        <input type="text" name="nominal" class="form-control"
+                        
+                        <input type="text" name="nominal" class="form-control money"
                             value="{{ number_format($item->harga_jual ?? 0, 0, ',', '.') }}">
 
                     </div>

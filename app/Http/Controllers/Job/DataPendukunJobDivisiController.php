@@ -361,14 +361,7 @@ class DataPendukunJobDivisiController extends Controller
             'updated_at' => now(),
         ]);
 
-        if ($request->hasFile('files')) {
-            foreach ($request->file('files') as $file) {
-                $path = $file->store('debitur', 'public');
-                $debitur->files()->create([
-                    'file_path' => $path,
-                    'file_name' => $file->getClientOriginalName(),
-                ]);
-            }
+         
         }
 
         return redirect(

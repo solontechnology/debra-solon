@@ -30,7 +30,10 @@
                                 Nama Bank
                             </th>
                             <th>
-                                Pembayaran
+                                Pembayaran 
+                            </th>
+                            <th>
+                                Kode Billing
                             </th>
                             <th>
                                 Status Akad
@@ -69,18 +72,34 @@
                                     Rp. {{ number_format($item->harga_jual, 2, ',', '.') }}
                                 </td>
                                 <td>
+                                    {{ $item->finance->kode_billing ?? '-' }}
+                                </td>
+                                <td>
                                     {{ $item->jobDivisi->status }}
                                 </td>
                                 <td>
                                     {{ $item->statusJobOps->last()->status ?? 'Belum dikerjakan' }}
                                 </td>
-                                <td>
+                                {{-- <td>
                                     @can('job/pajak/edit')
                                         @if ($item->jobDivisi->status !== 'Batal Akad')
                                             <x-pajak.edit-status-pajak :formOrder="$item" :key="$key" :jobDivisi="$item->jobDivisi"
                                                 :statusJobOps="$item->statusJobOps" />
                                         @endif
                                     @endcan
+                                </td> --}}
+                                <td>
+                                    <div class="d-flex gap-1">
+                                        @can('job/pajak/edit')
+                                            @if ($item->jobDivisi->status !== 'Batal Akad')
+                                            
+                                            <x-pajak.edit-status-pajak :formOrder="$item" :key="$key" :jobDivisi="$item->jobDivisi"
+                                                :statusJobOps="$item->statusJobOps" />
+                                                <x-job.file.file-job-divisi :jobDivisi="$item->jobDivisi" nama="pajak" />
+                                            @endif
+                                        @endcan
+
+                                    </div>
                                 </td>
                             </tr>
                         @empty

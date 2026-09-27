@@ -118,6 +118,7 @@ class DataPajakController extends Controller
             'jobDivisi.debitur',
             'jobDivisi.listBank',
             'jobDivisi.finance',
+            'jobDivisi.fileJob.user',
             'statusJobOps.createdBy',
             'statusJobOps.user',
             'nomorPpat',
@@ -331,6 +332,7 @@ class DataPajakController extends Controller
         // dd($request->all());
         $request->validate([
             "nominal_pembayaran" => "required",
+            "kode_billing" => "required|string|max:255",
         ]);
 
         DB::beginTransaction();
@@ -350,6 +352,7 @@ class DataPajakController extends Controller
                     "job_divisi_id" => $job_divisi_form_order->job_divisi_id,
                     "tanggal" => Carbon::parse($request->tanggal)->format("Y-m-d"),
                     "total" => str_replace(".", "", $request->nominal_pembayaran),
+                    "kode_billing" => $request->kode_billing,
                     "keterangan" => "Pembayaran pajak ",
                     "metode_pembayaran" => "Pembayaran pajak",
                     "created_at" => now(),

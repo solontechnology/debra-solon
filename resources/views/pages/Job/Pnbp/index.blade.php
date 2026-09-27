@@ -120,7 +120,7 @@
                                 <td>
                                     Rp {{ number_format($item->pnbp->nominal ?? 0, 0, ',', '.') }}
                                 </td>
-                                <td>
+                                <td class='d-flex justify-content-between gap-1'>
 
                                     {{-- BELUM ADA DATA --}}
                                     @if (!$item->pnbp)
@@ -133,7 +133,7 @@
                                         @endif
                                     @else
                                         {{-- PENUGASAN --}}
-                                        @if ($item->pnbp->status === 'Penugasan' && $canAssign)
+                                        @if ($item->pnbp->status === 'Penugasan' )
                                             @include('pages.Job.Pnbp._modal_assign', [
                                                 'key' => $key,
                                                 'item' => $item,
@@ -143,7 +143,7 @@
 
 
                                         {{-- INPUT VA --}}
-                                        @if ($item->pnbp->status === 'Sedang Online' && $canAccess)
+                                        @if ($item->pnbp->status === 'Sedang Online')
                                             @can('job/pnbp/input-va')
                                                 @include('pages.Job.Pnbp._modal_input_va', [
                                                     'key' => $key,
@@ -154,7 +154,7 @@
 
 
                                         {{-- PAYMENT --}}
-                                        @if ($item->pnbp->status === 'Menunggu Pembayaran' && $canAccess)
+                                        @if ($item->pnbp->status === 'Menunggu Pembayaran')
                                             @can('job/pnbp/payment')
                                                 @include('pages.Job.Pnbp._modal_payment', [
                                                     'key' => $key,
@@ -163,10 +163,11 @@
                                             @endcan
                                         @endif
                                         {{-- DONE --}}
-                                        @if ($item->pnbp->status === 'Terbayar')
+                                        {{-- @if ($item->pnbp->status === 'Terbayar')
                                             <i class="bi bi-check-circle text-success" style="font-size: 20px;"></i>
+                                        @endif --}}
                                         @endif
-                                    @endif
+                                        <x-job.file.file-job-divisi :jobDivisi="$item->jobDivisi" nama="pnbp" />
 
                                 </td>
                             </tr>

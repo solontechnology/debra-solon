@@ -4,67 +4,6 @@
     Job {{ strtoupper($tipe) }}
 @endsection
 
-@push('addStyle')
-    {{-- <style>
-        .table-responsive {
-            overflow-x: auto;
-        }
-
-        .table-freeze-akta {
-            min-width: 1300px;
-        }
-
-        .table-freeze-akta th,
-        .table-freeze-akta td {
-            white-space: nowrap;
-            vertical-align: middle;
-            background-color: #ffffff;
-        }
-
-        /* Freeze Columns */
-        .freeze-parent {
-            position: sticky;
-            left: 0;
-            z-index: 5;
-            background: #ffffff;
-            min-width: 120px;
-            width: 120px;
-        }
-
-        .freeze-proses {
-            position: sticky;
-            left: 120px;
-            z-index: 5;
-            background: #ffffff;
-            min-width: 180px;
-            width: 180px;
-        }
-
-        .freeze-nomor-akta {
-            position: sticky;
-            left: 300px;
-            z-index: 5;
-            background: #ffffff;
-            min-width: 200px;
-            width: 200px;
-            box-shadow: 3px 0 5px -2px rgba(0, 0, 0, 0.08);
-        }
-
-        .table-freeze-akta thead .freeze-parent,
-        .table-freeze-akta thead .freeze-proses,
-        .table-freeze-akta thead .freeze-nomor-akta {
-            z-index: 8;
-            background: #f8f9fa;
-        }
-
-        .table-freeze-akta tbody tr.bg-red-lt .freeze-parent,
-        .table-freeze-akta tbody tr.bg-red-lt .freeze-proses,
-        .table-freeze-akta tbody tr.bg-red-lt .freeze-nomor-akta {
-            background: rgba(220, 53, 69, 0.05) !important;
-        }
-    </style> --}}
-@endpush
-
 @push('page-title')
     <nav style="--bs-breadcrumb-divider: url(&#34;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='%236c757d'/%3E%3C/svg%3E&#34;);"
         aria-label="breadcrumb">

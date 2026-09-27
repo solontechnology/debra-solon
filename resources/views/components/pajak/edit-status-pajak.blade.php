@@ -42,6 +42,12 @@
                                 </label>
                                 <input type="text" class="form-control money" name="nominal_pembayaran">
                             </div>
+                            <div class="mb-3">
+                                <label class="form-label required">
+                                    Kode Billing
+                                </label>
+                                <input type="text" class="form-control" name="kode_billing" required>
+                            </div>
 
                             <div class="">
                                 <label for="" class="form-label required">
