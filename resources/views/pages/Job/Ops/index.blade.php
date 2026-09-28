@@ -32,8 +32,21 @@
                 <h5 class="fw-bold m-0 text-dark">Daftar Job Operasional</h5>
                 <p class="text-muted small m-0">Kelola dan pantau seluruh berkas proses operasional</p>
             </div>
+            
+
             <div class="d-flex align-items-center gap-2">
-                @include('pages.Job.Ops._filter_ops')
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-success d-inline-flex align-items-center justify-content-center gap-2 shadow-sm px-3" data-bs-toggle="modal" data-bs-target="#exportModal">
+                        <i class="bi bi-file-earmark-excel fs-6"></i>
+                        <span>Export Excel</span>
+                    </button>
+                    @include('pages.Job.Ops._filter_ops_export')
+                </div>
+                
+
+                <div class="d-flex align-items-center gap-2">
+                    @include('pages.Job.Ops._filter_ops')
+                </div>
             </div>
         </div>
 

@@ -151,7 +151,10 @@
             const encryptedPassword = encryptor.encrypt(password.value);
 
             if (!encryptedEmail || !encryptedPassword) {
-                alert('Gagal memproses enkripsi keamanan, silakan coba lagi.');
+                console.log(encryptedEmail)
+                console.log(encryptedPassword)
+                console.log(publicKey)
+                alert('Email atau Password salah.');
                 btnLogin.disabled = false;
                 btnLogin.innerHTML = 'Login';
                 return;
