@@ -361,8 +361,6 @@ class DataPendukunJobDivisiController extends Controller
             'updated_at' => now(),
         ]);
 
-         
-        }
 
         return redirect(
             route('job.divisi.show', $debitur->job_divisi_id) . '#tabs-data-pendukung'
