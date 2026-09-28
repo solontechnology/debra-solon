@@ -49,22 +49,22 @@ Route::middleware('auth')->group(function () {
 
     // START Laporan Pekerjaan (Halaman List Home & Detail)
 
-    Route::get('laporan/list-job-divisi-history', [homeHistoryJobDivisiController::class, 'index'])
-        ->name('laporan.list-job-divisi-history');
+    // Route::get('laporan/list-job-divisi-history', [homeHistoryJobDivisiController::class, 'index'])
+    //     ->name('laporan.list-job-divisi-history');
 
-    Route::get('laporan/list-job-divisi-history/show', [homeHistoryJobDivisiController::class, 'show'])
-        ->name('laporan.list-job-divisi-history.show');
+    // Route::get('laporan/list-job-divisi-history/show', [homeHistoryJobDivisiController::class, 'show'])
+    //     ->name('laporan.list-job-divisi-history.show');
 
-    Route::get('laporan/list-job-divisi-history/{encryptedId}', [detailHistoryJobDivisiController::class, 'index'])
-        ->name('laporan.list-job-divisi-history.detail');
+    // Route::get('laporan/list-job-divisi-history/{encryptedId}', [detailHistoryJobDivisiController::class, 'index'])
+    //     ->name('laporan.list-job-divisi-history.detail');
 
-    Route::get('/laporan/detail-pekerjaan/list-job-divisi-history/{encryptedId}/export', [detailHistoryJobDivisiController::class, 'exportDetailLaporanToExcel'])
-        ->name('laporan.detail-pekerjaan.export');
+    // Route::get('/laporan/detail-pekerjaan/list-job-divisi-history/{encryptedId}/export', [detailHistoryJobDivisiController::class, 'exportDetailLaporanToExcel'])
+    //     ->name('laporan.detail-pekerjaan.export');
 
-    // Route::get(
-    //     'laporan/list-job-divisi-history',
-    //     [InvoiceHistoryController::class, 'index']
-    // )->name('laporan.list-job-divisi-history');
+    Route::get(
+        'laporan/list-job-divisi-history',
+        [InvoiceHistoryController::class, 'index']
+    )->name('laporan.list-job-divisi-history');
 
     // END Laporan Pekerjaan (Halaman List Home & Detail Staff)
 });
