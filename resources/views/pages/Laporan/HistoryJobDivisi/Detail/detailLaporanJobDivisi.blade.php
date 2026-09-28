@@ -39,41 +39,43 @@
                                 </th>
                             </tr>
                         </thead>
-                      <tbody>
-                        
-                        
-                        @forelse ($datas['jobOps'] as $data) 
-                        <tr>
-                            {{ dd($data) }}
-                            <td>{{ $loop->iteration }}</td>   
-                            <td>
-                                @if ($statusJobOps->sortByDesc("id") as $number => $statusPengerjaan)
-                                    {{ $data->form_created_at }}
-                                @else
-                                {{ $data->created_at }}
-                                @endif
-                            </td>                       
-                            <td>{{ $data->user->name }}</td>
-                            <td>{{ $data->keterangan }}</td> 
-                            <td>{{ $data->createdBy->name ?? 'Otomatis' }}</td> 
-                            <td>
-                                @if ($loop->first)
-                                    {{ $data->form_created_at }}
-                                @else
-                                {{ $data->created_at }}
-                                @endif
-                            </td>
-                            <td>{{ $data->next_created_at ?? '-' }}</td>
-                                @if ($data->status_penolakan != null)
-                                <td>{{ 'Data ditolak - ' . $data->status_penolakan }}</td>
-                                @else
-                                <td>{{ $data->status }}</td>
-                                @endif
-                            </tr>
+                        <tbody>
+                            @forelse ($datas['jobOps'] as $data)
+                                <tr>
+                                    {{ dd($data) }}
+                                    <td>{{ $loop->iteration }}</td>
+                                    <td>
+                                        @php
+                                            $statusTerakhir = $statusJobOps->sortByDesc('id')->first();
+                                        @endphp
+
+                                        @if ($statusTerakhir)
+                                            {{ $data->form_created_at }}
+                                        @else
+                                            {{ $data->created_at }}
+                                        @endif
+                                    </td>
+                                    <td>{{ $data->user->name }}</td>
+                                    <td>{{ $data->keterangan }}</td>
+                                    <td>{{ $data->createdBy->name ?? 'Otomatis' }}</td>
+                                    <td>
+                                        @if ($loop->first)
+                                            {{ $data->form_created_at }}
+                                        @else
+                                            {{ $data->created_at }}
+                                        @endif
+                                    </td>
+                                    <td>{{ $data->next_created_at ?? '-' }}</td>
+                                    @if ($data->status_penolakan != null)
+                                        <td>{{ 'Data ditolak - ' . $data->status_penolakan }}</td>
+                                    @else
+                                        <td>{{ $data->status }}</td>
+                                    @endif
+                                </tr>
                             @empty
-                            <tr>
-                                <td colspan="8" class="text-center">Data Kosong</td>
-                            </tr>
+                                <tr>
+                                    <td colspan="8" class="text-center">Data Kosong</td>
+                                </tr>
                             @endforelse
                         </tbody>
                     </table>
