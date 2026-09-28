@@ -1,7 +1,8 @@
 @extends('layouts.admin')
 
 @section('title')
-    Job {{ strtoupper($tipe) }}
+    Job {{ $tipe === 'covernot' ? 'Cover Note' : strtoupper($tipe) }}
+    
 @endsection
 
 @push('page-title')
@@ -19,7 +20,7 @@
         {{-- Card Header dengan padding lega dan border bersih --}}
         <div class="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center border-bottom">
             <div>
-                <h5 class="fw-bold m-0 text-dark">Daftar Job {{ strtoupper($tipe) }}</h5>
+                <h5 class="fw-bold m-0 text-dark">Daftar Job {{ $tipe === 'covernot' ? 'Cover Note' : strtoupper($tipe) }}</h5>
                 <p class="text-muted small m-0">Kelola dan pantau seluruh berkas proses {{ $tipe }}</p>
             </div>
             <div class="d-flex align-items-center gap-2">
@@ -55,7 +56,7 @@
 
                                 {{-- Sticky Column 2: Proses --}}
                                 <td class="freeze-proses fw-medium">
-                                    {{ $item->nama ?? '-' }}
+                                    {{ $item->nama === 'Covernot' ? 'Cover note' : ($item->nama) }}
                                 </td>
 
                                 {{-- Sticky Column 3: Nomor Akta --}}

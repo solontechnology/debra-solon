@@ -3,7 +3,7 @@
     class="btn btn-outline-info d-inline-flex align-items-center gap-2 px-3 py-2 shadow-sm fw-medium rounded-3"
     data-bs-toggle="modal" data-bs-target="#modalPPat{{ $key }}">
     <i class="bi bi-file-earmark-text fs-6"></i>
-    <span>Nomor {{ strtoupper($tipe) }}</span>
+    <span>Nomor {{ $tipe==='covernot' ? 'Cover note' : strtoupper($tipe) }}</span>
 </button>
 
 <!-- Modal -->
@@ -16,13 +16,13 @@
             <div class="modal-header bg-body-tertiary border-bottom py-3 px-4">
                 <div>
                     <h5 class="modal-title fw-bold text-dark mb-1" id="modalPPat{{ $key }}Label">
-                        Form Penginputan Nomor {{ strtoupper($tipe) }}
+                        Form Penginputan Nomor {{ $tipe==='covernot' ? 'Cover note' : strtoupper($tipe) }}
                     </h5>
                     <div class="d-flex align-items-center gap-2">
                         <span
                             class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 fw-semibold text-uppercase font-monospace"
                             style="font-size: 0.70rem;">
-                            Proses: {{ $nama_proses }}
+                            Proses: {{ $nama_proses ==='Covernot' ? 'Cover note' : strtoupper($nama_proses) }}
                         </span>
                     </div>
                 </div>
@@ -49,7 +49,7 @@
                     @if ($formOrder->nomorPpat)
                         <div class="mb-3">
                             <label class="form-label fw-semibold text-secondary small mb-1">
-                                Nomor {{ strtoupper($tipe) }}
+                                Nomor {{ $tipe === 'covernot' ? 'Cover note' : strtoupper($tipe) }}
                             </label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light text-secondary"><i class="bi bi-hash"></i></span>
@@ -65,13 +65,13 @@
                     @elseif ($penomoranSetting?->mode === 'manual')
                         <div class="mb-3 form_manual_nomor">
                             <label class="form-label fw-semibold text-secondary small mb-1 required">
-                                Nomor {{ strtoupper($tipe) }}
+                                Nomor {{ $tipe === 'covernot' ? 'Cover note' : strtoupper($tipe) }}
                             </label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light text-secondary"><i
                                         class="bi bi-pencil"></i></span>
                                 <input type="text" autocomplete="off" class="form-control" name="nomor"
-                                    placeholder="Masukkan nomor {{ strtolower($tipe) }}">
+                                    placeholder="Masukkan nomor {{ $tipe === 'covernot' ? 'Cover note' : strtoupper($tipe) }} rekanan">
                             </div>
                             <div class="form-text mt-1 text-muted small">
                                 <i class="bi bi-info-circle me-1"></i> Penomoran untuk kategori ini diatur secara
@@ -84,7 +84,7 @@
                             role="alert">
                             <i class="bi bi-magic fs-6 text-info flex-shrink-0"></i>
                             <div class="lh-sm text-break" style="font-size: 0.725rem;">
-                                Nomor {{ strtoupper($tipe) }} akan <strong>di-generate otomatis</strong> saat disimpan.
+                                Nomor {{$tipe==='covernot' ? 'Cover note' : strtoupper($tipe) }} akan <strong>di-generate otomatis</strong> saat disimpan.
                             </div>
                         </div>
                     @endif
@@ -93,7 +93,7 @@
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
                             <label class="form-label fw-semibold text-secondary small mb-1 required">
-                                Tanggal {{ strtoupper($tipe) }}
+                                Tanggal {{ $tipe==='covernot' ? 'Cover note' : strtoupper($tipe) }}
                             </label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light text-secondary"><i
@@ -135,13 +135,13 @@
                     @if (!$formOrder->nomorPpat)
                         <div class="mb-3 form_rekanan" style="display: none;">
                             <label class="form-label fw-semibold text-secondary small mb-1 required">
-                                Nomor {{ strtoupper($tipe) }} Rekanan
+                                Nomor {{ $tipe === 'covernot' ? 'Cover note' : strtoupper($tipe) }} Rekanan
                             </label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light text-secondary"><i
                                         class="bi bi-journal-text"></i></span>
                                 <input type="text" autocomplete="off" class="form-control" name="nomor_rekanan"
-                                    placeholder="Masukkan nomor {{ strtolower($tipe) }} rekanan">
+                                    placeholder="Masukkan nomor {{ $tipe === 'covernot' ? 'Cover note' : strtoupper($tipe) }} rekanan">
                             </div>
                         </div>
                     @endif

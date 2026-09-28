@@ -162,7 +162,7 @@
                         @can('job/covernot/list')
                             <a href="{{ route('job.akta.data.filter', 'covernot') }}"
                                 class="dropdown-item {{ request()->is('job/akta/filter-data/covernot*') ? 'active' : '' }}">
-                                Covernot
+                                Cover note
                             </a>
                         @endcan
                         @can('job/surat-keluar/list')
