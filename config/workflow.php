@@ -9,6 +9,7 @@ return [
                 ['name' => 'Salinan'],
                 ['name' => 'Minuta'],
                 ['name' => 'Menunggu ttd Notaris'],
+                ['name' => 'Selesai'],
             ],
 
             'legalisasi' => [

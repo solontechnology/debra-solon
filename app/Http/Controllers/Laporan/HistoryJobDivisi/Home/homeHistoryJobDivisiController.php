@@ -36,7 +36,12 @@ class homeHistoryJobDivisiController extends Controller
      */
     public function index(Request $request)
     {
-        return view("pages.Laporan.HistoryJobDivisi.Home.homeLaporanJobDivisi", $this->jobDivisiIndexServis->execute($request));
+        return view(
+            "pages.Laporan.HistoryJobDivisi.Home.homeLaporanJobDivisi",
+            $this->jobDivisiIndexServis->execute($request, [
+                'completed_only' => true,
+            ])
+        );
     }
 
     /**
@@ -77,12 +82,24 @@ class homeHistoryJobDivisiController extends Controller
             "invoice.detail"
         )->find($id);
 
-        $approvedFinance = $jobDivisi->finance->filter(function ($finance) {
+        
+        if (!$jobDivisi) {
+            Session::flash('error', 'Data Tidak Ditemukan');
+            return to_route('job.divisi.index');
+        }
 
+        $approvedFinance = $jobDivisi->finance->filter(function ($finance) {
             $status = strtolower((string) $finance->status);
 
             return in_array($status, ['disetujui', 'approved']);
         });
+
+        // $approvedFinance = $jobDivisi->finance->filter(function ($finance) {
+
+        //     $status = strtolower((string) $finance->status);
+
+        //     return in_array($status, ['disetujui', 'approved']);
+        // });
 
         $filteredFinance = $approvedFinance
             ->when(request()->filled('tipe'), function ($query) {
@@ -207,5 +224,4 @@ class homeHistoryJobDivisiController extends Controller
 
         return response()->json($jobDivisi);
     }
-
 }
