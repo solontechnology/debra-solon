@@ -377,7 +377,7 @@
                 enterFullScreen();
             }
         });
-    // </script>    @stack('addScript')
+    </script>    @stack('addScript')
 
 </body>
 

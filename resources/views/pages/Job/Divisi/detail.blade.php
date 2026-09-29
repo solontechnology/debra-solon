@@ -194,6 +194,7 @@
                         @endcan
 
                     </div>
+                    {{-- {{ $masterPekerjaan }} --}}
                     <form action="{{ route('job.form-order-job-divisi.updateHarga') }}" method="post"
                         id="form_update__harga">
                         @csrf
@@ -294,13 +295,21 @@
                 $(".loading__global").show();
             });
         });
-        $(".select_proses").select2({
-            theme: 'bootstrap-5',
-            dropdownParent: $("#ModalAddItem"),
+        $('#ModalAddItem').on('shown.bs.modal', function() {
+            $(this).find('.select_proses').select2({
+                theme: 'bootstrap-5',
+                dropdownParent: $('#ModalAddItem'),
+                width: '100%',
+                placeholder: 'Pilih Proses',
+            });
         });
+
         $(".select_objek").select2({
             theme: 'bootstrap-5',
             dropdownParent: $("#ModalAddItem"),
+            width: '100%',
+            placeholder: 'Pilih Objek',
+            allowClear: true,
         });
 
 
