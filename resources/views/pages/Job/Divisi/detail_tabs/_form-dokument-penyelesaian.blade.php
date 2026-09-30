@@ -51,11 +51,14 @@
                     No
                 </th>
                 <th>
-                    Download
+                    Nama
                 </th>
                 <th>
-                    Nama Dokumen
+                    Kategori Dokumen
                 </th>
+                {{-- <th>
+                    Kode Billing
+                </th> --}}
                 <th>
                     Tanggal Upload
                 </th>
@@ -75,13 +78,16 @@
                         {{ $index + 1 }}
                     </td>
                     <td>
-                        <a href="/storage/{{ $item->path }}" download>
-                            <i class="bi bi-cloud-arrow-down"></i> Download
+                        <a href="/storage/{{ $item->path }}" target=blank_ class="text-decoration-none">
+                            {{$item->path}}
                         </a>
                     </td>
                     <td>
                         {{ $item->nama }}
                     </td>
+                    {{-- <td>
+                        {{ dd($item) }}
+                    </td> --}}
                     <td>
                         {{ $item->created_at?->format('d-m-Y') }}
                     </td>
