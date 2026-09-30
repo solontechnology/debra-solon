@@ -271,7 +271,6 @@ class DataPendukunJobDivisiController extends Controller
 
         return view('pages.Job.Divisi.edit.edit_debitur', compact('debitur', 'jobDivisi'));
     }
-
     // public function updateDebitur(Request $request)
     // {
     //     $debitur = Debitur::findOrFail($request->id);
@@ -305,6 +304,7 @@ class DataPendukunJobDivisiController extends Controller
     //         route('job.divisi.show', $debitur->job_divisi_id) . '#tabs-data-pendukung'
     //     )->with('success', 'Data debitur dan lampiran berhasil diperbarui');
     // }
+
 
     public function handelInsertDebitur(Request $request, $jobDivisi)
     {
@@ -360,7 +360,16 @@ class DataPendukunJobDivisiController extends Controller
             'email' => $request->email,
             'updated_at' => now(),
         ]);
-
+        
+        if ($request->hasFile('files')) {
+            foreach ($request->file('files') as $file) {
+                $path = $file->store('debitur', 'public');
+                $debitur->files()->create([
+                    'file_path' => $path,
+                    'file_name' => $file->getClientOriginalName(),
+                ]);
+            }
+        }
 
         return redirect(
             route('job.divisi.show', $debitur->job_divisi_id) . '#tabs-data-pendukung'
