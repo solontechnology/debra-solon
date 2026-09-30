@@ -25,20 +25,20 @@
             </div>
 
 
-                {{-- Tampilkan tombol Export HANYA jika $tipe adalah 'covernot' --}}
-                <div class="d-flex align-items-center gap-2">
-                    {{-- Button Export Excel --}}
-                    <a href="{{ route('job.export-akta', array_merge(request()->query(), ['tipe' => strtolower($tipe)])) }}"
-                        class="btn btn-success d-inline-flex align-items-center justify-content-center gap-2 shadow-sm px-3 py-2 fw-medium">
-                        <i class="bi bi-file-earmark-excel fs-6 lh-1"></i>
-                        <span>Export Excel</span>
-                    </a>
+            {{-- Tampilkan tombol Export HANYA jika $tipe adalah 'covernot' --}}
+            <div class="d-flex align-items-center gap-2">
+                {{-- Button Export Excel --}}
+                <a href="{{ route('job.export-akta', array_merge(request()->query(), ['tipe' => strtolower($tipe)])) }}"
+                    class="btn btn-success d-inline-flex align-items-center justify-content-center gap-2 shadow-sm px-3 py-2 fw-medium">
+                    <i class="bi bi-file-earmark-excel fs-6 lh-1"></i>
+                    <span>Export Excel</span>
+                </a>
 
-                    {{-- Filter Modal Component --}}
-                    <div class="d-flex align-items-center">
-                        @include('pages.Job.Akta._modal-filter')
-                    </div>
+                {{-- Filter Modal Component --}}
+                <div class="d-flex align-items-center">
+                    @include('pages.Job.Akta._modal-filter')
                 </div>
+            </div>
         </div>
 
         <div class="card-body p-0">
@@ -203,6 +203,7 @@
                                                 'key' => $key,
                                                 'formOrder' => $item,
                                             ])
+                                            <x-job.file.file-job-divisi :jobDivisi="$item->jobDivisi" :nama="$tipe" />
                                         @else
                                             <span class="text-muted small fs-7">Tidak ada aksi</span>
                                         @endif
