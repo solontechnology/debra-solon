@@ -24,13 +24,18 @@ use App\Services\MasterData\BrokerService;
 use App\Services\MasterData\DeveloperService;
 use Carbon\Carbon;
 use Exception;
+use Illuminate\Support\Facades\Schema;
+// use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
+// use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Spatie\Permission\Models\Role;
+use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Facades\Storage;
 
 class JobDivisiController extends Controller
 {
@@ -602,10 +607,7 @@ class JobDivisiController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
-    {
-        //
-    }
+
 
     public function countData($id)
     {
@@ -691,5 +693,159 @@ class JobDivisiController extends Controller
             "harga_jual" => 0,
             "status" => "batal"
         ]);
+    }
+
+    // use Illuminate\Database\Eloquent\Relations\Relation;
+    // use Illuminate\Support\Facades\Storage;
+
+    public function destroy(string $id)
+    {
+        $job = JobDivisi::withTrashed()->findOrFail($id);
+        $jid = $job->id;
+
+        DB::beginTransaction();
+
+        try {
+            /* ---- Kumpulin id & path file dulu ---- */
+            $foIds        = DB::table('job_divisi_form_orders')->where('job_divisi_id', $jid)->pluck('id')->all();
+            $invoiceIds   = DB::table('invoices')->where('job_divisi_id', $jid)->pluck('id')->all();
+            $pembatalanId = DB::table('pembatalan_items')->where('job_divisi_id', $jid)->pluck('id')->all();
+            $penambahanId = DB::table('penambahan_item_job_divisis')->where('job_divisi_id', $jid)->pluck('id')->all();
+            $perubahanId  = DB::table('perubahan_harga_jual_fos')->where('job_divisi_id', $jid)->pluck('id')->all();
+            $objekIds     = DB::table('job_divisi_objeks')->where('job_divisi_id', $jid)->pluck('id')->all();
+
+            // Mulai dari file_job_divisis, lalu tambah kolom file lama di objek & debitur
+            $filePaths = array_merge(
+                DB::table('file_job_divisis')->where('job_divisi_id', $jid)->pluck('path')->all(),
+                DB::table('job_divisi_objeks')->where('job_divisi_id', $jid)->whereNotNull('file')->pluck('file')->all(),
+                DB::table('debiturs')->where('job_divisi_id', $jid)->whereNotNull('file')->pluck('file')->all()
+            );
+
+            // Lampiran debitur / penjual / pembeli (morph ke job_divisi_files)
+            foreach ([\App\Models\Debitur::class, \App\Models\Penjual::class, \App\Models\Pembeli::class] as $modelClass) {
+                $model = new $modelClass;
+                $orangIds = DB::table($model->getTable())->where('job_divisi_id', $jid)->pluck('id')->all();
+
+                if ($orangIds) {
+                    $files = DB::table('job_divisi_files')
+                        ->where('fileable_type', $model->getMorphClass())
+                        ->whereIn('fileable_id', $orangIds);
+
+                    $filePaths = array_merge($filePaths, (clone $files)->pluck('file_path')->all());
+                    $files->delete();
+                }
+            }
+            // File objek
+            if ($objekIds) {
+                $filePaths = array_merge(
+                    $filePaths,
+                    DB::table('objek_files')->whereIn('objek_id', $objekIds)->pluck('path')->all()
+                );
+            }
+
+            // File bukti PNBP
+            if ($foIds) {
+                $filePaths = array_merge(
+                    $filePaths,
+                    DB::table('pnbps')->whereIn('job_divisi_form_order_id', $foIds)->whereNotNull('file')->pluck('file')->all()
+                );
+            }
+
+            /* ---- Cucu (anak dari anak) ---- */
+            $this->hapusDi('invoice_details', 'invoice_id', $invoiceIds);
+            $this->hapusDi('invoice_versions', 'invoice_id', $invoiceIds);
+            $this->hapusDi('pembatalan_item_details', 'pembatalan_item_id', $pembatalanId);
+            $this->hapusDi('penambahan_item_job_divisi_details', 'penambahan_item_job_divisi_id', $penambahanId);
+            $this->hapusDi('perubahan_harga_jual_fo_details', 'parent_id', $perubahanId);
+            // $this->hapusDi('job_opersaional_details', 'job_opersaional_id', $opsIds);   // cek nama kolom
+            $this->hapusDi('objek_files', 'objek_id', $objekIds);                        // cek nama kolom
+
+            /* ---- Anak dari form order ---- */
+            foreach (
+                [
+                    ['dispos', 'job_divisi_form_order_id'],
+                    ['invoice_details', 'job_divisi_form_order_id'],
+                    ['invoice_version_details', 'job_divisi_form_order_id'],
+                    ['job_divisi_finances', 'job_divisi_form_order_id'],
+                    ['job_opersaionals', 'job_divisi_form_order_id'],
+                    ['nomor_ppats', 'job_divisi_form_order_id'],
+                    ['nomor_ppats', 'form_order_id'],
+                    ['pembatalan_item_details', 'job_form_order_id'],
+                    ['perubahan_harga_jual_fo_details', 'form_order_id'],
+                    ['pnbps', 'job_divisi_form_order_id'],
+                    ['status_job_ops', 'job_divisi_form_order_id'],
+                    ['notifikasis', 'job_divisi_form_order_id'],
+                ] as [$tabel, $kolom]
+            ) {
+                $this->hapusDi($tabel, $kolom, $foIds);
+            }
+
+            /* ---- Anak langsung dari job (kolom job_divisi_id) ---- */
+            foreach (
+                [
+                    'job_divisi_form_orders',
+                    'invoices',
+                    'job_divisi_finances',
+                    'job_opersaionals',
+                    'pembatalan_items',
+                    'penambahan_item_job_divisis',
+                    'perubahan_harga_jual_fos',
+                    'debiturs',
+                    'penjuals',
+                    'pembelis',
+                    'job_divisi_badan_usaha_debiturs',
+                    'job_divisi_badan_usaha_penjuals',
+                    'job_divisi_badan_usaha_pembelis',
+                    'job_divisi_badan_hukums',
+                    'job_divisi_pendirian_lembagas',
+                    'job_divisi_objeks',
+                    'job_banks',
+                    'job_developers',
+                    'job_divisi_brokers',
+                    'job_divisi_data_lainnyas',
+                    'job_pendings',
+                    'batal_job_divisis',
+                    'file_job_divisis',
+                    'form_order_luar_invoices',
+                    'notifikasis',
+                ] as $tabel
+            ) {
+                $this->hapusDi($tabel, 'job_divisi_id', [$jid]);
+            }
+            $this->hapusDi('approval_freezs', 'job_divisi', [$jid]); // kolomnya beda
+
+            /* ---- Terakhir: job-nya ---- */
+            $kode = $job->kode;
+            DB::table('job_divisis')->where('id', $jid)->delete();
+
+            DB::commit();
+
+            // File fisik dihapus SETELAH commit, biar kalau rollback file gak hilang
+            foreach ($filePaths as $path) {
+                $this->hapusFileFisik($path);
+            }
+
+            return redirect()->route('job.divisi.index')
+                ->with('success', "Job $kode beserta seluruh datanya berhasil dihapus");
+        } catch (Exception $th) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal menghapus: ' . $th->getMessage());
+        }
+    }
+
+    /** Hapus baris di $tabel yang $kolom-nya ada di $ids. Dilewati kalau tabel/kolom gak ada. */
+    private function hapusDi(string $tabel, string $kolom, array $ids): void
+    {
+        if (!$ids || !Schema::hasTable($tabel) || !Schema::hasColumn($tabel, $kolom)) {
+            return;
+        }
+        DB::table($tabel)->whereIn($kolom, $ids)->delete();
+    }
+
+    private function hapusFileFisik(?string $path): void
+    {
+        if ($path && Storage::disk('public')->exists($path)) {
+            Storage::disk('public')->delete($path);
+        }
     }
 }

@@ -151,12 +151,12 @@
                                         Page
                                     </div>
                                     <h2 class="page-title">
-    @hasSection('page-heading')
-        @yield('page-heading')
-    @else
-        @yield('title')
-    @endif
-</h2>
+                                        @hasSection('page-heading')
+                                            @yield('page-heading')
+                                        @else
+                                            @yield('title')
+                                        @endif
+                                    </h2>
                                 </div>
                             </div>
                         </div>

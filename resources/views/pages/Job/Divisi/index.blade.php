@@ -130,7 +130,7 @@
                                 <td>
                                     <span class="badge bg-light text-secondary border">
                                         {{-- {{dd($item)}} --}}
-                                        
+
 
                                         {{ $item->tanggal_estimasi_selesai_eksternal ?: '-' }}
                                     </span>
@@ -158,12 +158,17 @@
                                             <i class="bi bi-file-earmark-pdf fs-6"></i>
                                             <span>PDF</span>
                                         </a>
-                                        <a href="#"
-                                            class="btn btn-danger d-inline-flex align-items-center gap-1 px-3 py-1.5 shadow-sm fw-medium"
-                                            title="Export Quotation PDF" target="_blank">
-                                            <i class="bi bi-trash-fill"></i>
-                                            {{-- <span>Hapus</span> --}}
-                                        </a>
+                                        <form action="{{ route('job.divisi.destroy', $item->id) }}" method="POST"
+                                            class="confirm_delete d-inline"
+                                            data-message="job {{ $item->kode }} beserta semua datanya">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                class="btn btn-danger d-inline-flex align-items-center gap-1 px-3 py-1.5 shadow-sm fw-medium"
+                                                title="Hapus Job">
+                                                <i class="bi bi-trash-fill"></i>
+                                            </button>
+                                        </form>
                                     </div>
                                 </td>
                             </tr>
