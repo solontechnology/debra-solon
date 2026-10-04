@@ -101,12 +101,15 @@
 
                                 {{-- Parent --}}
                                 <td>
-                                    <span class="hover-underline fw-semibold text-primary">
+                                    {{-- <span class="hover-underline fw-semibold text-primary">
                                         @include('pages.Job.Ops._modal-parent', [
                                             'jobDivisi' => $item->jobDivisi,
                                             'key' => $key,
                                         ])
-                                    </span>
+                                    </span> --}}
+                                    <a href="{{ route('job.divisi.show', $item->jobDivisi->id) }}" class="text-decoration-none">
+                                        <span class="text-primary">{{ $item->jobDivisi->kode }}</span>
+                                    </a>
                                 </td>
 
                                 {{-- Status Akad --}}
