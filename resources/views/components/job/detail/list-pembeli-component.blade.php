@@ -14,21 +14,39 @@
                         <thead class="bg-light bg-opacity-50 text-secondary small fw-bold border-bottom border-light-subtle">
                             <tr>
                                 <th class="py-3 ps-4">NAMA LENGKAP</th>
-                                <th class="py-3">NOMOR TELEPON</th>
-                                <th class="py-3">EMAIL</th>
-                                <th class="py-3">LAMPIRAN DOKUMEN</th>
-                                <th class="py-3 text-end pe-4">AKSI</th>
+<th class="py-3">NIK</th>
+<th class="py-3">TEMPAT LAHIR</th>
+<th class="py-3">TANGGAL LAHIR</th>
+<th class="py-3">ALAMAT LENGKAP</th>
+<th class="py-3">NOMOR TELEPON</th>
                             </tr>
                         </thead>
                         <tbody class="border-top-0">
                             @foreach ($listPembeli as $pembeli)
                                 <tr>
-                                    <td class="ps-4 fw-bold text-dark">
-                                        {{ $pembeli->nama ?? '-' }}
-                                    </td>
-                                    <td>
-                                        <span class="text-muted">{{ $pembeli->nomor_telepon ?? '-' }}</span>
-                                    </td>
+                                   <td class="ps-4 fw-bold text-dark">
+    {{ $pembeli->nama ?? '-' }}
+</td>
+<td>
+    <span class="text-muted">{{ $pembeli->nik ?? '-' }}</span>
+</td>
+<td>
+    <span class="text-muted">{{ $pembeli->tempat_lahir ?? '-' }}</span>
+</td>
+<td>
+    <span class="text-muted">
+        {{ $pembeli->tanggal_lahir ? \Carbon\Carbon::parse($pembeli->tanggal_lahir)->format('d M Y') : '-' }}
+    </span>
+</td>
+<td>
+    <span class="text-muted d-inline-block text-truncate align-middle"
+        style="max-width: 220px;" title="{{ $pembeli->alamat_lengkap }}">
+        {{ $pembeli->alamat_lengkap ?? '-' }}
+    </span>
+</td>
+<td>
+    <span class="text-muted">{{ $pembeli->nomor_telepon ?? '-' }}</span>
+</td>
                                     <td>
                                         <span class="text-muted">{{ $pembeli->email ?? '-' }}</span>
                                     </td>

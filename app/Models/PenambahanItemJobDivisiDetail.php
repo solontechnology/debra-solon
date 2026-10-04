@@ -12,4 +12,9 @@ class PenambahanItemJobDivisiDetail extends Model
     {
         return $this->belongsTo(Pekerjaan::class, "pekerjaan_id", "id");
     }
+
+    public function formOrder()
+    {
+        return $this->belongsTo(JobDivisiFormOrder::class, 'job_form_order_id', 'id');
+    }
 }

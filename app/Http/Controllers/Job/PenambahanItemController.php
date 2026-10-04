@@ -31,8 +31,12 @@ class PenambahanItemController extends Controller
 
     public function index()
     {
-        $items = PenambahanItemJobDivisi::with("jobDivisi")
-            ->orderBy("id", 'desc')
+        $items = PenambahanItemJobDivisi::with([
+            "jobDivisi.listBank.bank",
+            "jobDivisi.debitur",
+            "jobDivisi.formOrder",
+        ])
+            ->orderBy("id", "desc")
             ->paginate(12);
 
         return view("pages.Job.Penambahan-item.index", compact("items"));
@@ -45,6 +49,7 @@ class PenambahanItemController extends Controller
     {
         $jobDivisi = JobDivisi::get();
         $pekerjaan = Pekerjaan::get();
+        // dd($jobDivisi->count(), $jobDivisi->first());
 
         return view("pages.Job.Penambahan-item.create", compact("jobDivisi", "pekerjaan"));
     }
@@ -108,7 +113,7 @@ class PenambahanItemController extends Controller
             return redirect()->route("job.penambahan-item.index")->with("success", "Penambahan Item Berhasil Ditambahkan");
         } catch (Exception $th) {
             DB::rollBack();
-            dd($th->getMessage());
+            // dd($th->getMessage());
             return back()->with("error", $th->getMessage());
         }
     }

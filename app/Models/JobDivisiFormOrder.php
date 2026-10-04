@@ -55,4 +55,13 @@ class JobDivisiFormOrder extends Model
     {
         return $this->hasOne(PembatalanItemDetail::class, "job_form_order_id", "id");
     }
+
+    public function objek()
+    {
+        return $this->belongsTo(JobDivisiObjek::class, 'objek_id', 'id');
+    }
+    public function pekerjaan()
+    {
+        return $this->belongsTo(Pekerjaan::class, 'pekerjaan_id', 'id');
+    }
 }

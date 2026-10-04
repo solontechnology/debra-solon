@@ -13,7 +13,7 @@ return [
             ],
 
             'legalisasi' => [
-                ['name' => 'Penugasan'],
+                // ['name' => 'Penugasan'],
                 ['name' => 'Draft'],
             ],
         ],
@@ -49,7 +49,7 @@ return [
             ],
 
             'legalisasi' => [
-                ['name' => 'Penugasan Draft'],
+                // ['name' => 'Penugasan Draft'],
                 ['name' => 'Draft'],
             ],
         ],

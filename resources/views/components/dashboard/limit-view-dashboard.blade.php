@@ -25,6 +25,8 @@
                         <th scope="col" class="py-3">Parent</th>
                         <th scope="col" class="py-3">Proses</th>
                         <th scope="col" class="py-3">Nomor Akta</th>
+                        <th scope="col" class="py-3">Nama Penghadap</th>
+                        <th scope="col" class="py-3">Nomor Objek</th>
                         <th scope="col" class="py-3">Tanggal Input</th>
                         <th scope="col" class="py-3">Tanggal Expired</th>
                         <th scope="col" class="pe-4 py-3 text-center" style="width: 160px;">Status</th>
@@ -48,6 +50,16 @@
                                     {{ $ppat->nomor }}
                                 </code>
                             </td>
+                            <td>
+                                {{ $ppat->formOrder->jobDivisi->debitur->pluck('nama')->implode(', ') ?: '-' }}
+                            </td>
+                            <td>
+                                <code class="fw-bold text-dark fs-6 bg-light px-2 py-1 rounded border">
+                                    {{ $ppat->formOrder->objek->no_sertifikat ??
+                                    $ppat->formOrder->jobDivisi->objek->pluck('no_sertifikat')->implode(', ') ?:
+                                        '-' }}
+                                </code>
+                            </td>
                             <td class="text-secondary small">
                                 <i class="bi bi-calendar-event me-1 text-muted"></i>
                                 {{ $ppat->tanggal }}
@@ -59,24 +71,16 @@
                                 </span>
                             </td>
                             <td class="pe-4 text-center">
-                                @if (\Carbon\Carbon::parse($ppat->tanggal_expired)->startOfDay()->lt(now()->startOfDay()))
-                                    <span
-                                        class="badge bg-danger-subtle text-danger border border-danger-subtle d-inline-flex align-items-center gap-1 px-2.5 py-1.5 fw-medium">
-                                        <i class="bi bi-exclamation-triangle-fill"></i>
-                                        Silahkan Ambil Nomor Baru
-                                    </span>
-                                @else
-                                    <span
-                                        class="badge bg-warning-subtle text-warning border border-warning-subtle d-inline-flex align-items-center gap-1 px-2.5 py-1.5 fw-medium">
-                                        <i class="bi bi-clock-history"></i>
-                                        Mendekati Expired
-                                    </span>
-                                @endif
+                                <span
+                                    class="badge bg-warning-subtle text-warning border border-warning-subtle d-inline-flex align-items-center gap-1 px-2.5 py-1.5 fw-medium">
+                                    <i class="bi bi-clock-history"></i>
+                                    Mendekati Expired
+                                </span>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center py-5">
+                            <td colspan="9" class="text-center py-5">
                                 <div class="d-flex flex-column align-items-center justify-content-center">
                                     <div class="bg-success-subtle text-success d-inline-flex align-items-center justify-content-center rounded-circle mb-2"
                                         style="width: 30px; height: 30px;">
@@ -104,8 +108,8 @@
                 <i class="bi bi-file-earmark-text fs-5"></i>
             </span>
             <div>
-                <h5 class="card-title fw-bold mb-0 text-dark">Mendekati Expired — Nomor Covernot</h5>
-                <span class="text-secondary small">Daftar nomor Covernot yang akan kadaluarsa dalam 1 minggu ke
+                <h5 class="card-title fw-bold mb-0 text-dark">Mendekati Expired — Nomor Cover note</h5>
+                <span class="text-secondary small">Daftar nomor Cover note yang akan kadaluarsa dalam 1 minggu ke
                     depan</span>
             </div>
         </div>
@@ -122,7 +126,9 @@
                         <th scope="col" class="ps-4 py-3" style="width: 60px;">No</th>
                         <th scope="col" class="py-3">Parent</th>
                         <th scope="col" class="py-3">Proses</th>
-                        <th scope="col" class="py-3">Nomor</th>
+                        <th scope="col" class="py-3">Nomor Akta</th>
+                        <th scope="col" class="py-3">Nama Penghadap</th>
+                        <th scope="col" class="py-3">Nomor Objek</th>
                         <th scope="col" class="py-3">Tanggal Input</th>
                         <th scope="col" class="py-3">Tanggal Expired</th>
                         <th scope="col" class="pe-4 py-3 text-center" style="width: 160px;">Status</th>
@@ -140,11 +146,22 @@
                                 </span>
                             </td>
                             <td>
-                                <span class="fw-semibold text-dark">{{ $ppat->formOrder->nama ?? '-' }}</span>
+                                <span
+                                    class="fw-semibold text-dark">{{ $ppat->formOrder->nama === 'Covernot' ? 'Cover note' : '-' }}</span>
                             </td>
                             <td>
                                 <code class="fw-bold text-dark fs-6 bg-light px-2 py-1 rounded border">
                                     {{ $ppat->nomor }}
+                                </code>
+                            </td>
+                            <td>
+                                {{ $ppat->formOrder->jobDivisi->debitur->pluck('nama')->implode(', ') ?: '-' }}
+                            </td>
+                            <td>
+                                <code class="fw-bold text-dark fs-6 bg-light px-2 py-1 rounded border">
+                                    {{ $ppat->formOrder->objek->no_sertifikat ??
+                                    $ppat->formOrder->jobDivisi->objek->pluck('no_sertifikat')->implode(', ') ?:
+                                        '-' }}
                                 </code>
                             </td>
                             <td class="text-secondary small">
@@ -158,24 +175,16 @@
                                 </span>
                             </td>
                             <td class="pe-4 text-center">
-                                @if (\Carbon\Carbon::parse($ppat->tanggal_expired)->startOfDay()->lt(now()->startOfDay()))
-                                    <span
-                                        class="badge bg-danger-subtle text-danger border border-danger-subtle d-inline-flex align-items-center gap-1 px-2.5 py-1.5 fw-medium">
-                                        <i class="bi bi-exclamation-triangle-fill"></i>
-                                        Silahkan Ambil Nomor Baru
-                                    </span>
-                                @else
-                                    <span
-                                        class="badge bg-warning-subtle text-warning border border-warning-subtle d-inline-flex align-items-center gap-1 px-2.5 py-1.5 fw-medium">
-                                        <i class="bi bi-clock-history"></i>
-                                        Mendekati Expired
-                                    </span>
-                                @endif
+                                <span
+                                    class="badge bg-warning-subtle text-warning border border-warning-subtle d-inline-flex align-items-center gap-1 px-2.5 py-1.5 fw-medium">
+                                    <i class="bi bi-clock-history"></i>
+                                    Mendekati Expired
+                                </span>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center py-5">
+                            <td colspan="9" class="text-center py-5">
                                 <div class="d-flex flex-column align-items-center justify-content-center">
                                     <div class="bg-success-subtle text-success d-inline-flex align-items-center justify-content-center rounded-circle mb-2"
                                         style="width: 30px; height: 30px;">

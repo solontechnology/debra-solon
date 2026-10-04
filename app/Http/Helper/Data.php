@@ -75,6 +75,13 @@ function getAllPermission()
             "job/wasiat/edit",
             "job/wasiat/delete"
         ],
+        "job/covernot" => [
+            "job/covernot/list",
+            "job/covernot/detail",
+            "job/covernot/create",
+            "job/covernot/edit",
+            "job/covernot/delete"
+        ],
         "job/pajak" => [
             "job/pajak/list",
             "job/pajak/detail",

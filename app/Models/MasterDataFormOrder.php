@@ -14,4 +14,9 @@ class MasterDataFormOrder extends Model
     {
         return $this->hasMany(MasterDataFormOrderDetail::class, "master_data_form_order_id", "id");
     }
+
+    public function pekerjaan()
+{
+    return $this->belongsTo(Pekerjaan::class, 'pekerjaan_id', 'id');
+}
 }

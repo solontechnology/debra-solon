@@ -70,26 +70,26 @@ class DataPendukunJobDivisiController extends Controller
         }
 
 
-        if (in_array("penjual", $dataPendukung) && $request->has("penjual")) {
-            $validasiRules = [
-                ...$validasiRules,
-                "penjual" => "required|array|min:1",
-                "penjual.*.nama_lengkap" => "required|string",
-                "penjual.*.phone" => "required",
-                // "penjual.*.file" => "required",
-                "penjual.*.email" => "required",
-            ];
-        }
-        if (in_array("pembeli", $dataPendukung) && $request->has("pembeli")) {
-            $validasiRules = [
-                ...$validasiRules,
-                "pembeli" => "required|array|min:1",
-                "pembeli.*.nama_lengkap" => "required|string",
-                "pembeli.*.phone" => "required",
-                // "pembeli.*.file" => "required",
-                "pembeli.*.email" => "required",
-            ];
-        }
+        // if (in_array("penjual", $dataPendukung) && $request->has("penjual")) {
+        //     $validasiRules = [
+        //         ...$validasiRules,
+        //         "penjual" => "required|array|min:1",
+        //         "penjual.*.nama_lengkap" => "required|string",
+        //         "penjual.*.phone" => "required",
+        //         // "penjual.*.file" => "required",
+        //         "penjual.*.email" => "required",
+        //     ];
+        // }
+        // if (in_array("pembeli", $dataPendukung) && $request->has("pembeli")) {
+        //     $validasiRules = [
+        //         ...$validasiRules,
+        //         "pembeli" => "required|array|min:1",
+        //         "pembeli.*.nama_lengkap" => "required|string",
+        //         "pembeli.*.phone" => "required",
+        //         // "pembeli.*.file" => "required",
+        //         "pembeli.*.email" => "required",
+        //     ];
+        // }
 
         // if (in_array("debitur", $dataPendukung) && $request->has("debitur")) {
         //     $validasiRules = [
@@ -101,6 +101,36 @@ class DataPendukunJobDivisiController extends Controller
         //         "debitur.*.email" => "required",
         //     ];
         // }
+
+        if (in_array("penjual", $dataPendukung) && $request->has("penjual")) {
+            $validasiRules = [
+                ...$validasiRules,
+                "penjual" => "required|array|min:1",
+                "penjual.*.nama_lengkap"   => "required|string",
+                "penjual.*.nik"            => "required|",
+                "penjual.*.tempat_lahir"   => "required|string",
+                "penjual.*.tanggal_lahir"  => "required|date",
+                "penjual.*.alamat_lengkap" => "required|string",
+                "penjual.*.phone"          => "required",
+                "penjual.*.email"          => "required|email",
+                "penjual.*.files.*"        => "nullable|file|max:10240",
+            ];
+        }
+
+        if (in_array("pembeli", $dataPendukung) && $request->has("pembeli")) {
+            $validasiRules = [
+                ...$validasiRules,
+                "pembeli" => "required|array|min:1",
+                "pembeli.*.nama_lengkap"   => "required|string",
+                "pembeli.*.nik"            => "required|",
+                "pembeli.*.tempat_lahir"   => "required|string",
+                "pembeli.*.tanggal_lahir"  => "required|date",
+                "pembeli.*.alamat_lengkap" => "required|string",
+                "pembeli.*.phone"          => "required",
+                "pembeli.*.email"          => "required|email",
+                "pembeli.*.files.*"        => "nullable|file|max:10240",
+            ];
+        }
         if (in_array("debitur", $dataPendukung) && $request->has("debitur")) {
             $validasiRules = [
                 ...$validasiRules,
@@ -360,7 +390,7 @@ class DataPendukunJobDivisiController extends Controller
             'email' => $request->email,
             'updated_at' => now(),
         ]);
-        
+
         if ($request->hasFile('files')) {
             foreach ($request->file('files') as $file) {
                 $path = $file->store('debitur', 'public');
@@ -845,73 +875,312 @@ class DataPendukunJobDivisiController extends Controller
     }
 
 
+    // public function handelInsertPenjual(Request $request, $jobDivisi)
+    // {
+    //     if ($request->has('penjual')) {
+    //         foreach ($request->penjual as $item) {
+    //             $penjual = Penjual::create([
+    //                 "job_divisi_id" => $jobDivisi->id,
+    //                 "nama"          => $item["nama_lengkap"],
+    //                 "nomor_telepon" => $item["phone"],
+    //                 "email"         => $item["email"],
+    //                 "created_at"    => now(),
+    //                 "updated_at"    => now(),
+    //             ]);
+
+    //             // Cek kalau ada upload file (multiple files)
+    //             if (isset($item["files"]) && is_array($item["files"])) {
+    //                 foreach ($item["files"] as $file) {
+    //                     $path = $file->store("penjual", 'public');
+    //                     $penjual->files()->create([
+    //                         'file_path' => $path,
+    //                         'file_name' => $file->getClientOriginalName(),
+    //                     ]);
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
+
+    // public function editPenjual($id)
+    // {
+    //     // Eager load relasi files
+    //     $penjual = Penjual::with('files')->findOrFail($id);
+
+    //     $jobDivisi = JobDivisi::findOrFail(
+    //         $penjual->job_divisi_id
+    //     );
+
+    //     return view(
+    //         'pages.Job.Divisi.edit.edit_penjual',
+    //         compact(
+    //             'penjual',
+    //             'jobDivisi'
+    //         )
+    //     );
+    // }
+
+    // public function updatePenjual(Request $request)
+    // {
+    //     $request->validate([
+    //         'id'            => 'required',
+    //         'nama'          => 'required',
+    //         'nomor_telepon' => 'required',
+    //         'email'         => 'required|email',
+    //         'files.*'       => 'nullable|file|max:10240', // Limit per file 10MB
+    //     ]);
+
+    //     $penjual = Penjual::findOrFail(
+    //         $request->id
+    //     );
+
+    //     $penjual->update([
+    //         'nama'          => $request->nama,
+    //         'nomor_telepon' => $request->nomor_telepon,
+    //         'email'         => $request->email,
+    //         'updated_at'    => now(),
+    //     ]);
+
+    //     // Tambahkan file baru jika ada tanpa menghapus file lama
+    //     if ($request->hasFile('files')) {
+    //         foreach ($request->file('files') as $file) {
+    //             $path = $file->store('penjual', 'public');
+    //             $penjual->files()->create([
+    //                 'file_path' => $path,
+    //                 'file_name' => $file->getClientOriginalName(),
+    //             ]);
+    //         }
+    //     }
+
+    //     return redirect(
+    //         route(
+    //             'job.divisi.show',
+    //             $penjual->job_divisi_id
+    //         ) . '#tabs-data-pendukung'
+    //     )->with(
+    //         'success',
+    //         'Data penjual dan lampiran berhasil diperbarui'
+    //     );
+    // }
+
+    // // Method Baru: Hapus 1 file spesifik secara independen
+    // public function destroyFilePenjual($id)
+    // {
+    //     $file = JobDivisiFile::findOrFail($id);
+
+    //     if (Storage::disk('public')->exists($file->file_path)) {
+    //         Storage::disk('public')->delete($file->file_path);
+    //     }
+
+    //     $file->delete();
+
+    //     return redirect()->back()->with('success', 'File berhasil dihapus');
+    // }
+
+    // public function deletePenjual($id)
+    // {
+    //     $penjual = Penjual::with('files')->findOrFail($id);
+
+    //     // Hapus seluruh file fisik yang berelasi di storage
+    //     foreach ($penjual->files as $file) {
+    //         if (Storage::disk('public')->exists($file->file_path)) {
+    //             Storage::disk('public')->delete($file->file_path);
+    //         }
+    //         $file->delete();
+    //     }
+
+    //     $jobDivisiId = $penjual->job_divisi_id;
+
+    //     $penjual->delete();
+
+    //     return redirect(
+    //         route('job.divisi.show', $jobDivisiId) . '#tabs-data-pendukung'
+    //     )->with('success', 'Data penjual berhasil dihapus');
+    // }
+
+    // public function handelInsertPembeli(Request $request, $jobDivisi)
+    // {
+    //     if ($request->has('pembeli')) {
+    //         foreach ($request->pembeli as $item) {
+    //             $pembeli = Pembeli::create([
+    //                 "job_divisi_id" => $jobDivisi->id,
+    //                 "nama"          => $item["nama_lengkap"],
+    //                 "nomor_telepon" => $item["phone"],
+    //                 "email"         => $item["email"],
+    //                 "created_at"    => now(),
+    //                 "updated_at"    => now(),
+    //             ]);
+
+    //             // Cek kalau ada upload file (mendukung multiple files)
+    //             if (isset($item["files"]) && is_array($item["files"])) {
+    //                 foreach ($item["files"] as $file) {
+    //                     $path = $file->store("pembeli", 'public');
+    //                     $pembeli->files()->create([
+    //                         'file_path' => $path,
+    //                         'file_name' => $file->getClientOriginalName(),
+    //                     ]);
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
+
+    // public function editPembeli($id)
+    // {
+    //     // Eager load relasi files
+    //     $pembeli = Pembeli::with('files')->findOrFail($id);
+
+    //     $jobDivisi = JobDivisi::findOrFail(
+    //         $pembeli->job_divisi_id
+    //     );
+
+    //     return view(
+    //         'pages.Job.Divisi.edit.edit_pembeli',
+    //         compact(
+    //             'pembeli',
+    //             'jobDivisi'
+    //         )
+    //     );
+    // }
+
+    // public function updatePembeli(Request $request)
+    // {
+    //     $request->validate([
+    //         'id'            => 'required',
+    //         'nama'          => 'required',
+    //         'nomor_telepon' => 'required',
+    //         'email'         => 'required|email',
+    //         'files.*'       => 'nullable|file|max:10240', // Limit per file 10MB
+    //     ]);
+
+    //     $pembeli = Pembeli::findOrFail(
+    //         $request->id
+    //     );
+
+    //     $pembeli->update([
+    //         'nama'          => $request->nama,
+    //         'nomor_telepon' => $request->nomor_telepon,
+    //         'email'         => $request->email,
+    //         'updated_at'    => now(),
+    //     ]);
+
+    //     // Tambahkan file baru jika ada tanpa menghapus file lama
+    //     if ($request->hasFile('files')) {
+    //         foreach ($request->file('files') as $file) {
+    //             $path = $file->store('pembeli', 'public');
+    //             $pembeli->files()->create([
+    //                 'file_path' => $path,
+    //                 'file_name' => $file->getClientOriginalName(),
+    //             ]);
+    //         }
+    //     }
+
+    //     return redirect(
+    //         route(
+    //             'job.divisi.show',
+    //             $pembeli->job_divisi_id
+    //         ) . '#tabs-data-pendukung'
+    //     )->with(
+    //         'success',
+    //         'Data pembeli dan lampiran berhasil diperbarui'
+    //     );
+    // }
+
+    // // Method Baru: Hapus 1 file spesifik secara independen
+    // public function destroyFilePembeli($id)
+    // {
+    //     $file = JobDivisiFile::findOrFail($id);
+
+    //     if (Storage::disk('public')->exists($file->file_path)) {
+    //         Storage::disk('public')->delete($file->file_path);
+    //     }
+
+    //     $file->delete();
+
+    //     return redirect()->back()->with('success', 'File berhasil dihapus');
+    // }
+
+    // public function deletePembeli($id)
+    // {
+    //     $pembeli = Pembeli::with('files')->findOrFail($id);
+
+    //     // Hapus seluruh file fisik yang berelasi di storage
+    //     foreach ($pembeli->files as $file) {
+    //         if (Storage::disk('public')->exists($file->file_path)) {
+    //             Storage::disk('public')->delete($file->file_path);
+    //         }
+    //         $file->delete();
+    //     }
+
+    //     $jobDivisiId = $pembeli->job_divisi_id;
+
+    //     $pembeli->delete();
+
+    //     return redirect(
+    //         route('job.divisi.show', $jobDivisiId) . '#tabs-data-pendukung'
+    //     )->with('success', 'Data pembeli berhasil dihapus');
+    // }
     public function handelInsertPenjual(Request $request, $jobDivisi)
     {
-        if ($request->has('penjual')) {
-            foreach ($request->penjual as $item) {
-                $penjual = Penjual::create([
-                    "job_divisi_id" => $jobDivisi->id,
-                    "nama"          => $item["nama_lengkap"],
-                    "nomor_telepon" => $item["phone"],
-                    "email"         => $item["email"],
-                    "created_at"    => now(),
-                    "updated_at"    => now(),
-                ]);
+        if (!$request->has('penjual')) return;
 
-                // Cek kalau ada upload file (multiple files)
-                if (isset($item["files"]) && is_array($item["files"])) {
-                    foreach ($item["files"] as $file) {
-                        $path = $file->store("penjual", 'public');
-                        $penjual->files()->create([
-                            'file_path' => $path,
-                            'file_name' => $file->getClientOriginalName(),
-                        ]);
-                    }
-                }
+        foreach ($request->penjual as $item) {
+            $penjual = Penjual::create([
+                "job_divisi_id"  => $jobDivisi->id,
+                "nama"           => $item["nama_lengkap"],
+                "nik"            => $item["nik"],
+                "tempat_lahir"   => $item["tempat_lahir"],
+                "tanggal_lahir"  => $item["tanggal_lahir"],
+                "alamat_lengkap" => $item["alamat_lengkap"],
+                "nomor_telepon"  => $item["phone"],
+                "email"          => $item["email"],
+            ]);
+
+            foreach ($item["files"] ?? [] as $file) {
+                $path = $file->store("penjual", 'public');
+                $penjual->files()->create([
+                    'file_path' => $path,
+                    'file_name' => $file->getClientOriginalName(),
+                ]);
             }
         }
     }
 
     public function editPenjual($id)
     {
-        // Eager load relasi files
-        $penjual = Penjual::with('files')->findOrFail($id);
+        $penjual   = Penjual::with('files')->findOrFail($id);
+        $jobDivisi = JobDivisi::findOrFail($penjual->job_divisi_id);
 
-        $jobDivisi = JobDivisi::findOrFail(
-            $penjual->job_divisi_id
-        );
-
-        return view(
-            'pages.Job.Divisi.edit.edit_penjual',
-            compact(
-                'penjual',
-                'jobDivisi'
-            )
-        );
+        return view('pages.Job.Divisi.edit.edit_penjual', compact('penjual', 'jobDivisi'));
     }
 
     public function updatePenjual(Request $request)
     {
         $request->validate([
-            'id'            => 'required',
-            'nama'          => 'required',
-            'nomor_telepon' => 'required',
-            'email'         => 'required|email',
-            'files.*'       => 'nullable|file|max:10240', // Limit per file 10MB
+            'id'             => 'required',
+            'nama'           => 'required|string',
+            'nik'            => 'required|',
+            'tempat_lahir'   => 'required|string',
+            'tanggal_lahir'  => 'required|date',
+            'alamat_lengkap' => 'required|string',
+            'nomor_telepon'  => 'required',
+            'email'          => 'required|email',
+            'files.*'        => 'nullable|file|max:10240',
         ]);
 
-        $penjual = Penjual::findOrFail(
-            $request->id
-        );
+        $penjual = Penjual::findOrFail($request->id);
 
-        $penjual->update([
-            'nama'          => $request->nama,
-            'nomor_telepon' => $request->nomor_telepon,
-            'email'         => $request->email,
-            'updated_at'    => now(),
-        ]);
+        $penjual->update($request->only([
+            'nama',
+            'nik',
+            'tempat_lahir',
+            'tanggal_lahir',
+            'alamat_lengkap',
+            'nomor_telepon',
+            'email',
+        ]));
 
-        // Tambahkan file baru jika ada tanpa menghapus file lama
+        // File baru ditambah, file lama tetap
         if ($request->hasFile('files')) {
             foreach ($request->file('files') as $file) {
                 $path = $file->store('penjual', 'public');
@@ -923,17 +1192,10 @@ class DataPendukunJobDivisiController extends Controller
         }
 
         return redirect(
-            route(
-                'job.divisi.show',
-                $penjual->job_divisi_id
-            ) . '#tabs-data-pendukung'
-        )->with(
-            'success',
-            'Data penjual dan lampiran berhasil diperbarui'
-        );
+            route('job.divisi.show', $penjual->job_divisi_id) . '#tabs-data-pendukung'
+        )->with('success', 'Data penjual dan lampiran berhasil diperbarui');
     }
 
-    // Method Baru: Hapus 1 file spesifik secara independen
     public function destroyFilePenjual($id)
     {
         $file = JobDivisiFile::findOrFail($id);
@@ -941,7 +1203,6 @@ class DataPendukunJobDivisiController extends Controller
         if (Storage::disk('public')->exists($file->file_path)) {
             Storage::disk('public')->delete($file->file_path);
         }
-
         $file->delete();
 
         return redirect()->back()->with('success', 'File berhasil dihapus');
@@ -951,7 +1212,6 @@ class DataPendukunJobDivisiController extends Controller
     {
         $penjual = Penjual::with('files')->findOrFail($id);
 
-        // Hapus seluruh file fisik yang berelasi di storage
         foreach ($penjual->files as $file) {
             if (Storage::disk('public')->exists($file->file_path)) {
                 Storage::disk('public')->delete($file->file_path);
@@ -960,7 +1220,6 @@ class DataPendukunJobDivisiController extends Controller
         }
 
         $jobDivisiId = $penjual->job_divisi_id;
-
         $penjual->delete();
 
         return redirect(
@@ -970,71 +1229,64 @@ class DataPendukunJobDivisiController extends Controller
 
     public function handelInsertPembeli(Request $request, $jobDivisi)
     {
-        if ($request->has('pembeli')) {
-            foreach ($request->pembeli as $item) {
-                $pembeli = Pembeli::create([
-                    "job_divisi_id" => $jobDivisi->id,
-                    "nama"          => $item["nama_lengkap"],
-                    "nomor_telepon" => $item["phone"],
-                    "email"         => $item["email"],
-                    "created_at"    => now(),
-                    "updated_at"    => now(),
-                ]);
+        if (!$request->has('pembeli')) return;
 
-                // Cek kalau ada upload file (mendukung multiple files)
-                if (isset($item["files"]) && is_array($item["files"])) {
-                    foreach ($item["files"] as $file) {
-                        $path = $file->store("pembeli", 'public');
-                        $pembeli->files()->create([
-                            'file_path' => $path,
-                            'file_name' => $file->getClientOriginalName(),
-                        ]);
-                    }
-                }
+        foreach ($request->pembeli as $item) {
+            $pembeli = Pembeli::create([
+                "job_divisi_id"  => $jobDivisi->id,
+                "nama"           => $item["nama_lengkap"],
+                "nik"            => $item["nik"],
+                "tempat_lahir"   => $item["tempat_lahir"],
+                "tanggal_lahir"  => $item["tanggal_lahir"],
+                "alamat_lengkap" => $item["alamat_lengkap"],
+                "nomor_telepon"  => $item["phone"],
+                "email"          => $item["email"],
+            ]);
+
+            foreach ($item["files"] ?? [] as $file) {
+                $path = $file->store("pembeli", 'public');
+                $pembeli->files()->create([
+                    'file_path' => $path,
+                    'file_name' => $file->getClientOriginalName(),
+                ]);
             }
         }
     }
 
     public function editPembeli($id)
     {
-        // Eager load relasi files
-        $pembeli = Pembeli::with('files')->findOrFail($id);
+        $pembeli   = Pembeli::with('files')->findOrFail($id);
+        $jobDivisi = JobDivisi::findOrFail($pembeli->job_divisi_id);
 
-        $jobDivisi = JobDivisi::findOrFail(
-            $pembeli->job_divisi_id
-        );
-
-        return view(
-            'pages.Job.Divisi.edit.edit_pembeli',
-            compact(
-                'pembeli',
-                'jobDivisi'
-            )
-        );
+        return view('pages.Job.Divisi.edit.edit_pembeli', compact('pembeli', 'jobDivisi'));
     }
 
     public function updatePembeli(Request $request)
     {
         $request->validate([
-            'id'            => 'required',
-            'nama'          => 'required',
-            'nomor_telepon' => 'required',
-            'email'         => 'required|email',
-            'files.*'       => 'nullable|file|max:10240', // Limit per file 10MB
+            'id'             => 'required',
+            'nama'           => 'required|string',
+            'nik'            => 'required|',
+            'tempat_lahir'   => 'required|string',
+            'tanggal_lahir'  => 'required|date',
+            'alamat_lengkap' => 'required|string',
+            'nomor_telepon'  => 'required',
+            'email'          => 'required|email',
+            'files.*'        => 'nullable|file|max:10240',
         ]);
 
-        $pembeli = Pembeli::findOrFail(
-            $request->id
-        );
+        $pembeli = Pembeli::findOrFail($request->id);
 
-        $pembeli->update([
-            'nama'          => $request->nama,
-            'nomor_telepon' => $request->nomor_telepon,
-            'email'         => $request->email,
-            'updated_at'    => now(),
-        ]);
+        $pembeli->update($request->only([
+            'nama',
+            'nik',
+            'tempat_lahir',
+            'tanggal_lahir',
+            'alamat_lengkap',
+            'nomor_telepon',
+            'email',
+        ]));
 
-        // Tambahkan file baru jika ada tanpa menghapus file lama
         if ($request->hasFile('files')) {
             foreach ($request->file('files') as $file) {
                 $path = $file->store('pembeli', 'public');
@@ -1046,17 +1298,10 @@ class DataPendukunJobDivisiController extends Controller
         }
 
         return redirect(
-            route(
-                'job.divisi.show',
-                $pembeli->job_divisi_id
-            ) . '#tabs-data-pendukung'
-        )->with(
-            'success',
-            'Data pembeli dan lampiran berhasil diperbarui'
-        );
+            route('job.divisi.show', $pembeli->job_divisi_id) . '#tabs-data-pendukung'
+        )->with('success', 'Data pembeli dan lampiran berhasil diperbarui');
     }
 
-    // Method Baru: Hapus 1 file spesifik secara independen
     public function destroyFilePembeli($id)
     {
         $file = JobDivisiFile::findOrFail($id);
@@ -1064,7 +1309,6 @@ class DataPendukunJobDivisiController extends Controller
         if (Storage::disk('public')->exists($file->file_path)) {
             Storage::disk('public')->delete($file->file_path);
         }
-
         $file->delete();
 
         return redirect()->back()->with('success', 'File berhasil dihapus');
@@ -1074,7 +1318,6 @@ class DataPendukunJobDivisiController extends Controller
     {
         $pembeli = Pembeli::with('files')->findOrFail($id);
 
-        // Hapus seluruh file fisik yang berelasi di storage
         foreach ($pembeli->files as $file) {
             if (Storage::disk('public')->exists($file->file_path)) {
                 Storage::disk('public')->delete($file->file_path);
@@ -1083,7 +1326,6 @@ class DataPendukunJobDivisiController extends Controller
         }
 
         $jobDivisiId = $pembeli->job_divisi_id;
-
         $pembeli->delete();
 
         return redirect(

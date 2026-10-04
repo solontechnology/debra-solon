@@ -77,21 +77,39 @@ class JobDivisiIndexServis
 
         $items->getCollection()->transform(function ($item) {
             $tanggalEstimasiInternal = $item->tanggal_estimasi_selesai;
+            $tanggalEstimasiEksternal = $item->tanggal_estimasi_selesai_eksternal;
 
             $tanggalExpiredTerbesar = $item->formOrder
                 ->map(fn($formOrder) => $formOrder->nomorPpat?->tanggal_expired)
                 ->filter()
                 ->max();
 
-            if (!$tanggalEstimasiInternal) {
-                $item->tanggal_estimasi_selesai = $tanggalExpiredTerbesar;
-            } elseif (!$tanggalExpiredTerbesar) {
-                $item->tanggal_estimasi_selesai = $tanggalEstimasiInternal;
+            // Kalau ada tanggal expired, selalu gunakan tanggal expired.
+            // Kalau tidak ada, gunakan tanggal estimasi internal yang tersimpan.
+            if ($tanggalExpiredTerbesar) {
+                $tanggalEstimasiBaru = \Carbon\Carbon::parse($tanggalExpiredTerbesar);
+
+                // Hitung selisih internal -> eksternal dari tanggal lama
+                $selisihHari = 0;
+
+                if ($tanggalEstimasiInternal && $tanggalEstimasiEksternal) {
+                    $selisihHari = \Carbon\Carbon::parse($tanggalEstimasiInternal)
+                        ->diffInDays(
+                            \Carbon\Carbon::parse($tanggalEstimasiEksternal),
+                            false
+                        );
+                }
+
+                // Geser eksternal dengan selisih yang sama
+                $tanggalEstimasiEksternalBaru = $tanggalEstimasiBaru
+                    ->copy()
+                    ->addDays($selisihHari);
+
+                $item->tanggal_estimasi_selesai = $tanggalEstimasiBaru->toDateString();
+                $item->tanggal_estimasi_selesai_eksternal = $tanggalEstimasiEksternalBaru->toDateString();
             } else {
-                $item->tanggal_estimasi_selesai = max(
-                    $tanggalEstimasiInternal,
-                    $tanggalExpiredTerbesar
-                );
+                $item->tanggal_estimasi_selesai = $tanggalEstimasiInternal;
+                $item->tanggal_estimasi_selesai_eksternal = $tanggalEstimasiEksternal;
             }
 
             return $item;

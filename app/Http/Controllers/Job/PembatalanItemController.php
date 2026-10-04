@@ -29,7 +29,14 @@ class PembatalanItemController extends Controller
 
     public function index()
     {
-        $items = PembatalanItem::orderBy("id", "desc")->paginate(12);
+        $items = PembatalanItem::with([
+            "jobDivisi.listBank.bank",
+            "jobDivisi.debitur",
+            "jobDivisi.formOrder",
+            "detail.formOrder"
+        ])
+            ->orderBy("id", "desc")
+            ->paginate(12);
         $jobDivisi = JobDivisi::orderBy("id", "desc")
             // ->where(function ($query) {
             //     // Kondisi 1: Belum pernah diajukan pembatalan item
@@ -74,6 +81,72 @@ class PembatalanItemController extends Controller
     /**
      * Store a newly created resource in storage.
      */
+    // public function store(Request $request)
+    // {
+    //     DB::beginTransaction();
+
+    //     try {
+    //         $pembatalanItem = PembatalanItem::create([
+    //             "job_divisi_id" => $request->job_divisi_id,
+    //             "created_by" => Auth::user()->id,
+    //             "keterangan" => $request->keterangan
+    //         ]);
+
+    //         $detailFormData = collect($request->item)->map(function ($item, $index) use ($pembatalanItem) {
+
+    //             return [
+    //                 "pembatalan_item_id" => $pembatalanItem->id,
+    //                 "job_form_order_id" => $item,
+    //                 "created_at" => now(),
+    //                 "updated_at" => now(),
+    //             ];
+    //         });
+
+    //         $insertDetail =  PembatalanItemDetail::insert($detailFormData->toArray());
+    //         $pembatalanItem = PembatalanItem::create([
+    //             "job_divisi_id" => $request->job_divisi_id,
+    //             "created_by" => Auth::user()->id,
+    //             "keterangan" => $request->keterangan
+    //         ]);
+
+    //         $detailFormData = collect($request->item)->map(function ($item, $index) use ($pembatalanItem) {
+
+    //             return [
+    //                 "pembatalan_item_id" => $pembatalanItem->id,
+    //                 "job_form_order_id" => $item,
+    //                 "created_at" => now(),
+    //                 "updated_at" => now(),
+    //             ];
+    //         });
+
+    //         $insertDetail = PembatalanItemDetail::insert($detailFormData->toArray());
+
+    //         $jobDivisi = JobDivisi::find($request->job_divisi_id);
+
+    //         $superAdmins = User::whereHas('roles', function ($query) {
+
+    //             $query->where('name', 'super admin');
+    //         })->get();
+
+    //         foreach ($superAdmins as $admin) {
+
+    //             $this->notifikasiServis->create(
+    //                 $admin->id,
+    //                 "Permintaan Pembatalan Item",
+    //                 Auth::user()->name . " mengajukan pembatalan item",
+    //                 route('job.pembatalan-items.show', $pembatalanItem->id),
+    //                 $jobDivisi?->id
+    //             );
+    //         }
+
+    //         DB::commit();
+    //         return redirect()->route("job.pembatalan-items.index")->with("success", "Berhasil menambahkan pembatalan item");
+    //     } catch (\Throwable $th) {
+    //         DB::rollBack();
+
+    //         return redirect()->back()->with("error", "Terjadi kesalahan server");
+    //     }
+    // }
     public function store(Request $request)
     {
         DB::beginTransaction();
@@ -85,8 +158,7 @@ class PembatalanItemController extends Controller
                 "keterangan" => $request->keterangan
             ]);
 
-            $detailFormData = collect($request->item)->map(function ($item, $index) use ($pembatalanItem) {
-
+            $detailFormData = collect($request->item)->map(function ($item) use ($pembatalanItem) {
                 return [
                     "pembatalan_item_id" => $pembatalanItem->id,
                     "job_form_order_id" => $item,
@@ -95,34 +167,15 @@ class PembatalanItemController extends Controller
                 ];
             });
 
-            $insertDetail =  PembatalanItemDetail::insert($detailFormData->toArray());
-            $pembatalanItem = PembatalanItem::create([
-                "job_divisi_id" => $request->job_divisi_id,
-                "created_by" => Auth::user()->id,
-                "keterangan" => $request->keterangan
-            ]);
-
-            $detailFormData = collect($request->item)->map(function ($item, $index) use ($pembatalanItem) {
-
-                return [
-                    "pembatalan_item_id" => $pembatalanItem->id,
-                    "job_form_order_id" => $item,
-                    "created_at" => now(),
-                    "updated_at" => now(),
-                ];
-            });
-
-            $insertDetail = PembatalanItemDetail::insert($detailFormData->toArray());
+            PembatalanItemDetail::insert($detailFormData->toArray());
 
             $jobDivisi = JobDivisi::find($request->job_divisi_id);
 
             $superAdmins = User::whereHas('roles', function ($query) {
-
                 $query->where('name', 'super admin');
             })->get();
 
             foreach ($superAdmins as $admin) {
-
                 $this->notifikasiServis->create(
                     $admin->id,
                     "Permintaan Pembatalan Item",
@@ -133,11 +186,16 @@ class PembatalanItemController extends Controller
             }
 
             DB::commit();
-            return redirect()->route("job.pembatalan-items.index")->with("success", "Berhasil menambahkan pembatalan item");
+
+            return redirect()
+                ->route("job.pembatalan-items.index")
+                ->with("success", "Berhasil menambahkan pembatalan item");
         } catch (\Throwable $th) {
             DB::rollBack();
 
-            return redirect()->back()->with("error", "Terjadi kesalahan server");
+            return redirect()
+                ->back()
+                ->with("error", "Terjadi kesalahan server");
         }
     }
 

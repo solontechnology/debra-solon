@@ -15,4 +15,9 @@ class PembatalanItemDetail extends Model
     {
         return $this->belongsTo(PembatalanItem::class, "pembatalan_item_id", "id");
     }
+
+    public function formOrder()
+    {
+        return $this->belongsTo(JobDivisiFormOrder::class, 'job_form_order_id', 'id');
+    }
 }

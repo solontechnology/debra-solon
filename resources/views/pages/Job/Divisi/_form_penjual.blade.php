@@ -8,7 +8,17 @@
             // Ambil old input; jika kosong, buat 1 baris default
             $oldPenjuals =
                 old('penjual') ??
-                (session('form_data.penjual') ?? [['nama_lengkap' => '', 'nik' => '', 'phone' => '', 'email' => '']]);
+                (session('form_data.penjual') ?? [
+                    [
+                        'nama_lengkap' => '',
+                        'nik' => '',
+                        'tempat_lahir' => '',
+                        'tanggal_lahir' => '',
+                        'alamat_lengkap' => '',
+                        'phone' => '',
+                        'email' => '',
+                    ],
+                ]);
 
             // Tentukan index terakhir untuk JS (agar append lanjut rapi)
             $lastIndex = is_array($oldPenjuals) ? array_key_last($oldPenjuals) : -1;
@@ -49,6 +59,18 @@
                                 </div>
 
                                 <div class="col-md-4">
+                                    <label class="form-label text-secondary small fw-bold required">NIK</label>
+                                    <input type="text"
+                                        class="form-control @error("penjual.$key.nik") is-invalid @enderror"
+                                        name="penjual[{{ $key }}][nik]"
+                                        value="{{ old("penjual.$key.nik", $item['nik'] ?? '') }}"
+                                        placeholder="16 digit NIK">
+                                    @error("penjual.$key.nik")
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="col-md-4">
                                     <label class="form-label text-secondary small fw-bold required">NOMOR TELEPON</label>
                                     <input type="number"
                                         class="form-control @error("penjual.$key.phone") is-invalid @enderror"
@@ -68,6 +90,40 @@
                                         value="{{ old("penjual.$key.email", $item['email'] ?? '') }}"
                                         autocomplete="email" placeholder="email@domain.com">
                                     @error("penjual.$key.email")
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label text-secondary small fw-bold required">TEMPAT LAHIR</label>
+                                    <input type="text"
+                                        class="form-control @error("penjual.$key.tempat_lahir") is-invalid @enderror"
+                                        name="penjual[{{ $key }}][tempat_lahir]"
+                                        value="{{ old("penjual.$key.tempat_lahir", $item['tempat_lahir'] ?? '') }}"
+                                        placeholder="Kota Kelahiran">
+                                    @error("penjual.$key.tempat_lahir")
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label text-secondary small fw-bold required">TANGGAL LAHIR</label>
+                                    <input type="date"
+                                        class="form-control @error("penjual.$key.tanggal_lahir") is-invalid @enderror"
+                                        name="penjual[{{ $key }}][tanggal_lahir]"
+                                        value="{{ old("penjual.$key.tanggal_lahir", $item['tanggal_lahir'] ?? '') }}">
+                                    @error("penjual.$key.tanggal_lahir")
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label text-secondary small fw-bold required">ALAMAT LENGKAP</label>
+                                    <textarea
+                                        class="form-control @error("penjual.$key.alamat_lengkap") is-invalid @enderror"
+                                        name="penjual[{{ $key }}][alamat_lengkap]" rows="2"
+                                        placeholder="Alamat sesuai KTP">{{ old("penjual.$key.alamat_lengkap", $item['alamat_lengkap'] ?? '') }}</textarea>
+                                    @error("penjual.$key.alamat_lengkap")
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
@@ -159,6 +215,10 @@
                                     <input type="text" class="form-control" name="penjual[${i}][nama_lengkap]" placeholder="Masukkan nama lengkap">
                                 </div>
                                 <div class="col-md-4">
+                                    <label class="form-label text-secondary small fw-bold required">NIK</label>
+                                    <input type="text" class="form-control" name="penjual[${i}][nik]" placeholder="16 digit NIK">
+                                </div>
+                                <div class="col-md-4">
                                     <label class="form-label text-secondary small fw-bold required">NOMOR TELEPON</label>
                                     <input type="number" class="form-control" inputmode="tel" name="penjual[${i}][phone]" placeholder="Contoh: 081234567890">
                                 </div>
@@ -166,11 +226,22 @@
                                     <label class="form-label text-secondary small fw-bold required">EMAIL</label>
                                     <input type="email" class="form-control" autocomplete="email" name="penjual[${i}][email]" placeholder="email@domain.com">
                                 </div>
+                                <div class="col-md-4">
+                                    <label class="form-label text-secondary small fw-bold required">TEMPAT LAHIR</label>
+                                    <input type="text" class="form-control" name="penjual[${i}][tempat_lahir]" placeholder="Kota Kelahiran">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label text-secondary small fw-bold required">TANGGAL LAHIR</label>
+                                    <input type="date" class="form-control" name="penjual[${i}][tanggal_lahir]">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label text-secondary small fw-bold required">ALAMAT LENGKAP</label>
+                                    <textarea class="form-control" name="penjual[${i}][alamat_lengkap]" rows="2" placeholder="Alamat sesuai KTP"></textarea>
+                                </div>
                                 <div class="col-12">
                                     <div class="p-3 border border-2 border-dashed border-secondary border-opacity-25 rounded-3 bg-light bg-opacity-25">
                                         <label class="form-label text-dark small fw-bold mb-1">DOKUMEN LAMPIRAN PENJUAL</label>
                                         <p class="text-muted small mb-2" style="font-size: 0.75rem;">Anda dapat memilih beberapa file sekaligus dengan menahan tombol Ctrl / Shift.</p>
-                                        {{-- Penyesuaian nama menjadi files[] dan penambahan multiple --}}
                                         <input type="file" class="form-control bg-white" name="penjual[${i}][files][]" multiple>
                                     </div>
                                 </div>

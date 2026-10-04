@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class Penjual extends Model
 {
     protected $guarded = [];
+     protected $casts = [
+        'tanggal_lahir' => 'date',
+    ];
 
     public function jobDivisiBadanUsahaPenjual()
     {

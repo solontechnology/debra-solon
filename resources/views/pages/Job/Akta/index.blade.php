@@ -69,7 +69,10 @@
                             <tr class="{{ isset($item->statusJobOps->last()->status_penolakan) ? 'bg-red-lt' : '' }}">
                                 {{-- Sticky Column 1: Parent --}}
                                 <td class="ps-4 freeze-parent fw-semibold">
-                                    <span class="text-primary">{{ $item->jobDivisi->kode ?? '-' }}</span>
+                                    <a href="{{ route('job.divisi.show', $item->jobDivisi->id) }}" class="text-decoration-none">
+                                        <span class="text-primary">{{ $item->jobDivisi->kode ?? '-' }}</span>
+
+                                    </a>
                                 </td>
 
                                 {{-- Sticky Column 2: Proses --}}

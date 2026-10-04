@@ -15,10 +15,10 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         /*
-        |--------------------------------------------------------------------------
-        | FILTER
-        |--------------------------------------------------------------------------
-        */
+            |--------------------------------------------------------------------------
+            | FILTER
+            |--------------------------------------------------------------------------
+            */
 
         $groupBy = $request->get('group_by', 'day');
 
@@ -36,17 +36,17 @@ class DashboardController extends Controller
         }
 
         /*
-        |--------------------------------------------------------------------------
-        | FILTER BULAN
-        |--------------------------------------------------------------------------
-        |
-        | Kalau filter_month kosong:
-        | → ambil seluruh data / akumulasi
-        |
-        | Kalau filter_month diisi:
-        | → hanya ambil data pada bulan tersebut
-        |
-        */
+            |--------------------------------------------------------------------------
+            | FILTER BULAN
+            |--------------------------------------------------------------------------
+            |
+            | Kalau filter_month kosong:
+            | → ambil seluruh data / akumulasi
+            |
+            | Kalau filter_month diisi:
+            | → hanya ambil data pada bulan tersebut
+            |
+            */
 
         $filterMonth = $request->get('filter_month');
 
@@ -64,10 +64,10 @@ class DashboardController extends Controller
         }
 
         /*
-        |--------------------------------------------------------------------------
-        | BERKAS MASUK
-        |--------------------------------------------------------------------------
-        */
+            |--------------------------------------------------------------------------
+            | BERKAS MASUK
+            |--------------------------------------------------------------------------
+            */
 
         $berkasMasukQuery = JobDivisi::query();
 
@@ -81,10 +81,10 @@ class DashboardController extends Controller
         $berkasMasukCount = $berkasMasukQuery->count();
 
         /*
-        |--------------------------------------------------------------------------
-        | DATA JOB DIVISI
-        |--------------------------------------------------------------------------
-        */
+            |--------------------------------------------------------------------------
+            | DATA JOB DIVISI
+            |--------------------------------------------------------------------------
+            */
 
         $jobDivisiQuery = JobDivisi::query()
             ->with([
@@ -105,10 +105,10 @@ class DashboardController extends Controller
         $jobDivisi = $jobDivisiQuery->get();
 
         /*
-        |--------------------------------------------------------------------------
-        | FORM ORDER
-        |--------------------------------------------------------------------------
-        */
+            |--------------------------------------------------------------------------
+            | FORM ORDER
+            |--------------------------------------------------------------------------
+            */
 
         $formOrder = JobDivisiFormOrder::query()
             ->with([
@@ -135,17 +135,20 @@ class DashboardController extends Controller
 
         $nomorPpats = NomorPpat::query()
             ->with([
-                'formOrder.jobDivisi',
+                'formOrder.objek',
+                'formOrder.jobDivisi.objek',
+                'formOrder.jobDivisi.debitur',
             ])
             ->whereNotNull('tanggal')
             ->whereNotNull('tanggal_expired')
+            ->whereDate('tanggal_expired', '>=', now()->toDateString()) // <- tambahin ini
             ->whereRaw("
-                DATE_ADD(
-                    tanggal,
-                    INTERVAL DATEDIFF(tanggal_expired, tanggal) / 2 DAY
-                ) <= ?
-            ", [
-            now()->toDateString(),
+        DATE_ADD(
+            tanggal,
+            INTERVAL DATEDIFF(tanggal_expired, tanggal) / 2 DAY
+        ) <= ?
+    ", [
+                now()->toDateString(),
             ])
             ->orderBy('tanggal_expired', 'asc')
             ->get();
@@ -160,10 +163,10 @@ class DashboardController extends Controller
 
 
         /*
-        |--------------------------------------------------------------------------
-        | HITUNG STATUS BERKAS
-        |--------------------------------------------------------------------------
-        */
+            |--------------------------------------------------------------------------
+            | HITUNG STATUS BERKAS
+            |--------------------------------------------------------------------------
+            */
 
         $berkasBerjalan = 0;
         $berkasSelesai = 0;
@@ -182,10 +185,10 @@ class DashboardController extends Controller
         }
 
         /*
-        |--------------------------------------------------------------------------
-        | BERKAS FREEZE
-        |--------------------------------------------------------------------------
-        */
+            |--------------------------------------------------------------------------
+            | BERKAS FREEZE
+            |--------------------------------------------------------------------------
+            */
 
         $berkasFreezeQuery = ApprovalFreez::query()
             ->where('status', 'Disetujui')
@@ -196,9 +199,9 @@ class DashboardController extends Controller
             });
 
         /*
-        | Kalau sedang menggunakan filter bulan,
-        | freeze dibatasi berdasarkan job yang masuk periode tersebut.
-        */
+            | Kalau sedang menggunakan filter bulan,
+            | freeze dibatasi berdasarkan job yang masuk periode tersebut.
+            */
 
         if ($startDate && $endDate) {
             $berkasFreezeQuery->whereIn(
@@ -210,10 +213,10 @@ class DashboardController extends Controller
         $berkasFreeze = $berkasFreezeQuery->count();
 
         /*
-        |--------------------------------------------------------------------------
-        | SUMMARY
-        |--------------------------------------------------------------------------
-        */
+            |--------------------------------------------------------------------------
+            | SUMMARY
+            |--------------------------------------------------------------------------
+            */
 
         $summary = [
             'berkas_masuk' => $berkasMasukCount,
@@ -244,10 +247,10 @@ class DashboardController extends Controller
         ];
 
         /*
-        |--------------------------------------------------------------------------
-        | GRAFIK PENYELESAIAN
-        |--------------------------------------------------------------------------
-        */
+            |--------------------------------------------------------------------------
+            | GRAFIK PENYELESAIAN
+            |--------------------------------------------------------------------------
+            */
 
         $completionRanking = $this->buildCompletionRanking(
             $jobDivisi,
@@ -255,20 +258,20 @@ class DashboardController extends Controller
         );
 
         /*
-        |--------------------------------------------------------------------------
-        | GRAFIK PER MENU
-        |--------------------------------------------------------------------------
-        */
+            |--------------------------------------------------------------------------
+            | GRAFIK PER MENU
+            |--------------------------------------------------------------------------
+            */
 
         $menuCompletionChart = $this->buildMenuCompletionChart(
             $formOrder
         );
 
         /*
-        |--------------------------------------------------------------------------
-        | VIEW
-        |--------------------------------------------------------------------------
-        */
+            |--------------------------------------------------------------------------
+            | VIEW
+            |--------------------------------------------------------------------------
+            */
 
         return view('dashboard', [
             'jobDivisi' => $jobDivisi,
@@ -296,10 +299,10 @@ class DashboardController extends Controller
     }
 
     /*
-    |--------------------------------------------------------------------------
-    | RANKING PENYELESAIAN
-    |--------------------------------------------------------------------------
-    */
+        |--------------------------------------------------------------------------
+        | RANKING PENYELESAIAN
+        |--------------------------------------------------------------------------
+        */
 
     private function buildCompletionRanking(
         Collection $jobDivisi,
@@ -310,8 +313,8 @@ class DashboardController extends Controller
         foreach ($jobDivisi as $job) {
 
             /*
-            | Berdasarkan pegawai
-            */
+                | Berdasarkan pegawai
+                */
 
             if ($completionGroupBy === 'pegawai') {
 
@@ -330,8 +333,8 @@ class DashboardController extends Controller
             }
 
             /*
-            | Berdasarkan perusahaan
-            */
+                | Berdasarkan perusahaan
+                */
 
             if ($job->developer->isEmpty()) {
 
@@ -360,8 +363,8 @@ class DashboardController extends Controller
         }
 
         /*
-        | Ambil 10 data teratas berdasarkan total
-        */
+            | Ambil 10 data teratas berdasarkan total
+            */
 
         $ranking = collect($ranking)
             ->sortByDesc(function ($item) {
@@ -388,10 +391,10 @@ class DashboardController extends Controller
     }
 
     /*
-    |--------------------------------------------------------------------------
-    | STATUS PER MENU
-    |--------------------------------------------------------------------------
-    */
+        |--------------------------------------------------------------------------
+        | STATUS PER MENU
+        |--------------------------------------------------------------------------
+        */
 
     private function buildMenuCompletionChart(
         Collection $formOrder
@@ -455,10 +458,10 @@ class DashboardController extends Controller
     }
 
     /*
-    |--------------------------------------------------------------------------
-    | TAMBAH DATA KE RANKING
-    |--------------------------------------------------------------------------
-    */
+        |--------------------------------------------------------------------------
+        | TAMBAH DATA KE RANKING
+        |--------------------------------------------------------------------------
+        */
 
     private function incrementCompletionRanking(
         array &$ranking,
@@ -483,10 +486,10 @@ class DashboardController extends Controller
     }
 
     /*
-    |--------------------------------------------------------------------------
-    | RESOLVE STATUS JOB
-    |--------------------------------------------------------------------------
-    */
+        |--------------------------------------------------------------------------
+        | RESOLVE STATUS JOB
+        |--------------------------------------------------------------------------
+        */
 
     private function resolveCompletionStatus(
         JobDivisi $job
@@ -518,10 +521,10 @@ class DashboardController extends Controller
     }
 
     /*
-    |--------------------------------------------------------------------------
-    | RESOLVE STATUS MENU
-    |--------------------------------------------------------------------------
-    */
+        |--------------------------------------------------------------------------
+        | RESOLVE STATUS MENU
+        |--------------------------------------------------------------------------
+        */
 
     private function resolveMenuStatus(
         JobDivisiFormOrder $item
@@ -530,8 +533,8 @@ class DashboardController extends Controller
         $job = $item->jobDivisi;
 
         /*
-        | Freeze
-        */
+            | Freeze
+            */
 
         if (
             $job
@@ -541,8 +544,8 @@ class DashboardController extends Controller
         }
 
         /*
-        | Pending
-        */
+            | Pending
+            */
 
         if (
             $job
@@ -552,8 +555,8 @@ class DashboardController extends Controller
         }
 
         /*
-        | PNBP
-        */
+            | PNBP
+            */
 
         if ($item->kategori === 'pnbp_voucher') {
 
@@ -563,8 +566,8 @@ class DashboardController extends Controller
         }
 
         /*
-        | Status Job Ops terakhir
-        */
+            | Status Job Ops terakhir
+            */
 
         $lastStatus = $item->statusJobOps
             ->last()

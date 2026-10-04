@@ -26,12 +26,14 @@ class PenomoranController extends Controller
     {
         $masterPekerjaan = Pekerjaan::query()->get();
 
-        $items = NomorPpat::with("formOrder.jobDivisi", "pekerjaan")
-            ->when($kategori, function ($query) use ($kategori) {
-                $query->where("kategori", $kategori);
-            })
-            ->orderBy('id', 'desc')
-            ->paginate(12);
+      $items = NomorPpat::with([
+    'formOrder.jobDivisi.debitur',
+    'formOrder.objek',
+])->when($kategori, function ($query) use ($kategori) {
+    $query->where('kategori', $kategori);
+})
+->orderBy('id', 'desc')
+->paginate(12);
 
         return view('pages.Laporan.nomor-notaris.index', compact('items', 'kategori', 'masterPekerjaan'));
     }

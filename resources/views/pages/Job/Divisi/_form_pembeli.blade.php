@@ -8,7 +8,15 @@
             $oldPembelis =
                 old('pembeli') ??
                 (session('form_data.pembeli') ?? [
-                    ['nama_lengkap' => '', 'phone' => '', 'email' => ''],
+                    [
+                        'nama_lengkap' => '',
+                        'nik' => '',
+                        'tempat_lahir' => '',
+                        'tanggal_lahir' => '',
+                        'alamat_lengkap' => '',
+                        'phone' => '',
+                        'email' => '',
+                    ],
                 ]);
 
             $lastIndex = is_array($oldPembelis) ? array_key_last($oldPembelis) : -1;
@@ -49,6 +57,18 @@
                                 </div>
 
                                 <div class="col-md-4">
+                                    <label class="form-label text-secondary small fw-bold required">NIK</label>
+                                    <input type="text"
+                                        class="form-control @error("pembeli.$key.nik") is-invalid @enderror"
+                                        name="pembeli[{{ $key }}][nik]"
+                                        value="{{ old("pembeli.$key.nik", $item['nik'] ?? '') }}"
+                                        placeholder="16 digit NIK">
+                                    @error("pembeli.$key.nik")
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="col-md-4">
                                     <label class="form-label text-secondary small fw-bold required">NOMOR TELEPON</label>
                                     <input type="number"
                                         class="form-control @error("pembeli.$key.phone") is-invalid @enderror"
@@ -72,11 +92,44 @@
                                     @enderror
                                 </div>
 
+                                <div class="col-md-4">
+                                    <label class="form-label text-secondary small fw-bold required">TEMPAT LAHIR</label>
+                                    <input type="text"
+                                        class="form-control @error("pembeli.$key.tempat_lahir") is-invalid @enderror"
+                                        name="pembeli[{{ $key }}][tempat_lahir]"
+                                        value="{{ old("pembeli.$key.tempat_lahir", $item['tempat_lahir'] ?? '') }}"
+                                        placeholder="Kota Kelahiran">
+                                    @error("pembeli.$key.tempat_lahir")
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label text-secondary small fw-bold required">TANGGAL LAHIR</label>
+                                    <input type="date"
+                                        class="form-control @error("pembeli.$key.tanggal_lahir") is-invalid @enderror"
+                                        name="pembeli[{{ $key }}][tanggal_lahir]"
+                                        value="{{ old("pembeli.$key.tanggal_lahir", $item['tanggal_lahir'] ?? '') }}">
+                                    @error("pembeli.$key.tanggal_lahir")
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label text-secondary small fw-bold required">ALAMAT LENGKAP</label>
+                                    <textarea
+                                        class="form-control @error("pembeli.$key.alamat_lengkap") is-invalid @enderror"
+                                        name="pembeli[{{ $key }}][alamat_lengkap]" rows="2"
+                                        placeholder="Alamat sesuai KTP">{{ old("pembeli.$key.alamat_lengkap", $item['alamat_lengkap'] ?? '') }}</textarea>
+                                    @error("pembeli.$key.alamat_lengkap")
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
                                 <div class="col-12">
                                     <div class="p-3 border border-2 border-dashed border-secondary border-opacity-25 rounded-3 bg-light bg-opacity-25">
                                         <label class="form-label text-dark small fw-bold mb-1">DOKUMEN LAMPIRAN PEMBELI</label>
                                         <p class="text-muted small mb-2" style="font-size: 0.75rem;">Anda dapat memilih beberapa file sekaligus dengan menahan tombol Ctrl / Shift.</p>
-                                        {{-- Diubah menjadi files[] dan multiple --}}
                                         <input type="file"
                                             class="form-control bg-white @error("pembeli.$key.files.*") is-invalid @enderror"
                                             name="pembeli[{{ $key }}][files][]" multiple>
@@ -91,7 +144,6 @@
                 @endforeach
             </div>
 
-            <!-- Tombol Tambah Lebih Elegan -->
             <div class="mt-4">
                 <button type="button" class="btn btn-outline-primary w-100 py-3 border-2 border-dashed fw-bold rounded-3 add_pembeli shadow-sm transition-hover" style="border-style: dashed !important;">
                     <i class="bi bi-plus-circle me-1"></i> Tambah Form Pembeli Lainnya
@@ -107,7 +159,7 @@
             @endif
         </form>
 
-        <!-- Modal Konfirmasi Hapus Form Pembeli -->
+        {{-- Modal hapus: TETAP SAMA kayak file lu, gak gua ubah --}}
         <div class="modal fade" id="modalDeletePembeli" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered modal-sm">
                 <div class="modal-content border-0 shadow">
@@ -159,6 +211,10 @@
                                     <input type="text" class="form-control" name="pembeli[${i}][nama_lengkap]" placeholder="Masukkan nama lengkap">
                                 </div>
                                 <div class="col-md-4">
+                                    <label class="form-label text-secondary small fw-bold required">NIK</label>
+                                    <input type="text" class="form-control" name="pembeli[${i}][nik]" placeholder="16 digit NIK">
+                                </div>
+                                <div class="col-md-4">
                                     <label class="form-label text-secondary small fw-bold required">NOMOR TELEPON</label>
                                     <input type="number" class="form-control" inputmode="tel" name="pembeli[${i}][phone]" placeholder="Contoh: 081234567890">
                                 </div>
@@ -166,11 +222,22 @@
                                     <label class="form-label text-secondary small fw-bold required">EMAIL</label>
                                     <input type="email" class="form-control" autocomplete="email" name="pembeli[${i}][email]" placeholder="email@domain.com">
                                 </div>
+                                <div class="col-md-4">
+                                    <label class="form-label text-secondary small fw-bold required">TEMPAT LAHIR</label>
+                                    <input type="text" class="form-control" name="pembeli[${i}][tempat_lahir]" placeholder="Kota Kelahiran">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label text-secondary small fw-bold required">TANGGAL LAHIR</label>
+                                    <input type="date" class="form-control" name="pembeli[${i}][tanggal_lahir]">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label text-secondary small fw-bold required">ALAMAT LENGKAP</label>
+                                    <textarea class="form-control" name="pembeli[${i}][alamat_lengkap]" rows="2" placeholder="Alamat sesuai KTP"></textarea>
+                                </div>
                                 <div class="col-12">
                                     <div class="p-3 border border-2 border-dashed border-secondary border-opacity-25 rounded-3 bg-light bg-opacity-25">
                                         <label class="form-label text-dark small fw-bold mb-1">DOKUMEN LAMPIRAN PEMBELI</label>
                                         <p class="text-muted small mb-2" style="font-size: 0.75rem;">Anda dapat memilih beberapa file sekaligus dengan menahan tombol Ctrl / Shift.</p>
-                                        {{-- Diubah menjadi files[] dan multiple --}}
                                         <input type="file" class="form-control bg-white" name="pembeli[${i}][files][]" multiple>
                                     </div>
                                 </div>

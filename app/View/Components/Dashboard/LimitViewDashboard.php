@@ -22,13 +22,26 @@ class LimitViewDashboard extends Component
      * Get the view / contents that represent the component.
      */
     public function render(): View|Closure|string
-    {
-        $satuMingguLagi = Carbon::now()->addWeek();
-        $nomorPpats = NomorPpat::query()
-            ->with("formOrder.jobDivisi")
-            ->whereDate('tanggal_expired', '<=', $satuMingguLagi)
-            ->orderBy('tanggal_expired')
-            ->get();
-        return view('components.dashboard.limit-view-dashboard', compact('nomorPpats'));
-    }
+{
+    $hariIni = Carbon::today();
+    $satuMingguLagi = Carbon::today()->addWeek();
+
+    $nomorPpats = NomorPpat::query()
+        ->with([
+            'formOrder.objek',
+            'formOrder.jobDivisi.objek',
+            'formOrder.jobDivisi.debitur',
+        ])
+        ->whereNotNull('tanggal')
+        ->whereNotNull('tanggal_expired')
+        ->whereDate('tanggal_expired', '>=', $hariIni)
+        ->whereDate('tanggal_expired', '<=', $satuMingguLagi)
+        ->orderBy('tanggal_expired')
+        ->get();
+
+    return view(
+        'components.dashboard.limit-view-dashboard',
+        compact('nomorPpats')
+    );
+}
 }

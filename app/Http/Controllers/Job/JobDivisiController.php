@@ -512,51 +512,60 @@ class JobDivisiController extends Controller
 
     private function updateEstimasiSelesai(JobDivisi $jobDivisi): void
     {
-        $jobDivisi->load('formOrder.nomorPpat');
+        $jobDivisi->load([
+            'formOrder.nomorPpat',
+            'jenisAkad',
+        ]);
 
-        $tanggalEstimasi = $jobDivisi->tanggal_estimasi_selesai
+        $tanggalEstimasiLama = $jobDivisi->tanggal_estimasi_selesai
             ? Carbon::parse($jobDivisi->tanggal_estimasi_selesai)
             : null;
 
-        $tanggalEksternal = $jobDivisi->tanggal_estimasi_selesai_eksternal
+        $tanggalEksternalLama = $jobDivisi->tanggal_estimasi_selesai_eksternal
             ? Carbon::parse($jobDivisi->tanggal_estimasi_selesai_eksternal)
             : null;
 
+        /*
+     * Ambil tanggal expired terbesar dari seluruh proses.
+     */
         $tanggalExpiredTerbesar = $jobDivisi->formOrder
             ->map(fn($formOrder) => $formOrder->nomorPpat?->tanggal_expired)
             ->filter()
             ->map(fn($tanggal) => Carbon::parse($tanggal))
             ->max();
 
-        // Tidak ada tanggal expired
-        if (!$tanggalExpiredTerbesar) {
-            return;
-        }
-
-        // Expired tidak lebih besar dari estimasi sekarang
-        if (
-            $tanggalEstimasi &&
-            !$tanggalExpiredTerbesar->gt($tanggalEstimasi)
-        ) {
-            return;
+        /*
+     * Tentukan estimasi internal baru.
+     *
+     * Jika ada expired proses:
+     *     gunakan expired terbesar.
+     *
+     * Jika tidak ada:
+     *     gunakan SLA normal.
+     */
+        if ($tanggalExpiredTerbesar) {
+            $tanggalEstimasiBaru = $tanggalExpiredTerbesar->copy();
+        } else {
+            $tanggalEstimasiBaru = Carbon::parse($jobDivisi->tanggal_akad)
+                ->addDays((int) $jobDivisi->jenisAkad->sla_internal);
         }
 
         /*
-     * Simpan selisih internal -> eksternal sebelum tanggal internal berubah
+     * Hitung GAP internal -> eksternal berdasarkan
+     * tanggal sebelum perubahan.
      */
         $selisihHari = 0;
 
-        if ($tanggalEstimasi && $tanggalEksternal) {
-            $selisihHari = $tanggalEstimasi->diffInDays($tanggalEksternal, false);
+        if ($tanggalEstimasiLama && $tanggalEksternalLama) {
+            $selisihHari = $tanggalEstimasiLama->diffInDays(
+                $tanggalEksternalLama,
+                false
+            );
         }
 
         /*
-     * Internal berubah mengikuti tanggal expired terbesar.
-     */
-        $tanggalEstimasiBaru = $tanggalExpiredTerbesar->copy();
-
-        /*
-     * Eksternal ikut bergeser dengan selisih yang sama.
+     * Eksternal mengikuti estimasi baru
+     * dengan GAP yang sama.
      */
         $tanggalEksternalBaru = $tanggalEstimasiBaru
             ->copy()

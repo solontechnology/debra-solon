@@ -21,7 +21,8 @@
 
         .table-freeze-pnbp .freeze-proses {
             position: sticky;
-            left: 120px; /* Sesuaikan offset sesuai lebar kolom parent */
+            left: 120px;
+            /* Sesuaikan offset sesuai lebar kolom parent */
             z-index: 2;
             background-color: #fff;
         }
@@ -29,7 +30,8 @@
         .table-freeze-pnbp thead .freeze-parent,
         .table-freeze-pnbp thead .freeze-proses {
             z-index: 3;
-            background-color: #f8f9fa; /* Warna background thead (bg-light) */
+            background-color: #f8f9fa;
+            /* Warna background thead (bg-light) */
         }
     </style>
 @endpush
@@ -63,16 +65,21 @@
                 <table class="table table-hover align-middle mb-0 text-nowrap table-freeze-pnbp">
                     <thead class="bg-light">
                         <tr>
-                            <th class="py-3 ps-4 freeze-parent text-secondary text-uppercase font-monospace small fw-bold">Parent</th>
-                            <th class="py-3 freeze-proses text-secondary text-uppercase font-monospace small fw-bold">Proses</th>
+                            <th class="py-3 ps-4 freeze-parent text-secondary text-uppercase font-monospace small fw-bold">
+                                Parent</th>
+                            <th class="py-3 freeze-proses text-secondary text-uppercase font-monospace small fw-bold">Proses
+                            </th>
                             <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nomor Objek</th>
                             <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nama Debitur</th>
                             <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nama Bank</th>
                             <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nama Petugas</th>
-                            <th class="py-3 text-center text-secondary text-uppercase font-monospace small fw-bold">Status Akad</th>
+                            <th class="py-3 text-center text-secondary text-uppercase font-monospace small fw-bold">Status
+                                Akad</th>
                             <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Status</th>
+                            <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nomor VA</th>
                             <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nominal</th>
-                            <th class="py-3 pe-4 text-center text-secondary text-uppercase font-monospace small fw-bold">Aksi</th>
+                            <th class="py-3 pe-4 text-center text-secondary text-uppercase font-monospace small fw-bold">
+                                Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="border-top-0">
@@ -86,7 +93,10 @@
                             <tr>
                                 {{-- Sticky Column 1: Parent --}}
                                 <td class="ps-4 freeze-parent fw-semibold">
-                                    <span class="text-primary">{{ $item->jobDivisi->kode ?? '-' }}</span>
+                                    <a href="{{ route('job.divisi.show', $item->jobDivisi->id) }}"
+                                        class="text-decoration-none">
+                                        <span class="text-primary">{{ $item->jobDivisi->kode ?? '-' }}</span>
+                                    </a>
                                 </td>
 
                                 {{-- Sticky Column 2: Proses --}}
@@ -124,7 +134,7 @@
                                         @forelse ($item->jobDivisi->listBank as $bank)
                                             <span class="badge bg-light text-dark border">{{ $bank->nama_bank }}</span>
                                         @empty
-                                            <span class="text-muted">-</span>
+                                            <span class="text-muted">belum ada data</span>
                                         @endforelse
                                     </div>
                                 </td>
@@ -140,16 +150,23 @@
                                 <td class="text-center">
                                     @php
                                         $statusClass = [
-                                            'Pra Akad'   => 'bg-info bg-opacity-10 text-info border border-info border-opacity-25',
-                                            'Akad'       => 'bg-success bg-opacity-10 text-success border border-success border-opacity-25',
-                                            'Pending'    => 'bg-warning bg-opacity-10 text-dark border border-warning border-opacity-25',
-                                            'Batal Akad' => 'bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25',
-                                            'Selesai'    => 'bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25',
+                                            'Pra Akad' =>
+                                                'bg-info bg-opacity-10 text-info border border-info border-opacity-25',
+                                            'Akad' =>
+                                                'bg-success bg-opacity-10 text-success border border-success border-opacity-25',
+                                            'Pending' =>
+                                                'bg-warning bg-opacity-10 text-dark border border-warning border-opacity-25',
+                                            'Batal Akad' =>
+                                                'bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25',
+                                            'Selesai' =>
+                                                'bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25',
                                         ];
                                         $statusAkad = $item->jobDivisi->status ?? '';
                                     @endphp
 
-                                    <span class="badge rounded-pill {{ $statusClass[$statusAkad] ?? 'bg-secondary' }} px-3 py-2 fw-medium text-uppercase" style="font-size: 0.75rem;">
+                                    <span
+                                        class="badge rounded-pill {{ $statusClass[$statusAkad] ?? 'bg-secondary' }} px-3 py-2 fw-medium text-uppercase"
+                                        style="font-size: 0.75rem;">
                                         {{ $statusAkad ?: '-' }}
                                     </span>
                                 </td>
@@ -157,23 +174,28 @@
                                 {{-- Status Process --}}
                                 <td>
                                     @if (!$item->pnbp)
-                                        <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2.5 py-1.5 fw-medium">
+                                        <span
+                                            class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2.5 py-1.5 fw-medium">
                                             Belum dikerjakan
                                         </span>
                                     @elseif ($item->pnbp->status === 'Penugasan')
-                                        <span class="badge bg-dark bg-opacity-10 text-dark border border-dark border-opacity-25 px-2.5 py-1.5 fw-medium">
+                                        <span
+                                            class="badge bg-dark bg-opacity-10 text-dark border border-dark border-opacity-25 px-2.5 py-1.5 fw-medium">
                                             Penugasan
                                         </span>
                                     @elseif ($item->pnbp->status === 'Sedang Online')
-                                        <span class="badge bg-warning bg-opacity-10 text-dark border border-warning border-opacity-25 px-2.5 py-1.5 fw-medium">
+                                        <span
+                                            class="badge bg-warning bg-opacity-10 text-dark border border-warning border-opacity-25 px-2.5 py-1.5 fw-medium">
                                             Sedang Online
                                         </span>
                                     @elseif ($item->pnbp->status === 'Menunggu Pembayaran')
-                                        <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2.5 py-1.5 fw-medium">
+                                        <span
+                                            class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2.5 py-1.5 fw-medium">
                                             Menunggu Pembayaran
                                         </span>
                                     @elseif ($item->pnbp->status === 'Terbayar')
-                                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2.5 py-1.5 fw-medium">
+                                        <span
+                                            class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2.5 py-1.5 fw-medium">
                                             Terbayar
                                         </span>
                                     @else
@@ -183,6 +205,13 @@
                                     @endif
                                 </td>
 
+                                <td class="fw-semibold text-dark">
+                                    @if (!empty($item->pnbp?->va))
+                                    <span>{{ $item->pnbp->va }}</span>
+                                    @else
+                                    <span class="text-muted">Belum Ada Data</span>
+                                    @endif
+                                </td>
                                 {{-- Nominal --}}
                                 <td class="fw-semibold text-dark">
                                     Rp {{ number_format($item->pnbp->nominal ?? 0, 0, ',', '.') }}
@@ -242,7 +271,8 @@
                                         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48"
                                             fill="currentColor" class="bi bi-inbox text-secondary mb-2 opacity-50"
                                             viewBox="0 0 16 16">
-                                            <path d="M4.98 4a.5.5 0 0 0-.39.188L1.54 8H6a.5.5 0 0 1 .5.5 1.5 1.5 0 1 0 3 0A.5.5 0 0 1 10 8h4.46l-3.05-3.812A.5.5 0 0 0 11.02 4H4.98zm-1.17-.437A1.5 1.5 0 0 1 4.98 3h6.04a1.5 1.5 0 0 1 1.17.563l3.7 4.625a.5.5 0 0 1 .106.374l-.39 3.124A1.5 1.5 0 0 1 14.117 13H1.883a1.5 1.5 0 0 1-1.489-1.314l-.39-3.124a.5.5 0 0 1 .106-.374l3.7-4.625z" />
+                                            <path
+                                                d="M4.98 4a.5.5 0 0 0-.39.188L1.54 8H6a.5.5 0 0 1 .5.5 1.5 1.5 0 1 0 3 0A.5.5 0 0 1 10 8h4.46l-3.05-3.812A.5.5 0 0 0 11.02 4H4.98zm-1.17-.437A1.5 1.5 0 0 1 4.98 3h6.04a1.5 1.5 0 0 1 1.17.563l3.7 4.625a.5.5 0 0 1 .106.374l-.39 3.124A1.5 1.5 0 0 1 14.117 13H1.883a1.5 1.5 0 0 1-1.489-1.314l-.39-3.124a.5.5 0 0 1 .106-.374l3.7-4.625z" />
                                         </svg>
                                         <span class="fw-medium">Belum ada data Job PNBP / Voucher</span>
                                     </div>
@@ -257,7 +287,8 @@
         {{-- Footer Pagination --}}
         <div class="card-footer bg-white border-top py-3 px-4 d-flex align-items-center justify-content-between">
             <div class="text-muted small">
-                Menampilkan <strong>{{ $items->firstItem() ?? 0 }}</strong> - <strong>{{ $items->lastItem() ?? 0 }}</strong> dari <strong>{{ $items->total() }}</strong> data
+                Menampilkan <strong>{{ $items->firstItem() ?? 0 }}</strong> -
+                <strong>{{ $items->lastItem() ?? 0 }}</strong> dari <strong>{{ $items->total() }}</strong> data
             </div>
             <div class="m-0">
                 {{ $items->links('pagination::bootstrap-5') }}
