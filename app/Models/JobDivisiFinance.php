@@ -45,4 +45,9 @@ class JobDivisiFinance extends Model
             'job_divisi_form_order_id'
         );
     }
+
+    public function getIsPajakAttribute(): bool
+{
+    return $this->peruntukan === 'pajak';
+}
 }

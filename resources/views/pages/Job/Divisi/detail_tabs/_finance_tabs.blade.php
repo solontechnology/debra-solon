@@ -204,7 +204,12 @@
                             {{ $item->tipe }}
                         </td>
                         <td>
-                            {{ $item->peruntukan }} {{ $item->invoice ? "({$item->invoice->kategori})" : '' }}
+                           {{ $item->peruntukan }} {{ $item->invoice ? "({$item->invoice->kategori})" : '' }}
+@if ($item->pnbp?->va)
+    <br><small class="text-muted">VA: {{ $item->pnbp->va }}</small>
+@elseif ($item->is_pajak && $item->kode_billing)
+    <br><small class="text-muted">Kode Billing: {{ $item->kode_billing }}</small>
+@endif
                         </td>
                         <td>
                             Rp. {{ number_format($item->total) }}
@@ -221,6 +226,7 @@
                         <td>
                             {{ $item->peruntukan === 'pnbp' ? $item->pnbp->user->name ?? '-' : $item->user->name ?? '-' }}
                         </td>
+                        {{-- {{ dd($item) }} --}}
                     </tr>
                 @endforeach
             </tbody>

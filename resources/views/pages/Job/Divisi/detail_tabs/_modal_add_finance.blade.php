@@ -70,7 +70,7 @@
                                     <input type="date" class="form-control" value="{{ now()->format('Y-m-d') }}"
                                         name="date[]" required>
                                 </div>
-                                <div class="col-md-4">
+                                {{-- <div class="col-md-4">
                                     <label for="" class="form-label required">
                                         Invoice
                                     </label>
@@ -84,7 +84,7 @@
                                             </option>
                                         @endforeach
                                     </select>
-                                </div>
+                                </div> --}}
                                 <div class="col-md-12">
                                     <div class="btn btn-danger  " onclick="removeFinance(0)">
                                         Hapus

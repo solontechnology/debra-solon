@@ -77,9 +77,14 @@
                             <tr>
                                 {{-- Parent --}}
                                 <td class="ps-4 fw-semibold">
-                                    <span class="text-primary">
-                                        {{ $item->formOrder->jobDivisi->kode ?? 'Notaris Luar' }}
-                                    </span>
+                                    @if ($item->formOrder?->jobDivisi)
+                                        <a href="{{ route('job.divisi.show', $item->formOrder->jobDivisi->id) }}"
+                                            class="text-decoration-none">
+                                            <span class="text-primary">{{ $item->formOrder->jobDivisi->kode }}</span>
+                                        </a>
+                                    @else
+                                        <span class="text-muted">Notaris Luar</span>
+                                    @endif
                                 </td>
 
                                 {{-- Nomor --}}

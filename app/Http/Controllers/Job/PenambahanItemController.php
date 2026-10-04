@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use Log;
 
 class PenambahanItemController extends Controller
 {
@@ -111,10 +112,22 @@ class PenambahanItemController extends Controller
 
             DB::commit();
             return redirect()->route("job.penambahan-item.index")->with("success", "Penambahan Item Berhasil Ditambahkan");
+        } catch (\Illuminate\Database\QueryException $e) {
+            DB::rollBack();
+            Log::error('Gagal simpan penambahan item', ['error' => $e->getMessage()]);
+
+            $pesan = match ((string) $e->getCode()) {
+                '22003' => 'Nilai harga terlalu besar. Periksa kembali nominal yang diinput.',
+                '22007', 'HY000' => 'Ada isian angka yang formatnya tidak valid. Periksa kembali harga yang diinput.',
+                default => 'Data gagal disimpan. Silakan coba lagi atau hubungi admin.',
+            };
+
+            return back()->withInput()->with("error", $pesan);
         } catch (Exception $th) {
             DB::rollBack();
-            // dd($th->getMessage());
-            return back()->with("error", $th->getMessage());
+            Log::error('Gagal simpan penambahan item', ['error' => $th->getMessage()]);
+
+            return back()->withInput()->with("error", 'Terjadi kesalahan pada server. Silakan coba lagi.');
         }
     }
 
