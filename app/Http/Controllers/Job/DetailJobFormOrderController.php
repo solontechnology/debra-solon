@@ -162,7 +162,7 @@ class DetailJobFormOrderController extends Controller
             return redirect()->back()->with("success", "Berhasil update harga jual");
         } catch (Exception $th) {
             DB::rollBack();
-            // dd($th);
+            dd($th);
             return redirect()->back()->with("error", "Terjadi kesalahan server");
         }
     }
