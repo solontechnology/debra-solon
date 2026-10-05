@@ -138,6 +138,8 @@ class DashboardController extends Controller
                 'formOrder.objek',
                 'formOrder.jobDivisi.objek',
                 'formOrder.jobDivisi.debitur',
+                'formOrder.jobDivisi.listPembeli',
+                'formOrder.jobDivisi.listPenjual',
             ])
             ->whereNotNull('tanggal')
             ->whereNotNull('tanggal_expired')

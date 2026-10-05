@@ -1,8 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Job Divisi ' . $jobDivisi->kode)
-
-@section('page-heading')
+@section('title')
     Job Divisi {{ $jobDivisi->kode }}
     <br>
     Debitur : {{ $jobDivisi->debitur->pluck('nama')->join(', ') ?: '-' }}

@@ -50,8 +50,26 @@
                                     {{ $ppat->nomor }}
                                 </code>
                             </td>
+                            @php
+                                $job = $ppat->formOrder?->jobDivisi;
+
+                                $pihak = array_filter([
+                                    'Debitur' => $job?->debitur?->pluck('nama')->filter()->join(', '),
+                                    'Pembeli' => $job?->listPembeli?->pluck('nama')->filter()->join(', '),
+                                    'Penjual' => $job?->listPenjual?->pluck('nama')->filter()->join(', '),
+                                ]);
+                            @endphp
+
                             <td>
-                                {{ $ppat->formOrder->jobDivisi->debitur->pluck('nama')->implode(', ') ?: '-' }}
+                                <div class="d-flex flex-column gap-1">
+                                    @forelse ($pihak as $peran => $nama)
+                                        <span>
+                                            <small class="text-muted">{{ $peran }}:</small> {{ $nama }}
+                                        </span>
+                                    @empty
+                                        <span class="text-muted">-</span>
+                                    @endforelse
+                                </div>
                             </td>
                             <td>
                                 <code class="fw-bold text-dark fs-6 bg-light px-2 py-1 rounded border">
@@ -154,8 +172,26 @@
                                     {{ $ppat->nomor }}
                                 </code>
                             </td>
+                            @php
+                                $job = $ppat->formOrder?->jobDivisi;
+
+                                $pihak = array_filter([
+                                    'Debitur' => $job?->debitur?->pluck('nama')->filter()->join(', '),
+                                    'Pembeli' => $job?->listPembeli?->pluck('nama')->filter()->join(', '),
+                                    'Penjual' => $job?->listPenjual?->pluck('nama')->filter()->join(', '),
+                                ]);
+                            @endphp
+
                             <td>
-                                {{ $ppat->formOrder->jobDivisi->debitur->pluck('nama')->implode(', ') ?: '-' }}
+                                <div class="d-flex flex-column gap-1">
+                                    @forelse ($pihak as $peran => $nama)
+                                        <span>
+                                            <small class="text-muted">{{ $peran }}:</small> {{ $nama }}
+                                        </span>
+                                    @empty
+                                        <span class="text-muted">-</span>
+                                    @endforelse
+                                </div>
                             </td>
                             <td>
                                 <code class="fw-bold text-dark fs-6 bg-light px-2 py-1 rounded border">

@@ -107,14 +107,31 @@
                                 </td>
 
                                 {{-- Nama Debitur --}}
-                                <td class="text-uppercase text-wrap" style="max-width: 200px;">
-                                    @if ($item->formOrder?->jobDivisi?->debitur?->isNotEmpty())
-                                        {{ $item->formOrder->jobDivisi->debitur->pluck('nama')->join(', ') }}
-                                    @elseif ($item->nama_debitur_notaris_pengambil)
-                                        {{ $item->nama_debitur_notaris_pengambil }}
-                                    @else
-                                        -
-                                    @endif
+                                @php
+                                    $job = $item->formOrder?->jobDivisi;
+
+                                    $pihak = array_filter([
+                                        'Debitur' => $job?->debitur?->pluck('nama')->filter()->join(', '),
+                                        'Pembeli' => $job?->listPembeli?->pluck('nama')->filter()->join(', '),
+                                        'Penjual' => $job?->listPenjual?->pluck('nama')->filter()->join(', '),
+                                    ]);
+
+                                    // fallback: kalau semua kosong, pakai nama dari notaris pengambil
+                                    if (empty($pihak) && $item->nama_debitur_notaris_pengambil) {
+                                        $pihak = ['Debitur' => $item->nama_debitur_notaris_pengambil];
+                                    }
+                                @endphp
+
+                                <td class="text-uppercase">
+                                    <div class="d-flex flex-column gap-1">
+                                        @forelse ($pihak as $peran => $nama)
+                                            <span>
+                                                <small class="text-muted">{{ $peran }}:</small> {{ $nama }}
+                                            </span>
+                                        @empty
+                                            <span class="text-muted">-</span>
+                                        @endforelse
+                                    </div>
                                 </td>
                                 <td class="text-uppercase text-wrap" style="max-width: 200px;">
                                     {{ $item->formOrder?->jobDivisi?->objek?->pluck('no_sertifikat')->implode(', ') ?: '-' }}

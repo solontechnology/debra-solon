@@ -52,8 +52,9 @@
                             <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Tanggal Akad</th>
                             <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Est. Internal</th>
                             <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Est. Eksternal</th>
-                            <th class="py-3 pe-4 text-end text-secondary text-uppercase font-monospace small fw-bold">Aksi
-                            </th>
+                            <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Aksi</th>
+                                {{-- <th class="py-3 pe-4 text-end text-secondary text-uppercase font-monospace small fw-bold">Aksi
+                                </th> --}}
                         </tr>
                     </thead>
                     <tbody class="border-top-0">
@@ -86,24 +87,24 @@
                                         {{ $item->is_pending ? 'Pending' : $item->status }}
                                     </span>
                                 </td>
-                               @php
-    $pihak = [
-        'Debitur' => $item->debitur->pluck('nama')->filter()->join(', '),
-        'Pembeli' => $item->listPembeli->pluck('nama')->filter()->join(', '),
-        'Penjual' => $item->listPenjual->pluck('nama')->filter()->join(', '),
-    ];
-    $pihak = array_filter($pihak);
-@endphp
+                                @php
+                                    $pihak = [
+                                        'Debitur' => $item->debitur->pluck('nama')->filter()->join(', '),
+                                        'Pembeli' => $item->listPembeli->pluck('nama')->filter()->join(', '),
+                                        'Penjual' => $item->listPenjual->pluck('nama')->filter()->join(', '),
+                                    ];
+                                    $pihak = array_filter($pihak);
+                                @endphp
 
-<td class="text-uppercase text-wrap" style="max-width: 200px;">
-    @forelse ($pihak as $peran => $nama)
-        <div class="text-truncate" title="{{ $peran }}: {{ $nama }}">
-            <small class="text-muted">{{ $peran }}:</small> {{ $nama }}
-        </div>
-    @empty
-        -
-    @endforelse
-</td>
+                                <td class="text-uppercase text-wrap" style="">
+                                    @forelse ($pihak as $peran => $nama)
+                                        <div class="text-truncate" title="{{ $peran }}: {{ $nama }}">
+                                            <small class="text-muted">{{ $peran }}:</small> {{ $nama }}
+                                        </div>
+                                    @empty
+                                        -
+                                    @endforelse
+                                </td>
                                 <td>
                                     @foreach ($item->listBank as $bank)
                                         <span class="badge bg-light text-dark border me-1">{{ $bank->nama_bank }}</span>
@@ -142,8 +143,6 @@
                                 <td>
                                     <span class="badge bg-light text-secondary border">
                                         {{-- {{dd($item)}} --}}
-
-
                                         {{ $item->tanggal_estimasi_selesai_eksternal ?: '-' }}
                                     </span>
                                 </td>

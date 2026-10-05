@@ -70,7 +70,7 @@
                             <th class="py-3 freeze-proses text-secondary text-uppercase font-monospace small fw-bold">Proses
                             </th>
                             <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nomor Objek</th>
-                            <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nama Debitur</th>
+                            <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nama Penghadap</th>
                             <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nama Bank</th>
                             <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nama Petugas</th>
                             <th class="py-3 text-center text-secondary text-uppercase font-monospace small fw-bold">Status
@@ -118,14 +118,26 @@
                                 </td>
 
                                 {{-- Nama Debitur --}}
-                                <td class="text-uppercase text-wrap" style="max-width: 200px;">
-                                    @if ($item->jobDivisi->debitur->isNotEmpty())
-                                        <span>{{ $item->jobDivisi->debitur->pluck('nama')->implode(', ') }}</span>
-                                    @else
-                                        <span class="text-warning small">
-                                            Belum di input nama debitur
-                                        </span>
-                                    @endif
+                                @php
+                                    $pihak = array_filter([
+                                        'Debitur' => $item->jobDivisi->debitur->pluck('nama')->filter()->join(', '),
+                                        'Pembeli' => $item->jobDivisi->listPembeli->pluck('nama')->filter()->join(', '),
+                                        'Penjual' => $item->jobDivisi->listPenjual->pluck('nama')->filter()->join(', '),
+                                    ]);
+                                @endphp
+
+                                <td class="text-uppercase" >
+                                    <div class="d-flex flex-column gap-1">
+                                        @forelse ($pihak as $peran => $nama)
+                                            <span>
+                                                <small class="text-muted">{{ $peran }}:</small> {{ $nama }}
+                                            </span>
+                                        @empty
+                                            <span class="text-warning small">
+                                                Belum di input nama debitur
+                                            </span>
+                                        @endforelse
+                                    </div>
                                 </td>
 
                                 {{-- Nama Bank --}}
@@ -207,9 +219,9 @@
 
                                 <td class="fw-semibold text-dark">
                                     @if (!empty($item->pnbp?->va))
-                                    <span>{{ $item->pnbp->va }}</span>
+                                        <span>{{ $item->pnbp->va }}</span>
                                     @else
-                                    <span class="text-muted">Belum Ada Data</span>
+                                        <span class="text-muted">Belum Ada Data</span>
                                     @endif
                                 </td>
                                 {{-- Nominal --}}

@@ -107,7 +107,8 @@
                                             'key' => $key,
                                         ])
                                     </span> --}}
-                                    <a href="{{ route('job.divisi.show', $item->jobDivisi->id) }}" class="text-decoration-none">
+                                    <a href="{{ route('job.divisi.show', $item->jobDivisi->id) }}"
+                                        class="text-decoration-none">
                                         <span class="text-primary">{{ $item->jobDivisi->kode }}</span>
                                     </a>
                                 </td>
@@ -140,7 +141,7 @@
                                 <td class="fw-medium text-dark">
                                     {{ $item->nama ?? '-' }}
                                 </td>
-
+                                {{-- {{ dd($item->jobDivisi->listPenjual->pluck('nama')->toArray()) }} --}}
                                 {{-- Nomor Objek --}}
                                 <td>
                                     <span class="text-muted">
@@ -149,10 +150,20 @@
                                 </td>
 
                                 {{-- Nama Penghadap --}}
-                                <td class="text-uppercase text-wrap" style="max-width: 200px;">
+                                @php
+                                    $pihak = array_filter([
+                                        'Debitur' => $item->jobDivisi->debitur->pluck('nama')->filter()->join(', '),
+                                        'Pembeli' => $item->jobDivisi->listPembeli->pluck('nama')->filter()->join(', '),
+                                        'Penjual' => $item->jobDivisi->listPenjual->pluck('nama')->filter()->join(', '),
+                                    ]);
+                                @endphp
+
+                                <td class="text-uppercase">
                                     <div class="d-flex flex-column gap-1">
-                                        @forelse ($item->jobDivisi->debitur as $namaDebitur)
-                                            <span>{{ $namaDebitur->nama }}</span>
+                                        @forelse ($pihak as $peran => $nama)
+                                            <span>
+                                                <small class="text-muted">{{ $peran }}:</small> {{ $nama }}
+                                            </span>
                                         @empty
                                             <span class="text-muted">-</span>
                                         @endforelse
