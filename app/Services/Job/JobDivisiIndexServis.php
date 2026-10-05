@@ -32,6 +32,8 @@ class JobDivisiIndexServis
             "divisiYangDituju",
             "jenisAkad",
             "debitur",
+            "listPembeli",   // tambah
+            "listPenjual",   // tambah
             "pembatalan.user",
             "pembatalan.user2",
             "formOrder.nomorPpat",
@@ -60,8 +62,10 @@ class JobDivisiIndexServis
                 });
             })
             ->when($namaPenghadap, function ($query) use ($namaPenghadap) {
-                return $query->whereHas("debitur", function ($query) use ($namaPenghadap) {
-                    return $query->where("nama", "LIKE", "%$namaPenghadap%");
+                return $query->where(function ($query) use ($namaPenghadap) {
+                    $query->whereHas("debitur", fn($q) => $q->where("nama", "LIKE", "%$namaPenghadap%"))
+                        ->orWhereHas("listPembeli", fn($q) => $q->where("nama", "LIKE", "%$namaPenghadap%"))
+                        ->orWhereHas("listPenjual", fn($q) => $q->where("nama", "LIKE", "%$namaPenghadap%"));
                 });
             })
             ->when($completedOnly, function ($query) {

@@ -86,12 +86,24 @@
                                         {{ $item->is_pending ? 'Pending' : $item->status }}
                                     </span>
                                 </td>
-                                <td class="text-uppercase text-wrap" style="max-width: 200px;">
-                                    <span class="d-inline-block text-truncate w-100"
-                                        title="{{ implode(', ', $item->debitur->pluck('nama')->toArray()) }}">
-                                        {{ implode(', ', $item->debitur->pluck('nama')->toArray()) }}
-                                    </span>
-                                </td>
+                               @php
+    $pihak = [
+        'Debitur' => $item->debitur->pluck('nama')->filter()->join(', '),
+        'Pembeli' => $item->listPembeli->pluck('nama')->filter()->join(', '),
+        'Penjual' => $item->listPenjual->pluck('nama')->filter()->join(', '),
+    ];
+    $pihak = array_filter($pihak);
+@endphp
+
+<td class="text-uppercase text-wrap" style="max-width: 200px;">
+    @forelse ($pihak as $peran => $nama)
+        <div class="text-truncate" title="{{ $peran }}: {{ $nama }}">
+            <small class="text-muted">{{ $peran }}:</small> {{ $nama }}
+        </div>
+    @empty
+        -
+    @endforelse
+</td>
                                 <td>
                                     @foreach ($item->listBank as $bank)
                                         <span class="badge bg-light text-dark border me-1">{{ $bank->nama_bank }}</span>
