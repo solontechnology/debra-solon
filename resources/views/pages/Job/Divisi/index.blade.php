@@ -1,0 +1,320 @@
+@extends('layouts.admin')
+
+@section('title')
+    Job Divisi
+@endsection
+
+@push('page-title')
+    <nav style="--bs-breadcrumb-divider: url(&#34;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='%236c757d'/%3E%3C/svg%3E&#34;);"
+        aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="#" class="text-decoration-none">Job</a></li>
+            <li class="breadcrumb-item active fw-semibold" aria-current="page">Divisi</li>
+        </ol>
+    </nav>
+@endpush
+
+@section('content')
+    <div class="card border-0 shadow-sm rounded-3">
+        {{-- Card Header dengan padding lebih lega dan background bersih --}}
+        <div class="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center border-bottom">
+            <div class="d-flex align-items-center gap-2">
+                @can('job/divisi/create')
+                    @include('pages.Job.Divisi._modal_add_job')
+                @endcan
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+                @include('pages.Job._export-data', ['exportType' => 'divisi'])
+
+                <div class="d-flex align-items-center">
+                    @include('pages.Job.Divisi._filter_divisi')
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                {{-- Menghapus table-bordered, mengganti dengan table-hover dan align-middle --}}
+                <table class="table table-hover align-middle mb-0 text-nowrap">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="py-3 ps-4 text-secondary text-uppercase font-monospace small fw-bold">Kode</th>
+                            <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Status</th>
+                            <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Progress</th>
+                            <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nama Penghadap</th>
+                            <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Bank</th>
+                            <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Objek</th>
+                            <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Jenis Akad</th>
+                            <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Tanggal Akad</th>
+                            <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Est. Internal</th>
+                            <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Est. Eksternal</th>
+                            <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Aksi</th>
+                                {{-- <th class="py-3 pe-4 text-end text-secondary text-uppercase font-monospace small fw-bold">Aksi
+                                </th> --}}
+                        </tr>
+                    </thead>
+                    <tbody class="border-top-0">
+                        @forelse ($items as $item)
+                            <tr>
+                                <td class="ps-4 fw-semibold">
+                                    <a href="{{ route('job.divisi.show', $item->id) }}"
+                                        class="text-primary text-decoration-none">
+                                        {{ $item->kode }}
+                                    </a>
+                                </td>
+                                <td>
+                                    @php
+                                        $statusClass = [
+                                            'Pra Akad' =>
+                                                'bg-info bg-opacity-10 text-info border border-info border-opacity-25',
+                                            'Akad' =>
+                                                'bg-success bg-opacity-10 text-success border border-success border-opacity-25',
+                                            'Pending' =>
+                                                'bg-warning bg-opacity-10 text-dark border border-warning border-opacity-25',
+                                            'Batal Akad' =>
+                                                'bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25',
+                                            'Selesai' =>
+                                                'bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25',
+                                        ];
+                                    @endphp
+                                    <span
+                                        class="badge rounded-pill {{ $statusClass[$item->status] ?? 'bg-secondary' }} px-3 py-2 fw-medium text-uppercase"
+                                        style="font-size: 0.75rem;">
+                                        {{ $item->is_pending ? 'Pending' : $item->status }}
+                                    </span>
+                                </td>
+                                <td style="min-width: 150px;">
+                                    <button type="button" class="btn btn-link p-0 w-100 text-start text-decoration-none"
+                                        data-bs-toggle="modal" data-bs-target="#job-progress-{{ $item->id }}"
+                                        aria-label="Lihat riwayat pengerjaan {{ $item->kode }}">
+                                        <span class="d-flex align-items-center gap-2">
+                                            <span class="progress flex-grow-1" role="progressbar"
+                                                aria-label="Progress {{ $item->kode }}"
+                                                aria-valuenow="{{ $item->progress['percentage'] }}"
+                                                aria-valuemin="0" aria-valuemax="100" style="height: 10px;">
+                                                <span class="progress-bar {{ $item->progress['percentage'] === 100 ? 'bg-success' : '' }}"
+                                                    style="width: {{ $item->progress['percentage'] }}%"></span>
+                                            </span>
+                                            <small class="text-muted text-nowrap">
+                                                {{ $item->progress['completed'] }}/{{ $item->progress['total'] }}
+                                                ({{ $item->progress['percentage'] }}%)
+                                            </small>
+                                        </span>
+                                    </button>
+
+                                    <div class="modal fade" id="job-progress-{{ $item->id }}" tabindex="-1"
+                                        aria-labelledby="job-progress-label-{{ $item->id }}" aria-hidden="true">
+                                        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                                            <div class="modal-content text-start">
+                                                <div class="modal-header">
+                                                    <div>
+                                                        <h5 class="modal-title" id="job-progress-label-{{ $item->id }}">
+                                                            Riwayat Pengerjaan
+                                                        </h5>
+                                                        <small class="text-muted">Job {{ $item->kode }}</small>
+                                                    </div>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                        aria-label="Tutup"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <ul class="nav nav-tabs mb-3" role="tablist">
+                                                        <li class="nav-item" role="presentation">
+                                                            <button class="nav-link active" id="history-tab-{{ $item->id }}"
+                                                                data-bs-toggle="tab"
+                                                                data-bs-target="#history-content-{{ $item->id }}"
+                                                                type="button" role="tab"
+                                                                aria-controls="history-content-{{ $item->id }}"
+                                                                aria-selected="true">
+                                                                Riwayat Pengerjaan
+                                                            </button>
+                                                        </li>
+                                                    </ul>
+                                                    <div class="tab-content">
+                                                        <div class="tab-pane fade show active"
+                                                            id="history-content-{{ $item->id }}" role="tabpanel"
+                                                            aria-labelledby="history-tab-{{ $item->id }}">
+                                                            @forelse ($item->progressByCategory as $category)
+                                                                <section class="border rounded p-3 mb-3">
+                                                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                                                        <h6 class="fw-semibold mb-0">{{ $category['label'] }}</h6>
+                                                                        <small class="text-muted">
+                                                                            {{ $category['progress']['completed'] }}/{{ $category['progress']['total'] }}
+                                                                            selesai ({{ $category['progress']['percentage'] }}%)
+                                                                        </small>
+                                                                    </div>
+                                                                    <div class="progress mb-3" role="progressbar"
+                                                                        aria-label="Progress kategori {{ $category['label'] }}"
+                                                                        aria-valuenow="{{ $category['progress']['percentage'] }}"
+                                                                        aria-valuemin="0" aria-valuemax="100" style="height: 10px;">
+                                                                        <div class="progress-bar {{ $category['progress']['percentage'] === 100 ? 'bg-success' : '' }}"
+                                                                            style="width: {{ $category['progress']['percentage'] }}%">
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="list-group list-group-flush">
+                                                                        @foreach ($category['form_orders'] as $formOrder)
+                                                                            @php
+                                                                                $lastWorkStatus = $formOrder->statusJobOps->last();
+                                                                            @endphp
+                                                                            <div class="list-group-item px-0">
+                                                                                <div class="d-flex justify-content-between align-items-start gap-3">
+                                                                                    <div>
+                                                                                        <div class="fw-medium">{{ $formOrder->nama }}</div>
+                                                                                        <small class="text-muted">
+                                                                                            {{ $formOrder->created_at?->format('d M Y H:i') ?? '-' }}
+                                                                                        </small>
+                                                                                    </div>
+                                                                                    <div class="text-end">
+                                                                                        <span class="badge {{ $lastWorkStatus?->approval_status === 'pending' ? 'bg-warning text-dark' : ($lastWorkStatus?->work_status === 'completed' ? 'bg-success' : 'bg-secondary') }}">
+                                                                                            {{ $lastWorkStatus?->status ?? 'Belum diproses' }}
+                                                                                        </span>
+                                                                                        @if ($lastWorkStatus?->approval_status === 'pending')
+                                                                                            <div><small class="text-warning-emphasis">Menunggu approval</small></div>
+                                                                                        @elseif ($lastWorkStatus?->approval_status === 'rejected')
+                                                                                            <div><small class="text-danger">Ditolak, perlu perbaikan</small></div>
+                                                                                        @endif
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        @endforeach
+                                                                    </div>
+                                                                </section>
+                                                            @empty
+                                                                <div class="text-center text-muted py-4">
+                                                                    Belum ada proses pekerjaan pada job ini.
+                                                                </div>
+                                                            @endforelse
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                @php
+                                    $pihak = [
+                                        'Debitur' => $item->debitur->pluck('nama')->filter()->join(', '),
+                                        'Pembeli' => $item->listPembeli->pluck('nama')->filter()->join(', '),
+                                        'Penjual' => $item->listPenjual->pluck('nama')->filter()->join(', '),
+                                    ];
+                                    $pihak = array_filter($pihak);
+                                @endphp
+
+                                <td class="text-uppercase text-wrap" style="">
+                                    @forelse ($pihak as $peran => $nama)
+                                        <div class="text-truncate" title="{{ $peran }}: {{ $nama }}">
+                                            <small class="text-muted">{{ $peran }}:</small> {{ $nama }}
+                                        </div>
+                                    @empty
+                                        -
+                                    @endforelse
+                                </td>
+                                <td>
+                                    @foreach ($item->listBank as $bank)
+                                        <span class="badge bg-light text-dark border me-1">{{ $bank->nama_bank }}</span>
+                                    @endforeach
+                                </td>
+                                <td>
+                                    <span
+                                        class="text-muted">{{ $item->objek->pluck('no_sertifikat')->implode(', ') ?: '-' }}</span>
+                                </td>
+                                <td>
+                                    {{ $item->jenisAkad->nama ?? '-' }}
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-1 text-secondary">
+                                        <i class="bi bi-calendar2-event small"></i>
+                                        <span>{{ // $item->tanggal_akad ? $item->tanggal_akad :
+                                            $item->tanggal_rencana_akad }}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-secondary border">
+                                        {{-- {{ dd([
+                                            'job_divisi_id' => $item->id,
+                                            'estimasi_internal' => $item->tanggal_estimasi_selesai,
+                                            'expired' => $item->formOrder->map(function ($formOrder) {
+                                                return [
+                                                    'form_order_id' => $formOrder->id,
+                                                    'tanggal_expired' => $formOrder->nomorPpat?->tanggal_expired,
+                                                ];
+                                            }),
+                                            'hasil' => $item->tanggal_estimasi_selesai_eksternal,
+                                        ]) }} --}}
+                                        {{ $item->tanggal_estimasi_selesai ?: '-' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-secondary border">
+                                        {{-- {{dd($item)}} --}}
+                                        {{ $item->tanggal_estimasi_selesai_eksternal ?: '-' }}
+                                    </span>
+                                </td>
+                                <td class="pe-4 text-end">
+                                    <div class="d-flex justify-content-end gap-2">
+                                        {{-- Tombol Detail --}}
+                                        <a href="{{ route('job.divisi.show', $item->id) }}"
+                                            class="btn btn-outline-info d-inline-flex align-items-center gap-1 px-3 py-1.5 shadow-sm fw-medium"
+                                            title="Lihat Detail">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                                fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16">
+                                                <path
+                                                    d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
+                                                <path
+                                                    d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0" />
+                                            </svg>
+                                            {{-- <span>Detail</span> --}}
+                                        </a>
+
+                                        {{-- Tombol Export PDF --}}
+                                        <a href="{{ route('job.export-quotation-job-divisi', $item->id) }}"
+                                            class="btn btn-outline-danger d-inline-flex align-items-center gap-1 px-3 py-1.5 shadow-sm fw-medium"
+                                            title="Export Quotation PDF" target="_blank">
+                                            <i class="bi bi-file-earmark-pdf fs-6"></i>
+                                            <span>PDF</span>
+                                        </a>
+                                        <form action="{{ route('job.divisi.destroy', $item->id) }}" method="POST"
+                                            class="confirm_delete d-inline"
+                                            data-message="job {{ $item->kode }} beserta semua datanya">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                class="btn btn-danger d-inline-flex align-items-center gap-1 px-3 py-1.5 shadow-sm fw-medium"
+                                                title="Hapus Job">
+                                                <i class="bi bi-trash-fill"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            {{-- Penambahan Empty State agar tabel tidak terlihat rusak saat data kosong --}}
+                            <tr>
+                                <td colspan="11" class="text-center py-5 text-muted">
+                                    <div class="d-flex flex-column align-items-center justify-content-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48"
+                                            fill="currentColor" class="bi bi-inbox text-secondary mb-2 opacity-50"
+                                            viewBox="0 0 16 16">
+                                            <path
+                                                d="M4.98 4a.5.5 0 0 0-.39.188L1.54 8H6a.5.5 0 0 1 .5.5 1.5 1.5 0 1 0 3 0A.5.5 0 0 1 10 8h4.46l-3.05-3.812A.5.5 0 0 0 11.02 4H4.98zm-1.17-.437A1.5 1.5 0 0 1 4.98 3h6.04a1.5 1.5 0 0 1 1.17.563l3.7 4.625a.5.5 0 0 1 .106.374l-.39 3.124A1.5 1.5 0 0 1 14.117 13H1.883a1.5 1.5 0 0 1-1.489-1.314l-.39-3.124a.5.5 0 0 1 .106-.374l3.7-4.625z" />
+                                        </svg>
+                                        <span class="fw-medium">Belum ada data Job Divisi</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {{-- Footer Card untuk Pagination dengan styling yang lebih bersih --}}
+        @if ($items->hasPages())
+            <div class="card-footer bg-white border-top py-3 px-4">
+                <div class="d-flex justify-content-end m-0">
+                    {{ $items->links('pagination::bootstrap-5') }}
+                </div>
+            </div>
+        @endif
+    </div>
+@endsection
