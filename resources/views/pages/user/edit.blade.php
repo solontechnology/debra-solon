@@ -51,6 +51,23 @@
                         @enderror
                     </div>
 
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small fw-bold">PASSWORD BARU</label>
+                        <input type="password" name="password"
+                            class="form-control @error('password') is-invalid @enderror"
+                            autocomplete="new-password">
+                        @error('password')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <small class="form-text text-muted">Kosongkan jika tidak ingin mengubah password.</small>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small fw-bold">KONFIRMASI PASSWORD BARU</label>
+                        <input type="password" name="password_confirmation" class="form-control"
+                            autocomplete="new-password">
+                    </div>
+
                     <div class="col-md-12">
                         <label class="form-label text-secondary small fw-bold required">ROLE</label>
                         <select name="role[]" multiple class="form-select select2 @error('role') is-invalid @enderror"
@@ -66,16 +83,6 @@
                         @error('role')
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
-                    </div>
-
-                    <div class="col-md-12 mt-3">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="reset_password" id="resetPassword" value="1"
-                                {{ old('reset_password') ? 'checked' : '' }}>
-                            <label class="form-check-label text-dark fw-medium" for="resetPassword">
-                                Reset password ke <strong>12345678</strong>
-                            </label>
-                        </div>
                     </div>
 
                     <div class="col-md-12 mt-4">

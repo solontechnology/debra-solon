@@ -17,8 +17,10 @@ use App\Models\Pekerjaan;
 use App\Models\Status;
 use App\Models\StatusDetail;
 use App\Models\User;
+use App\Services\Akta\WorkflowAktaService;
 use App\Services\FileStoreServis;
 use App\Services\Job\JobDivisiIndexServis;
+use App\Services\Job\JobDivisiProgressService;
 use App\Services\MasterData\BankService;
 use App\Services\MasterData\BrokerService;
 use App\Services\MasterData\DeveloperService;
@@ -43,6 +45,8 @@ class JobDivisiController extends Controller
     public function __construct(
         protected FileStoreServis $fileStoreServis,
         protected JobDivisiIndexServis $jobDivisiIndexServis,
+        protected WorkflowAktaService $workflowAktaService,
+        protected JobDivisiProgressService $jobDivisiProgressService,
         protected BankService $bankService,
         protected DeveloperService $developerService,
         protected BrokerService $brokerService,
@@ -348,6 +352,21 @@ class JobDivisiController extends Controller
         $masterPekerjaan = Cache::remember('master_pekerjaan', 86400, fn() => Pekerjaan::orderBy("nama", "asc")->get());
 
         $jobFormOrder = $jobDivisi->formOrder->groupBy("kategori");
+        $progressByCategory = $jobFormOrder->map(function ($formOrders, $category) {
+            $workflow = $this->workflowAktaService->forCategory($category);
+            $processProgress = $formOrders->mapWithKeys(fn ($formOrder) => [
+                $formOrder->id => $this->jobDivisiProgressService->summarizeStages($formOrder, $workflow),
+            ]);
+            $completed = $processProgress->sum('completed');
+            $total = $processProgress->sum('total');
+
+            return [
+                'completed' => $completed,
+                'total' => $total,
+                'percentage' => $total === 0 ? 0 : (int) round(($completed / $total) * 100),
+                'processes' => $processProgress,
+            ];
+        });
 
         $myRoles = Auth::user()->roles->first()->id;
 
@@ -381,6 +400,7 @@ class JobDivisiController extends Controller
             "roles" => $roles,
             "user" => $user,
             "jobFormOrder" => $jobFormOrder,
+            "progressByCategory" => $progressByCategory,
             "masterPekerjaan" => $masterPekerjaan,
             "myRoles" => $myRoles,
             "dataPendukung" => $dataPendukung,

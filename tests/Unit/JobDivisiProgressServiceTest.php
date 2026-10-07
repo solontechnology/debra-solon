@@ -70,6 +70,65 @@ class JobDivisiProgressServiceTest extends TestCase
         ], $progress);
     }
 
+    public function test_it_calculates_process_progress_from_completed_workflow_stages(): void
+    {
+        $formOrder = new JobDivisiFormOrder(['kategori' => 'notaris']);
+        $formOrder->setRelation('statusJobOps', new EloquentCollection([
+            new StatusJobOps([
+                'workflow_stage_id' => 1,
+                'status' => 'Draft',
+                'work_status' => 'completed',
+            ]),
+            new StatusJobOps([
+                'workflow_stage_id' => 2,
+                'status' => 'Minuta',
+                'work_status' => 'assigned',
+            ]),
+        ]));
+
+        $progress = (new JobDivisiProgressService())->summarizeStages($formOrder, [
+            ['id' => 1, 'name' => 'Draft'],
+            ['id' => 2, 'name' => 'Minuta'],
+            ['id' => 3, 'name' => 'Selesai'],
+        ]);
+
+        $this->assertSame([
+            'completed' => 1,
+            'total' => 3,
+            'percentage' => 33,
+        ], $progress);
+    }
+
+    public function test_it_does_not_count_a_stage_that_was_rejected_after_completion(): void
+    {
+        $formOrder = new JobDivisiFormOrder(['kategori' => 'notaris']);
+        $formOrder->setRelation('statusJobOps', new EloquentCollection([
+            new StatusJobOps([
+                'id' => 1,
+                'workflow_stage_id' => 1,
+                'status' => 'Draft',
+                'work_status' => 'completed',
+            ]),
+            new StatusJobOps([
+                'id' => 2,
+                'workflow_stage_id' => 1,
+                'status' => 'Draft',
+                'work_status' => 'rework',
+                'approval_status' => 'rejected',
+            ]),
+        ]));
+
+        $progress = (new JobDivisiProgressService())->summarizeStages($formOrder, [
+            ['id' => 1, 'name' => 'Draft'],
+        ]);
+
+        $this->assertSame([
+            'completed' => 0,
+            'total' => 1,
+            'percentage' => 0,
+        ], $progress);
+    }
+
     private function formOrder(string $category, array $status): JobDivisiFormOrder
     {
         $formOrder = new JobDivisiFormOrder(['kategori' => $category]);

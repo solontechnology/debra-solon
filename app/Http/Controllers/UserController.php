@@ -120,6 +120,7 @@ class UserController extends Controller
             'role.*' => 'exists:roles,id',
             'email' => 'required|email|unique:users,email',
             'phone' => 'nullable|unique:users,phone',
+            'password' => 'required|string|min:8|confirmed',
         ]);
 
         DB::beginTransaction();
@@ -129,7 +130,7 @@ class UserController extends Controller
                 'name' => $validated['name'],
                 'username' => $validated['username'], // <-- Simpan username
                 'email' => $validated['email'],
-                'password' => Hash::make('12345678'),
+                'password' => Hash::make($validated['password']),
                 'phone' => $validated['phone'] ?? null,
             ]);
 
@@ -156,7 +157,7 @@ class UserController extends Controller
             'role.*' => 'exists:roles,id',
             'email' => 'required|email|unique:users,email,' . $user->id,
             'phone' => 'nullable|unique:users,phone,' . $user->id,
-            'reset_password' => 'nullable',
+            'password' => 'nullable|string|min:8|confirmed',
         ]);
 
         DB::beginTransaction();
@@ -169,8 +170,8 @@ class UserController extends Controller
                 'phone' => $validated['phone'] ?? null,
             ];
 
-            if ($request->reset_password) {
-                $dataUpdate['password'] = Hash::make('12345678');
+            if (!empty($validated['password'])) {
+                $dataUpdate['password'] = Hash::make($validated['password']);
             }
 
             $user->update($dataUpdate);
