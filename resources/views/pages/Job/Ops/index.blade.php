@@ -36,13 +36,7 @@
 
             <div class="d-flex align-items-center gap-2">
                 <div class="d-flex align-items-center gap-2">
-                    <button type="button"
-                        class="btn btn-success d-inline-flex align-items-center justify-content-center gap-2 shadow-sm px-3"
-                        data-bs-toggle="modal" data-bs-target="#exportModal">
-                        <i class="bi bi-file-earmark-excel fs-6"></i>
-                        <span>Export Excel</span>
-                    </button>
-                    @include('pages.Job.Ops._filter_ops_export')
+                    @include('pages.Job._export-data', ['exportType' => 'operasional'])
                 </div>
 
 

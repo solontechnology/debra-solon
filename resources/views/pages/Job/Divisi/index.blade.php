@@ -25,11 +25,7 @@
             </div>
 
             <div class="d-flex align-items-center gap-2">
-                <a href="{{ route('job.export-job-divisi') }}"
-                    class="btn btn-success d-inline-flex align-items-center justify-content-center gap-2 shadow-sm px-3">
-                    <i class="bi bi-file-earmark-excel fs-6"></i>
-                    <span>Export Excel</span>
-                </a>
+                @include('pages.Job._export-data', ['exportType' => 'divisi'])
 
                 <div class="d-flex align-items-center">
                     @include('pages.Job.Divisi._filter_divisi')
@@ -45,6 +41,7 @@
                         <tr>
                             <th class="py-3 ps-4 text-secondary text-uppercase font-monospace small fw-bold">Kode</th>
                             <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Status</th>
+                            <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Progress</th>
                             <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nama Penghadap</th>
                             <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Bank</th>
                             <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Objek</th>
@@ -86,6 +83,163 @@
                                         style="font-size: 0.75rem;">
                                         {{ $item->is_pending ? 'Pending' : $item->status }}
                                     </span>
+                                </td>
+                                <td style="min-width: 150px;">
+                                    @php
+                                        $percentage = $item->progress['percentage'];
+                                        $percentageLabelClass = match (true) {
+                                            $percentage === 100 => 'bg-success-subtle text-success-emphasis',
+                                            $percentage >= 50 => 'bg-primary-subtle text-primary-emphasis',
+                                            $percentage > 0 => 'bg-warning-subtle text-warning-emphasis',
+                                            default => 'bg-secondary-subtle text-secondary-emphasis',
+                                        };
+                                        $progressColor = match (true) {
+                                            $percentage === 100 => '#2fb344',
+                                            $percentage >= 50 => '#066fd1',
+                                            $percentage > 0 => '#f59f00',
+                                            default => '#6c757d',
+                                        };
+                                    @endphp
+                                    <button type="button" class="btn btn-link p-0 w-100 text-start text-decoration-none"
+                                        data-bs-toggle="modal" data-bs-target="#job-progress-{{ $item->id }}"
+                                        aria-label="Lihat riwayat pengerjaan {{ $item->kode }}">
+                                        <span class="d-flex flex-column gap-1">
+                                            <span class="progress w-100" role="progressbar"
+                                                aria-label="Progress {{ $item->kode }}"
+                                                aria-valuenow="{{ $percentage }}" aria-valuemin="0" aria-valuemax="100"
+                                                style="height: 10px; background-color: #e5e7eb; border-radius: 999px;">
+                                                <span style="display: block; width: {{ $percentage }}%; height: 100%; background-color: {{ $progressColor }}; border-radius: inherit;"></span>
+                                            </span>
+                                            <small class="text-center">
+                                                <span class="badge rounded-pill {{ $percentageLabelClass }}">
+                                                    {{ $item->progress['completed'] }}/{{ $item->progress['total'] }}
+                                                    ({{ $percentage }}%)
+                                                </span>
+                                            </small>
+                                        </span>
+                                    </button>
+
+                                    <div class="modal fade" id="job-progress-{{ $item->id }}" tabindex="-1"
+                                        aria-labelledby="job-progress-label-{{ $item->id }}" aria-hidden="true">
+                                        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                                            <div class="modal-content text-start">
+                                                <div class="modal-header">
+                                                    <div>
+                                                        <h5 class="modal-title" id="job-progress-label-{{ $item->id }}">
+                                                            Riwayat Pengerjaan
+                                                        </h5>
+                                                        <small class="text-muted">Job {{ $item->kode }}</small>
+                                                    </div>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                        aria-label="Tutup"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <ul class="nav nav-tabs mb-3" role="tablist">
+                                                        <li class="nav-item" role="presentation">
+                                                            <button class="nav-link active" id="history-tab-{{ $item->id }}"
+                                                                data-bs-toggle="tab"
+                                                                data-bs-target="#history-content-{{ $item->id }}"
+                                                                type="button" role="tab"
+                                                                aria-controls="history-content-{{ $item->id }}"
+                                                                aria-selected="true">
+                                                                Riwayat Pengerjaan
+                                                            </button>
+                                                        </li>
+                                                    </ul>
+                                                    <div class="tab-content">
+                                                        <div class="tab-pane fade show active"
+                                                            id="history-content-{{ $item->id }}" role="tabpanel"
+                                                            aria-labelledby="history-tab-{{ $item->id }}">
+                                                            @forelse ($item->progressByCategory as $category)
+                                                                @php
+                                                                    $percentage = $category['progress']['percentage'];
+                                                                    $percentageClass = match (true) {
+                                                                        $percentage === 100 => 'bg-success-subtle text-success-emphasis',
+                                                                        $percentage >= 50 => 'bg-primary-subtle text-primary-emphasis',
+                                                                        $percentage > 0 => 'bg-warning-subtle text-warning-emphasis',
+                                                                        default => 'bg-secondary-subtle text-secondary-emphasis',
+                                                                    };
+                                                                    $progressBarClass = match (true) {
+                                                                        $percentage === 100 => 'bg-success',
+                                                                        $percentage > 0 => 'bg-primary',
+                                                                        default => 'bg-secondary',
+                                                                    };
+                                                                @endphp
+                                                                <section class="border rounded p-3 mb-3">
+                                                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                                                        <h6 class="fw-semibold mb-0">{{ $category['label'] }}</h6>
+                                                                        <small class="text-muted">
+                                                                            {{ $category['progress']['completed'] }}/{{ $category['progress']['total'] }}
+                                                                            selesai
+                                                                            <span class="badge rounded-pill {{ $percentageClass }}">
+                                                                                {{ $percentage }}%
+                                                                            </span>
+                                                                        </small>
+                                                                    </div>
+                                                                    <div class="progress mb-3" role="progressbar"
+                                                                        aria-label="Progress kategori {{ $category['label'] }}"
+                                                                        aria-valuenow="{{ $category['progress']['percentage'] }}"
+                                                                        aria-valuemin="0" aria-valuemax="100"
+                                                                        style="height: 10px; background-color: #e5e7eb;">
+                                                                        <div class="progress-bar {{ $progressBarClass }}"
+                                                                            style="width: {{ $category['progress']['percentage'] }}%">
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="list-group list-group-flush">
+                                                                        @foreach ($category['form_orders'] as $formOrder)
+                                                                            @php
+                                                                                $lastWorkStatus = $formOrder->statusJobOps->last();
+                                                                                $statusLabel = filled($lastWorkStatus?->status)
+                                                                                    ? $lastWorkStatus->status
+                                                                                    : match (true) {
+                                                                                        $lastWorkStatus?->approval_status === 'pending' => 'Menunggu approval',
+                                                                                        $lastWorkStatus?->approval_status === 'rejected' || $lastWorkStatus?->work_status === 'rework' => 'Perlu perbaikan',
+                                                                                        $lastWorkStatus?->work_status === 'completed' => 'Selesai',
+                                                                                        $lastWorkStatus?->work_status === 'assigned' => 'Ditugaskan',
+                                                                                        default => 'Belum diproses',
+                                                                                    };
+                                                                                $statusClass = match (true) {
+                                                                                    $lastWorkStatus?->approval_status === 'pending' => 'bg-warning-subtle text-warning-emphasis',
+                                                                                    $lastWorkStatus?->approval_status === 'rejected' || $lastWorkStatus?->work_status === 'rework' => 'bg-danger-subtle text-danger-emphasis',
+                                                                                    $lastWorkStatus?->work_status === 'completed' => 'bg-success-subtle text-success-emphasis',
+                                                                                    $lastWorkStatus?->work_status === 'assigned' => 'bg-primary-subtle text-primary-emphasis',
+                                                                                    default => 'bg-secondary-subtle text-secondary-emphasis',
+                                                                                };
+                                                                            @endphp
+                                                                            <div class="list-group-item px-0">
+                                                                                <div class="d-flex justify-content-between align-items-start gap-3">
+                                                                                    <div>
+                                                                                        <div class="fw-medium">{{ $formOrder->nama }}</div>
+                                                                                        <small class="text-muted">
+                                                                                            {{ $formOrder->created_at?->format('d M Y H:i') ?? '-' }}
+                                                                                        </small>
+                                                                                    </div>
+                                                                                    <div class="text-end">
+                                                                                        <span class="badge {{ $statusClass }}">
+                                                                                            {{ $statusLabel }}
+                                                                                        </span>
+                                                                                        @if ($lastWorkStatus?->approval_status === 'pending')
+                                                                                            <div><small class="text-warning-emphasis">Menunggu approval</small></div>
+                                                                                        @elseif ($lastWorkStatus?->approval_status === 'rejected')
+                                                                                            <div><small class="text-danger">Ditolak, perlu perbaikan</small></div>
+                                                                                        @endif
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        @endforeach
+                                                                    </div>
+                                                                </section>
+                                                            @empty
+                                                                <div class="text-center text-muted py-4">
+                                                                    Belum ada proses pekerjaan pada job ini.
+                                                                </div>
+                                                            @endforelse
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </td>
                                 @php
                                     $pihak = [
@@ -186,7 +340,7 @@
                         @empty
                             {{-- Penambahan Empty State agar tabel tidak terlihat rusak saat data kosong --}}
                             <tr>
-                                <td colspan="10" class="text-center py-5 text-muted">
+                                <td colspan="11" class="text-center py-5 text-muted">
                                     <div class="d-flex flex-column align-items-center justify-content-center">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48"
                                             fill="currentColor" class="bi bi-inbox text-secondary mb-2 opacity-50"

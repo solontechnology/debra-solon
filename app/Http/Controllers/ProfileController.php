@@ -21,21 +21,28 @@ class ProfileController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'username' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('users', 'username')->ignore($user->id),
+            ],
             'phone' => [
                 'required',
                 'string',
                 'max:20',
                 Rule::unique('users', 'phone')->ignore($user->id),
             ],
-            'password' => ['nullable', 'string', 'min:8'],
+            'password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ]);
 
         $dataUpdate = [
             'name' => $validated['name'],
+            'username' => $validated['username'],
             'phone' => $validated['phone'],
         ];
 
-        if ($request->filled('password')) {
+        if (!empty($validated['password'])) {
             $dataUpdate['password'] = Hash::make($validated['password']);
         }
 

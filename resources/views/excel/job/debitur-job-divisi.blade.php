@@ -31,7 +31,7 @@
                         <ul class="list-unstyled mb-0">
                             @foreach ($debitur->files as $f)
                                 <li>
-                                    <a href="{{ asset('storage/' . $f->file_path) }}" target="_blank">
+                                    <a href="{{ tenantStorageUrl($f->file_path) }}" target="_blank">
                                         {{ $f->file_name ?? 'Dokumen' }}
                                     </a>
                                 </li>

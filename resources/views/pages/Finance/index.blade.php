@@ -96,7 +96,7 @@
                                     {{ $item->keterangan }}
                                 </td>
                                 <td>
-                                    @if ($item->status === 'Menunggu persetujuan finance')
+                                    @if ($item->can_approve)
                                         {{-- {{ dd($item->toArray()) }} --}}
                                         @include('pages.Finance._modal-approve')
                                     @endif

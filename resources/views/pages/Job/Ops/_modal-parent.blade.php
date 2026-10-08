@@ -159,7 +159,7 @@
                                                 {{ $item->email }}
                                             </td>
                                             <td>
-                                                <a href="{{ asset('storage/' . $item->file) }}" target="_blank">{{ $item->file}}</a>
+                                                <a href="{{ tenantStorageUrl($item->file) }}" target="_blank">{{ $item->file}}</a>
                                             </td>
                                         </tr>
                                     @endforeach

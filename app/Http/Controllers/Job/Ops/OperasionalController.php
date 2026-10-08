@@ -10,6 +10,7 @@ use App\Models\JobDivisiFormOrder;
 use App\Models\JobDivisiObjek;
 use App\Models\StatusJobOps;
 use App\Models\User;
+use App\Services\Approval\ApprovalWorkflowService;
 use App\Services\Notifikasi\NotifikasiServis;
 use Exception;
 use Illuminate\Http\Request;
@@ -25,8 +26,10 @@ class OperasionalController extends Controller
 
     protected $notifikasiServis;
 
-    public function __construct(NotifikasiServis $notifikasiServis)
-    {
+    public function __construct(
+        NotifikasiServis $notifikasiServis,
+        protected ApprovalWorkflowService $approvalWorkflowService
+    ) {
         $this->notifikasiServis = $notifikasiServis;
     }
 
@@ -220,18 +223,10 @@ class OperasionalController extends Controller
                 // dd($finance->toArray());
                 if ($status_finance === "Menunggu persetujuan finance") {
 
-                    $usersFinance = User::whereHas('roles', function ($query) {
-
-                        $query->whereIn('name', [
-                            'super admin',
-                            'finance'
-                        ]);
-                    })->get();
-
-                    foreach ($usersFinance as $user) {
+                    foreach ($this->approvalWorkflowService->snapshot('finance', $finance) as $approverId) {
 
                         $this->notifikasiServis->create(
-                            $user->id,
+                            $approverId,
                             "Persetujuan Finance",
                             "Terdapat pengajuan biaya",
                             route('finance.job-divisi.index', ['type' => 'out']),

@@ -109,7 +109,28 @@
             width: auto;
             min-width: 84px;
         }
-        
+
+        .table-sortable-header {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .table-sortable-header:focus-visible {
+            outline: 2px solid var(--tblr-primary);
+            outline-offset: -2px;
+        }
+
+        .table-sort-indicator {
+            display: inline-block;
+            margin-left: 0.35rem;
+            opacity: 0.45;
+        }
+
+        .table-sortable-header[aria-sort="ascending"] .table-sort-indicator,
+        .table-sortable-header[aria-sort="descending"] .table-sort-indicator {
+            opacity: 1;
+        }
+
     </style>
 
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
@@ -253,6 +274,15 @@
         </script>
     @endif
 
+    @if (Session::get('info'))
+        <script>
+            Swal.fire({
+                icon: "info",
+                text: "{{ Session::get('info') }}"
+            });
+        </script>
+    @endif
+
     @if (Session::get('toast_success'))
         <script>
             const Toast = Swal.mixin({
@@ -382,7 +412,9 @@
                 enterFullScreen();
             }
         });
-    </script> @stack('addScript')
+    </script>
+    <script src="{{ asset('js/table-sort.js') }}"></script>
+    @stack('addScript')
 
 </body>
 

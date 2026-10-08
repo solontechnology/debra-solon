@@ -54,7 +54,7 @@
                                        @if ($pembeli->files && $pembeli->files->count() > 0)
                                         <div class="d-flex flex-column gap-1">
                                             @foreach ($pembeli->files as $f)
-                                                <a href="{{ asset('storage/' . $f->file_path) }}" target="_blank"
+                                                <a href="{{ tenantStorageUrl($f->file_path) }}" target="_blank"
                                                     class="d-inline-flex align-items-center px-2 py-1 rounded-2 bg-white border border-light-subtle text-decoration-none shadow-sm transition-hover"
                                                     title="Buka: {{ $f->file_name ?? 'Dokumen' }}">
                                                     <div class="bg-warning bg-opacity-10 p-1 rounded me-2 border border-warning-subtle d-flex align-items-center justify-content-center flex-shrink-0"

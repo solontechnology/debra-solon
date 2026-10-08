@@ -7,7 +7,7 @@ use App\Models\JobDivisi;
 use App\Models\JobDivisiFormOrder;
 use App\Models\PembatalanItem;
 use App\Models\PembatalanItemDetail;
-use App\Models\User;
+use App\Services\Approval\ApprovalWorkflowService;
 use App\Services\Notifikasi\NotifikasiServis;
 use Exception;
 use Illuminate\Http\Request;
@@ -22,13 +22,19 @@ class PembatalanItemController extends Controller
 
     protected $notifikasiServis;
 
-    public function __construct(NotifikasiServis $notifikasiServis)
-    {
+    public function __construct(
+        NotifikasiServis $notifikasiServis,
+        protected ApprovalWorkflowService $approvalWorkflowService
+    ) {
         $this->notifikasiServis = $notifikasiServis;
     }
 
     public function index()
     {
+        abort_unless(
+            Auth::user()->canAny(['job/pembatalan-item/list', 'job/pembatalan-item/approve']),
+            403
+        );
         $items = PembatalanItem::with([
             "jobDivisi.listBank.bank",
             "jobDivisi.debitur",
@@ -67,6 +73,7 @@ class PembatalanItemController extends Controller
      */
     public function create(Request $request)
     {
+        abort_unless(Auth::user()->can('job/pembatalan-item/create'), 403);
         $jobDivisi = JobDivisi::with("formOrder.finance")->findOrFail($request->job_divisi_id);
         $formOrder = $jobDivisi->formOrder->where("finance.status", "!=", "Disetujui");
 
@@ -149,6 +156,8 @@ class PembatalanItemController extends Controller
     // }
     public function store(Request $request)
     {
+        abort_unless(Auth::user()->can('job/pembatalan-item/create'), 403);
+
         DB::beginTransaction();
 
         try {
@@ -171,13 +180,9 @@ class PembatalanItemController extends Controller
 
             $jobDivisi = JobDivisi::find($request->job_divisi_id);
 
-            $superAdmins = User::whereHas('roles', function ($query) {
-                $query->where('name', 'super admin');
-            })->get();
-
-            foreach ($superAdmins as $admin) {
+            foreach ($this->approvalWorkflowService->snapshot('pembatalan_item', $pembatalanItem) as $approverId) {
                 $this->notifikasiServis->create(
-                    $admin->id,
+                    $approverId,
                     "Permintaan Pembatalan Item",
                     Auth::user()->name . " mengajukan pembatalan item",
                     route('job.pembatalan-items.show', $pembatalanItem->id),
@@ -192,6 +197,7 @@ class PembatalanItemController extends Controller
                 ->with("success", "Berhasil menambahkan pembatalan item");
         } catch (\Throwable $th) {
             DB::rollBack();
+            report($th);
 
             return redirect()
                 ->back()
@@ -217,14 +223,23 @@ class PembatalanItemController extends Controller
                 "userApprove"
             )
             ->findOrFail($id);
+        abort_unless(
+            Auth::user()->can('job/pembatalan-item/detail')
+                || (Auth::user()->can('job/pembatalan-item/approve')
+                    && $this->approvalWorkflowService->canApprove('pembatalan_item', $pembatalanItem, (int) Auth::id())),
+            403
+        );
 
         $dataPendukung = explode(",", $pembatalanItem->jobDivisi->jenisAkad->jenis_data);
+        $canApprove = Auth::user()->can('job/pembatalan-item/approve')
+            && $this->approvalWorkflowService->canApprove('pembatalan_item', $pembatalanItem, (int) Auth::id());
 
 
         return view("pages.Job.pembatalan-item.detail", [
             "pembatalanItem" => $pembatalanItem,
             "jobDivisi" => $pembatalanItem->jobDivisi,
-            "dataPendukung" => $dataPendukung
+            "dataPendukung" => $dataPendukung,
+            "canApprove" => $canApprove,
         ]);
     }
 
@@ -241,12 +256,24 @@ class PembatalanItemController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $pembatalanItem = PembatalanItem::with("detail")
-            ->find($id);
-
         DB::beginTransaction();
 
         try {
+            $pembatalanItem = PembatalanItem::with("detail")
+                ->lockForUpdate()
+                ->findOrFail($id);
+            abort_unless(
+                $pembatalanItem->status === 'menunggu persetujuan',
+                409,
+                'Permintaan pembatalan item sudah diproses.'
+            );
+            abort_unless(Auth::user()->can('job/pembatalan-item/approve'), 403);
+            abort_unless(
+                $this->approvalWorkflowService->canApprove('pembatalan_item', $pembatalanItem, (int) Auth::id()),
+                403,
+                'Anda bukan approver yang ditetapkan untuk pembatalan item ini.'
+            );
+
             $status = null;
 
             if ($request->approved) {
@@ -275,9 +302,12 @@ class PembatalanItemController extends Controller
             DB::commit();
 
             return redirect()->route("job.pembatalan-items.index")->with("success", "Berhasil $status item");
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpExceptionInterface $exception) {
+            DB::rollBack();
+            throw $exception;
         } catch (Exception $th) {
             DB::rollBack();
-            dd($th);
+            report($th);
             return redirect()->back()->with("error", "Terjadi kesalahan server");
         }
     }

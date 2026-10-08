@@ -55,6 +55,7 @@
                 <p class="text-muted small m-0">Kelola dan pantau seluruh berkas proses pajak</p>
             </div>
             <div class="d-flex align-items-center gap-2">
+                @include('pages.Job._export-data', ['exportType' => 'pajak'])
                 @include('pages.Job.Pajak._filter')
             </div>
         </div>

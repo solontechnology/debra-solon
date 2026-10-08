@@ -29,6 +29,73 @@ You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you
 
 If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
 
+## Dedicated database per SaaS tenant
+
+Tenant domains are mapped explicitly to separate databases. Configure the exact
+hostnames and database names in `.env`:
+
+```dotenv
+APP_URL=https://app.example.com
+TENANCY_DEFAULT_HOSTS=app.example.com
+TENANT_DATABASES='{"client-a.example.com":"solon_client_a","client-b.example.com":"solon_client_b"}'
+```
+
+Each mapped database must be created in advance and be reachable with the
+database connection credentials configured by `DB_*`. For stronger database
+credential isolation, a tenant mapping can supply its own connection settings:
+
+```dotenv
+TENANT_DATABASES='{"client-a.example.com":{"database":"solon_client_a","username":"client_a_app","password":"secret"}}'
+```
+
+Tenant mapping objects accept `database` and optional `host`, `port`,
+`username`, `password`, and `unix_socket` values. Restrict each per-tenant DB
+user to that tenant's database. Unknown hosts are
+rejected; they do not fall back to the default tenant database. The `APP_URL`
+host and hosts listed in `TENANCY_DEFAULT_HOSTS` use `DB_DATABASE` unless they
+are explicitly mapped as tenants.
+Hosts are exact matches, so add each custom domain explicitly.
+
+For a new tenant, create an empty database, add its hostname mapping, then run
+`php artisan config:cache` and `php artisan tenants:migrate`. Run
+`php artisan migrate --force` as usual for the default database. During deploys,
+run both migration commands so the same release schema is applied to every
+tenant database.
+
+The tenant database, authentication records, roles, permissions, settings,
+approval configuration, database-backed cache and sessions are selected from
+the request hostname. Session cookies and local uploaded files are isolated by
+host as well. Local files for mapped tenants are stored under
+`storage/app/public/tenants/{tenant-key}`; views should generate their URLs with
+`tenantStorageUrl($path)`.
+
+The **Fitur Tenant** settings page stores feature toggles in each tenant's own
+database. `configurable_approval` and `configurable_akta_workflow` default to
+enabled to preserve current behavior; disabling them switches those modules
+back to their legacy/default behavior for that tenant only. For a new
+tenant-specific capability, register a key in `config/tenant_features.php` and
+check it in both the UI and server-side code before enabling the feature.
+
+The same page also controls menu flags at submenu level, for example each Job
+category, HRIS section, finance report, and master-data item. These flags
+default to enabled, preserving existing tenant behavior. Disabling a submenu
+hides it from the sidebar and blocks its mapped routes; user permissions remain
+an additional access requirement. Parent groups remain visible when they have
+at least one enabled submenu. The Fitur Tenant page remains accessible to
+authorized administrators even when its sidebar item is disabled, so they can
+re-enable it.
+
+Job list exports are available from the Divisi, Operasional, Akta categories,
+Pajak, PNBP/Voucher, Penambahan Item, and Pembatalan Item pages. The export
+form supports its own search filters and allows selecting the columns included
+in the generated Excel workbook. Export access follows the corresponding
+submenu feature flag and list/approval permission.
+
+This setup routes to already provisioned databases; it does not provision
+databases or copy existing customer data/files automatically. Back up and
+provision tenant databases and migrate each customer's data and files before
+pointing a production domain at its new database.
+
 ## Laravel Sponsors
 
 We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).

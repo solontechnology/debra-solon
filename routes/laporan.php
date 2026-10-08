@@ -11,7 +11,7 @@ use App\Http\Controllers\Laporan\HistoryJobDivisi\Detail\detailHistoryJobDivisiC
 use Illuminate\Support\Facades\Route;
 
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'tenant.menu'])->group(function () {
 
     Route::get('laporan/nomor-notaris/{kategori?}', [PenomoranController::class, 'index'])
         ->name('laporan.nomor-notaris');
@@ -21,17 +21,17 @@ Route::middleware('auth')->group(function () {
 
     Route::get('laporan/nomor-notaris/export/{kategori?}', [PenomoranController::class, 'export'])
         ->name('laporan.nomor-notaris.export');
-
-    Route::post('laporan/nomor-notaris/update',[PenomoranController::class, 'update']
+    Route::get('laporan/pemakaian-nomor', [PenomoranController::class, 'pemakaianNomor'])
+        ->name('laporan.pemakaian-nomor');
+    Route::post(
+        'laporan/nomor-notaris/update',
+        [PenomoranController::class, 'update']
     )->name('laporan.nomor-notaris.update');
 
     Route::resource("laporan/invoice", InvoiceController::class);
 
     Route::get('laporan/pekerjaan/{kategori?}', [PenomoranController::class, 'index'])
         ->name('laporan.pekerjaan');
-
-    Route::post('laporan/nomor-notaris/upload-file', [PenomoranController::class, 'uploadFile'])
-        ->name('laporan.nomor-notaris.upload-file');
 
 
     // START Laporan Pekerjaan (Halaman List Home & Detail Staff)

@@ -33,7 +33,7 @@
         <input type="file" name="foto" class="form-control" accept="image/*">
         @if (!empty($item?->foto))
             <div class="mt-2">
-                <img src="{{ asset('storage/' . $item->foto) }}" alt="foto" style="width:96px;height:96px;object-fit:cover;border-radius:8px;">
+                <img src="{{ tenantStorageUrl($item->foto) }}" alt="foto" style="width:96px;height:96px;object-fit:cover;border-radius:8px;">
             </div>
         @endif
     </div>
@@ -42,7 +42,7 @@
         <input type="file" name="foto_ktp" class="form-control" accept="image/*">
         @if (!empty($item?->foto_ktp))
             <div class="mt-2">
-                <img src="{{ asset('storage/' . $item->foto_ktp) }}" alt="foto ktp" style="width:96px;height:96px;object-fit:cover;border-radius:8px;">
+                <img src="{{ tenantStorageUrl($item->foto_ktp) }}" alt="foto ktp" style="width:96px;height:96px;object-fit:cover;border-radius:8px;">
             </div>
         @endif
     </div>
@@ -51,7 +51,7 @@
         <input type="file" name="logo" class="form-control" accept="image/*">
         @if (!empty($item?->logo))
             <div class="mt-2">
-                <img src="{{ asset('storage/' . $item->logo) }}" alt="logo" style="width:96px;height:96px;object-fit:cover;border-radius:8px;">
+                <img src="{{ tenantStorageUrl($item->logo) }}" alt="logo" style="width:96px;height:96px;object-fit:cover;border-radius:8px;">
             </div>
         @endif
     </div>
@@ -60,7 +60,7 @@
         <input type="file" name="tanda_tangan" class="form-control" accept="image/*">
         @if (!empty($item?->tanda_tangan))
             <div class="mt-2">
-                <img src="{{ asset('storage/' . $item->tanda_tangan) }}" alt="tanda tangan" style="width:96px;height:96px;object-fit:cover;border-radius:8px;">
+                <img src="{{ tenantStorageUrl($item->tanda_tangan) }}" alt="tanda tangan" style="width:96px;height:96px;object-fit:cover;border-radius:8px;">
             </div>
         @endif
     </div>
@@ -69,7 +69,7 @@
         <input type="file" name="stempel" class="form-control" accept="image/*">
         @if (!empty($item?->stempel))
             <div class="mt-2">
-                <img src="{{ asset('storage/' . $item->stempel) }}" alt="stempel" style="width:96px;height:96px;object-fit:cover;border-radius:8px;">
+                <img src="{{ tenantStorageUrl($item->stempel) }}" alt="stempel" style="width:96px;height:96px;object-fit:cover;border-radius:8px;">
             </div>
         @endif
     </div>

@@ -50,6 +50,22 @@
                         @enderror
                     </div>
 
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small fw-bold required">PASSWORD</label>
+                        <input type="password" name="password"
+                            class="form-control @error('password') is-invalid @enderror"
+                            autocomplete="new-password" required>
+                        @error('password')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small fw-bold required">KONFIRMASI PASSWORD</label>
+                        <input type="password" name="password_confirmation" class="form-control"
+                            autocomplete="new-password" required>
+                    </div>
+
                     <div class="col-md-12">
                         <label class="form-label text-secondary small fw-bold required">ROLE</label>
                         <select name="role[]" multiple class="form-select select2 @error('role') is-invalid @enderror"
@@ -65,13 +81,6 @@
                         @error('role')
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
-                    </div>
-
-                    <div class="col-md-12 mt-4">
-                        <div class="alert alert-info border-info-subtle bg-info-subtle text-info-emphasis mb-0 d-flex align-items-center">
-                            <i class="bi bi-info-circle-fill me-2"></i>
-                            <div>Password default user baru: <strong>12345678</strong></div>
-                        </div>
                     </div>
 
                     <div class="col-md-12 mt-4">

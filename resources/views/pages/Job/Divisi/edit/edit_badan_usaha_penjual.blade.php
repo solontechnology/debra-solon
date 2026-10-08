@@ -98,7 +98,7 @@
                                                 </svg>
                                             </div>
                                             <div class="text-truncate">
-                                                <a href="{{ asset('storage/' . $f->file_path) }}" target="_blank"
+                                                <a href="{{ tenantStorageUrl($f->file_path) }}" target="_blank"
                                                     class="fw-bold text-dark text-decoration-none d-block text-truncate small hover-primary">
                                                     {{ $f->file_name ?? 'Dokumen Terlampir' }}
                                                 </a>

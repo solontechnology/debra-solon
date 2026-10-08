@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix("import")
     ->name("import.")
-    ->middleware("auth")
+    ->middleware(["auth", "tenant.menu"])
     ->group(function () {
 
         Route::prefix("master-data")

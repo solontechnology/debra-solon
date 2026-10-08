@@ -2,7 +2,7 @@
 
 
 @section('title')
-    Edit Profile
+    Akun Saya
 @endsection
 
 @section('content')
@@ -32,6 +32,15 @@
                     </div>
 
                     <div class="col-md-6">
+                        <label class="form-label required">Username</label>
+                        <input type="text" name="username" class="form-control @error('username') is-invalid @enderror"
+                            value="{{ old('username', $user->username) }}" required autocomplete="username">
+                        @error('username')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="col-md-6">
                         <label class="form-label required">Nomor WhatsApp</label>
                         <input type="text" name="phone" class="form-control @error('phone') is-invalid @enderror"
                             value="{{ old('phone', $user->phone) }}" required>
@@ -47,11 +56,18 @@
                         @error('password')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
+                        <small class="form-text text-muted">Kosongkan jika tidak ingin mengubah password.</small>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Konfirmasi Password Baru</label>
+                        <input type="password" name="password_confirmation" class="form-control"
+                            autocomplete="new-password">
                     </div>
 
                     <div class="col-md-12">
                         <button class="btn btn-primary">Simpan Perubahan</button>
-                        <a href="{{ route('home') }}" class="btn btn-outline-secondary ms-2">Kembali</a>
+                        <a href="{{ route('welcome') }}" class="btn btn-outline-secondary ms-2">Kembali</a>
                     </div>
                 </div>
             </form>

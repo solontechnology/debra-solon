@@ -20,7 +20,7 @@
                             data-placeholder="Pilih group proses" required>
                             <option value=""></option>
                             @foreach ($masterPekerjaan as $item)
-                                @if (in_array($item->kategori, ['surat-keluar', 'waarmerking', 'legalisasi', 'notaris', 'ppat']))
+                                @if ($item->kategori === $kategori)
                                     <option value="{{ $item->id }}">
                                         {{ $item->nama }}
                                     </option>
@@ -30,10 +30,29 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label required">Notaris Pengambil Nomor</label>
-                        <input type="text" class="form-control" name="notaris_pengambil"
-                            placeholder="Masukkan nama notaris" required>
+                        <label class="form-label required">Notaris Rekanan</label>
+                        <select name="notaris_rekanan_id" class="form-select select2_notaris_rekanan_add" required>
+                            <option value="">Pilih notaris rekanan</option>
+                            @foreach ($notarisRekanan as $notarisRekananItem)
+                                <option value="{{ $notarisRekananItem->id }}">
+                                    {{ $notarisRekananItem->nama }}{{ $notarisRekananItem->kota ? ' — ' . $notarisRekananItem->kota->name : '' }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
+
+                    @if (($penomoranSetting?->mode ?? 'automatic') === 'manual')
+                        <div class="mb-3">
+                            <label class="form-label required">Nomor {{ strtoupper($kategori) }}</label>
+                            <input type="text" class="form-control" name="nomor" maxlength="255" required
+                                value="{{ old('nomor') }}" placeholder="Masukkan nomor milik {{ \App\Models\Setting::namaNotaris() }}">
+                            <div class="form-text">Nomor ini dimiliki {{ \App\Models\Setting::namaNotaris() }} dan dipakai oleh notaris rekanan.</div>
+                        </div>
+                    @else
+                        <div class="alert alert-info py-2">
+                            Nomor milik {{ \App\Models\Setting::namaNotaris() }} akan dibuat otomatis sesuai pengaturan penomoran dan dipakai oleh notaris rekanan.
+                        </div>
+                    @endif
 
                     <div class="mb-3">
                         <label class="form-label required">Nama Debitur</label>
@@ -69,6 +88,12 @@
             width: "100%",
             dropdownParent: $("#modalAddNomor"),
             theme: "bootstrap-5"
+        });
+        $(".select2_notaris_rekanan_add").select2({
+            width: "100%",
+            dropdownParent: $("#modalAddNomor"),
+            theme: "bootstrap-5",
+            placeholder: "Pilih notaris rekanan"
         });
 
         $(".btn__save_nomor").on("click", function() {

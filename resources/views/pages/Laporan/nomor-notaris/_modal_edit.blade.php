@@ -1,5 +1,5 @@
-<button type="button" class="btn btn-outline-secondary btn-edit" style=" height: 38px;" data-id="{{ $item->id }}"
-    data-proses="{{ $item->form_order_id }}" data-notaris="{{ $item->notaris_pengambil }}"
+<button type="button" class="btn btn-outline-secondary btn-edit" data-id="{{ $item->id }}"
+    data-proses="{{ $item->form_order_id }}" data-notaris-rekanan="{{ $item->notaris_rekanan_id }}"
     data-debitur="{{ $item->nama_debitur_notaris_pengambil }}" data-objek="{{ $item->objek_notaris_pengambil }}"
     data-tanggal="{{ \Carbon\Carbon::parse($item->tanggal)->format('Y-m-d') }}">
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square"
@@ -48,11 +48,15 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label required">
-                            Notaris Pengambil Nomor
-                        </label>
-
-                        <input type="text" class="form-control" name="notaris_pengambil" id="edit_notaris">
+                        <label class="form-label">Notaris Rekanan</label>
+                        <select name="notaris_rekanan_id" id="edit_notaris_rekanan" class="form-select select2_notaris_rekanan_edit">
+                            <option value="">Pilih notaris rekanan</option>
+                            @foreach ($notarisRekanan as $notarisRekananItem)
+                                <option value="{{ $notarisRekananItem->id }}">
+                                    {{ $notarisRekananItem->nama }}{{ $notarisRekananItem->kota ? ' — ' . $notarisRekananItem->kota->name : '' }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
 
                     <div class="mb-3">
@@ -106,11 +110,17 @@
                 dropdownParent: $('#modalEditNomor'),
                 theme: 'bootstrap-5'
             });
+            $('.select2_notaris_rekanan_edit').select2({
+                width: '100%',
+                dropdownParent: $('#modalEditNomor'),
+                theme: 'bootstrap-5',
+                placeholder: 'Pilih notaris rekanan'
+            });
 
             $(document).on('click', '.btn-edit', function() {
 
                 $('#edit_id').val($(this).data('id'));
-                $('#edit_notaris').val($(this).data('notaris'));
+                $('#edit_notaris_rekanan').val($(this).data('notaris-rekanan')).trigger('change');
                 $('#edit_debitur').val($(this).data('debitur'));
                 $('#edit_objek').val($(this).data('objek'));
                 $('#edit_tanggal').val($(this).data('tanggal'));

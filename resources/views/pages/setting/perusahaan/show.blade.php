@@ -11,7 +11,7 @@
                 <div class="col-md-4">
                     <div class="border rounded p-3 h-100 d-flex align-items-center justify-content-center">
                         @if ($item->logo)
-                            <img src="{{ asset('storage/' . $item->logo) }}" alt="Logo perusahaan" class="img-fluid"
+                            <img src="{{ tenantStorageUrl($item->logo) }}" alt="Logo perusahaan" class="img-fluid"
                                 style="max-height: 220px;">
                         @else
                             <span class="text-muted">Logo belum diupload</span>

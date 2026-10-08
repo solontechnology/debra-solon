@@ -39,6 +39,50 @@
         </div>
 
         <div class="card-body p-0">
+            <form method="GET" action="{{ url()->current() }}" class="border-bottom px-4 py-3">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label for="filter_type" class="form-label">Filter tanggal nomor berdasarkan</label>
+                        <select name="filter_type" id="filter_type" class="form-select">
+                            <option value="">Tanpa filter tanggal</option>
+                            <option value="range" @selected(($filters['filter_type'] ?? '') === 'range')>Rentang tanggal</option>
+                            <option value="month" @selected(($filters['filter_type'] ?? '') === 'month')>Bulan dan tahun</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 date-range-filter">
+                        <label for="start_date" class="form-label">Dari tanggal</label>
+                        <input type="date" name="start_date" id="start_date" class="form-control"
+                            value="{{ $filters['start_date'] ?? '' }}">
+                    </div>
+                    <div class="col-md-2 date-range-filter">
+                        <label for="end_date" class="form-label">Sampai tanggal</label>
+                        <input type="date" name="end_date" id="end_date" class="form-control"
+                            value="{{ $filters['end_date'] ?? '' }}">
+                    </div>
+                    <div class="col-md-2 month-filter">
+                        <label for="month" class="form-label">Bulan</label>
+                        <select name="month" id="month" class="form-select">
+                            <option value="">Pilih bulan</option>
+                            @foreach ([1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April', 5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus', 9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'] as $monthNumber => $monthName)
+                                <option value="{{ $monthNumber }}" @selected((string) ($filters['month'] ?? '') === (string) $monthNumber)>
+                                    {{ $monthName }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-2 month-filter">
+                        <label for="year" class="form-label">Tahun</label>
+                        <input type="number" name="year" id="year" class="form-control" min="1900" max="2200"
+                            value="{{ $filters['year'] ?? '' }}" placeholder="YYYY">
+                    </div>
+                    <div class="col-md-3 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-funnel me-1"></i>Filter
+                        </button>
+                        <a href="{{ url()->current() }}" class="btn btn-outline-secondary">Reset</a>
+                    </div>
+                </div>
+            </form>
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0 text-nowrap">
                     <thead class="bg-light">
@@ -53,6 +97,9 @@
                                 Proses
                             </th>
                             <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">
+                                Notaris Rekanan
+                            </th>
+                            <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">
                                 Tanggal
                             </th>
                             <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">
@@ -62,10 +109,10 @@
                                 Nomor Objek
                             </th>
                             <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">
-                                Pengguna
+                                Pemilik / Pemakai Nomor
                             </th>
                             <th class="py-3 text-center text-secondary text-uppercase font-monospace small fw-bold">
-                                File
+                                Upload Doc
                             </th>
                             <th class="py-3 pe-4 text-center text-secondary text-uppercase font-monospace small fw-bold">
                                 Aksi
@@ -100,6 +147,7 @@
                                         {{ $item->formOrder->nama ?? '-' }}
                                     @endif
                                 </td>
+                                <td>{{ $item->notarisRekanan?->nama ?? '-' }}</td>
 
                                 {{-- Tanggal --}}
                                 <td class="text-muted small">
@@ -137,43 +185,38 @@
                                     {{ $item->formOrder?->jobDivisi?->objek?->pluck('no_sertifikat')->implode(', ') ?: '-' }}
                                 </td>
                                 <td>
-                                    @if ($item->notaris_pengambil)
-                                        <span class="text-secondary fw-medium">{{ $item->notaris_pengambil }}</span>
-                                    @else
-                                        <span
-                                            class="badge {{ $item->rekanan ? 'bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25' : 'bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25' }}">
-                                            {{ $item->rekanan ? 'Rekanan' : 'Internal' }}
-                                        </span>
-                                    @endif
+                                    <div class="d-flex flex-column">
+                                        <span><small class="text-muted">Pemilik:</small> {{ $item->pemilik_nomor }}</span>
+                                        <span><small class="text-muted">Dipakai oleh:</small> {{ $item->pemakai_nomor }}</span>
+                                    </div>
                                 </td>
 
                                 {{-- Upload Doc --}}
                                 <td class="text-center">
-                                    @if ($item->file_notaris_pengambil)
-                                        <a href="{{ asset('storage/' . $item->file_notaris_pengambil) }}"
-                                            target="_blank">{{ basename($item->file_notaris_pengambil) }}</a>
-                                    @else
-                                        <span class="text-muted small fst-italic">
-                                            <i class="bi bi-slash-circle me-1"></i>Tidak ada file
-                                        </span>
-                                    @endif
+                                    <button
+                                        class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 shadow-sm px-2.5 py-1.5"
+                                        title="Upload Document">
+                                        <i class="bi bi-cloud-upload fs-6"></i>
+                                        <span class="small">Upload</span>
+                                    </button>
                                 </td>
 
                                 {{-- Action Buttons --}}
                                 <td class="pe-4 text-center">
                                     <div class="d-flex align-items-center justify-content-center gap-2">
-                                        @include('pages.Laporan.nomor-notaris._modal_upload')
                                         @include('pages.Laporan.nomor-notaris._modal_edit')
 
                                         @if ($item->rekanan === 1)
-                                            <button class="btn btn-success btn-sm px-3 fw-medium">Terima</button>
+                                            <button class="btn btn-success btn-sm px-3 fw-medium">
+                                                Terima
+                                            </button>
                                         @endif
                                     </div>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="text-center py-5 text-muted">
+                                <td colspan="10" class="text-center py-5 text-muted">
                                     <div class="d-flex flex-column align-items-center justify-content-center">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48"
                                             fill="currentColor" class="bi bi-inbox text-secondary mb-2 opacity-50"
@@ -203,3 +246,29 @@
         </div>
     </div>
 @endsection
+
+@push('addScript')
+    <script>
+        (() => {
+            const filterType = document.getElementById('filter_type');
+            const rangeFields = document.querySelectorAll('.date-range-filter input');
+            const monthFields = document.querySelectorAll('.month-filter select, .month-filter input');
+
+            function updateDateFilterFields() {
+                const isRangeFilter = filterType.value === 'range';
+                const isMonthFilter = filterType.value === 'month';
+                document.querySelectorAll('.date-range-filter').forEach((field) => {
+                    field.classList.toggle('d-none', !isRangeFilter);
+                });
+                document.querySelectorAll('.month-filter').forEach((field) => {
+                    field.classList.toggle('d-none', !isMonthFilter);
+                });
+                rangeFields.forEach((field) => field.disabled = !isRangeFilter);
+                monthFields.forEach((field) => field.disabled = !isMonthFilter);
+            }
+
+            filterType.addEventListener('change', updateDateFilterFields);
+            updateDateFilterFields();
+        })();
+    </script>
+@endpush

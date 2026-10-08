@@ -43,7 +43,7 @@
                                             <div class="row g-1" style="max-width: 480px;">
                                                 @foreach ($item->files as $f)
                                                     <div class="col-6">
-                                                        <a href="{{ asset('storage/' . $f->file_path) }}" target="_blank"
+                                                        <a href="{{ tenantStorageUrl($f->file_path) }}" target="_blank"
                                                             class="d-flex align-items-center justify-content-between p-2 rounded-2 bg-white border border-light-subtle text-decoration-none shadow-sm h-100 transition-hover"
                                                             title="Buka file: {{ $f->file_name }}">
                                                             <div class="d-flex align-items-center overflow-hidden me-1">

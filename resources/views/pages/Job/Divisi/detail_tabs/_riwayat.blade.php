@@ -4,7 +4,31 @@
             <div class="accordion-header">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                     data-bs-target="#collapse-{{ $kategori }}" aria-expanded="false">
-                    {{ strtoupper(str_replace('_', ' ', $kategori)) }}
+                    @php
+                        $categoryProgress = $progressByCategory[$kategori];
+                        $categoryPercentage = $categoryProgress['percentage'];
+                        $categoryProgressColor = match (true) {
+                            $categoryPercentage === 100 => '#2fb344',
+                            $categoryPercentage >= 50 => '#066fd1',
+                            $categoryPercentage > 0 => '#f59f00',
+                            default => '#6c757d',
+                        };
+                    @endphp
+                    <span class="d-flex flex-column flex-grow-1 gap-2 me-3">
+                        <span>{{ strtoupper(str_replace('_', ' ', $kategori)) }}</span>
+                        <span class="d-flex align-items-center gap-2">
+                            <span class="progress flex-grow-1" role="progressbar"
+                                aria-label="Progress kategori {{ strtoupper(str_replace('_', ' ', $kategori)) }}"
+                                aria-valuenow="{{ $categoryPercentage }}" aria-valuemin="0" aria-valuemax="100"
+                                style="height: 8px; background-color: #e5e7eb;">
+                                <span style="display: block; width: {{ $categoryPercentage }}%; height: 100%; background-color: {{ $categoryProgressColor }}; border-radius: inherit;"></span>
+                            </span>
+                            <small class="text-muted text-nowrap">
+                                {{ $categoryProgress['completed'] }}/{{ $categoryProgress['total'] }}
+                                ({{ $categoryPercentage }}%)
+                            </small>
+                        </span>
+                    </span>
                     <div class="accordion-button-toggle">
                         <!-- Download SVG icon from http://tabler.io/icons/icon/chevron-down -->
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
@@ -22,6 +46,16 @@
                         $riwayatNotEmpty = 0;
                     @endphp
                     @foreach ($item as $child)
+                        @php
+                            $processProgress = $progressByCategory[$kategori]['processes'][$child->id];
+                            $processPercentage = $processProgress['percentage'];
+                            $processProgressColor = match (true) {
+                                $processPercentage === 100 => '#2fb344',
+                                $processPercentage >= 50 => '#066fd1',
+                                $processPercentage > 0 => '#f59f00',
+                                default => '#6c757d',
+                            };
+                        @endphp
                         <div class="accordion accordion-inverted accordion-plus" id="accordion-inverted-plus">
 
                             <div class="accordion-item">
@@ -29,7 +63,21 @@
                                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                                         data-bs-target="#collapse-{{ $child->id }}-inverted-plus"
                                         aria-expanded="false">
-                                        {{ $child->nama }}
+                                        <span class="d-flex flex-column flex-grow-1 gap-2 me-3">
+                                            <span>{{ $child->nama }}</span>
+                                            <span class="d-flex align-items-center gap-2">
+                                                <span class="progress flex-grow-1" role="progressbar"
+                                                    aria-label="Progress proses {{ $child->nama }}"
+                                                    aria-valuenow="{{ $processPercentage }}" aria-valuemin="0"
+                                                    aria-valuemax="100" style="height: 8px; background-color: #e5e7eb;">
+                                                    <span style="display: block; width: {{ $processPercentage }}%; height: 100%; background-color: {{ $processProgressColor }}; border-radius: inherit;"></span>
+                                                </span>
+                                                <small class="text-muted text-nowrap">
+                                                    {{ $processProgress['completed'] }}/{{ $processProgress['total'] }}
+                                                    stage ({{ $processPercentage }}%)
+                                                </small>
+                                            </span>
+                                        </span>
                                         <div class="accordion-button-toggle accordion-button-toggle-plus">
                                             <!-- Download SVG icon from http://tabler.io/icons/icon/plus -->
                                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"

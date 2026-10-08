@@ -31,8 +31,31 @@
                         </div>
                         <div class="{{ $item->status_penolakan ? 'text-danger' : '' }}">
                             <div class="fw-bold">
-                                {{ $item->status_penolakan ? "$item->status_penolakan Perlu Perbaikan" : "Selesai $item->status" }}
+                                @if ($item->approval_status === 'pending')
+                                    Menunggu approval {{ $item->status }}
+                                @elseif ($item->approval_status === 'rejected')
+                                    {{ $item->status }} ditolak — menunggu perbaikan
+                                @elseif ($item->approval_status === 'approved')
+                                    {{ $item->status }} disetujui
+                                @elseif ($item->work_status === 'assigned')
+                                    {{ $item->status }} ditugaskan — sedang dikerjakan
+                                @elseif ($item->work_status === 'superseded')
+                                    Penugasan {{ $item->status }} telah diselesaikan petugas
+                                @else
+                                    {{ $item->status_penolakan ? "$item->status_penolakan Perlu Perbaikan" : "Selesai $item->status" }}
+                                @endif
                             </div>
+                            @if ($item->approvedBy)
+                                <div class="text-secondary mb-2">
+                                    <i class="bi bi-person-check"></i> {{ $item->approval_status === 'approved' ? 'Disetujui' : 'Diputuskan' }} oleh :
+                                    {{ $item->approvedBy->name }}
+                                </div>
+                            @endif
+                            @if ($item->approval_comment)
+                                <div class="text-secondary mb-2">
+                                    Catatan approval: {{ $item->approval_comment }}
+                                </div>
+                            @endif
                             <div class="text-secondary mb-2">
                                 {{ $item->keterangan }}
                             </div>
@@ -47,7 +70,7 @@
                                 </div>
                             @endif
                             <div class="text-secondary mb-2">
-                                <i class="bi bi-stopwatch"></i> Waktu : {{ $item->created_at->format('d M Y H:i') }}
+                                <i class="bi bi-stopwatch"></i> Waktu : {{ $item->updated_at->format('d M Y H:i') }}
                             </div>
                         </div>
                     </div>

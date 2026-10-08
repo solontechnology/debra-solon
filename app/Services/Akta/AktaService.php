@@ -6,10 +6,13 @@ namespace App\Services\Akta;
 use App\Models\JobDivisiFormOrder;
 use App\Models\StatusJobOps;
 use App\Models\User;
+use App\Services\Akta\WorkflowAktaService;
 use Illuminate\Http\Request;
 
 class AktaService
 {
+    public function __construct(private WorkflowAktaService $workflowAktaService) {}
+
     public function getIndexData(Request $request, ?string $tipe = null): array
     {
         $tipe = $tipe ?: 'notaris';
@@ -47,15 +50,7 @@ class AktaService
 
     private function getWorkflow(string $tipe): array
     {
-        $tipeConfig = in_array($tipe, ['notaris', 'ppat'])
-            ? 'notaris'
-            : $tipe;
-
-        $client = config('app.notaris', 'default');
-
-        return config("workflow.akta.$client.$tipeConfig")
-            ?? config("workflow.akta.default.$tipeConfig")
-            ?? [];
+        return $this->workflowAktaService->forCategory($tipe);
     }
 
     private function getStatusOptions(string $tipe)
@@ -102,6 +97,11 @@ class AktaService
             'statusJobOps.createdBy',
             'statusJobOps.user',
             'statusJobOps.nextUser',
+            'statusJobOps.workflowStage.users',
+            'statusJobOps.workflowStage.roles',
+            'statusJobOps.workflowStage.assignerUsers',
+            'statusJobOps.workflowStage.assignerRoles',
+            'statusJobOps.approvedBy',
             'nomorPpat',
         ])
             ->whereNotIn("status", ["rejected", "Dibatalkan", "pending"])

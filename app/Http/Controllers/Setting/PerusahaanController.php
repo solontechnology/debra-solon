@@ -140,6 +140,7 @@ class PerusahaanController extends Controller
 
             // Hapus cache agar data baru langsung termuat pada request selanjutnya
             Cache::forget('setting_perusahaan');
+            Cache::forget('setting_perusahaan_nama_notaris');
 
             return redirect()
                 ->route('setting.perusahaan.index')
@@ -308,6 +309,7 @@ class PerusahaanController extends Controller
             // Bersihkan cache lama saat update data berhasil dilakukan
             Cache::forget('setting_perusahaan');
             Cache::forget('setting_perusahaan_' . $id);
+            Cache::forget('setting_perusahaan_nama_notaris');
 
             return redirect()
                 ->route('setting.perusahaan.index')
@@ -377,6 +379,7 @@ class PerusahaanController extends Controller
             // Bersihkan cache setelah data dihapus permanen
             Cache::forget('setting_perusahaan');
             Cache::forget('setting_perusahaan_' . $id);
+            Cache::forget('setting_perusahaan_nama_notaris');
 
             return redirect()
                 ->route('setting.perusahaan.index')
