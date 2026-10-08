@@ -39,7 +39,7 @@
                                             Detail
                                         </button>
                                         @can('arsip/ppat/delete')
-                                            <form action="{{ route('arsip.bundle.destroy', $item->id) }}" method="POST">
+                                            <form action="{{ route('arsip.bundle.destroy', [$item->id, 'tipe' => $tipe]) }}" method="POST">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="btn btn-danger btn-sm confirm_delete"

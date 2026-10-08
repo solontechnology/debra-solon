@@ -55,6 +55,7 @@
                 <p class="text-muted small m-0">Kelola dan pantau proses penugasan serta pembayaran PNBP/Voucher</p>
             </div>
             <div class="d-flex align-items-center gap-2">
+                @include('pages.Job._export-data', ['exportType' => 'pnbp'])
                 @include('pages.Job.Pnbp._filter')
             </div>
         </div>

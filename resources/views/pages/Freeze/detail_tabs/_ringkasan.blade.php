@@ -82,7 +82,7 @@
             Foto Akad
         </label>
         @if ($fileAkad)
-            <a href="{{ asset('storage/' . $fileAkad->path) }}" target="_blank" class="btn btn-sm btn-success ">
+            <a href="{{ tenantStorageUrl($fileAkad->path) }}" target="_blank" class="btn btn-sm btn-success ">
                 Lihat File Saat Ini
             </a>
         @endif
@@ -93,7 +93,7 @@
             Upload Receipt Certificate
         </label>
         @if (isset($fileSertifikat[0]))
-            <a href="{{ asset('storage/' . $fileSertifikat[0]->path) }}" target="_blank"
+            <a href="{{ tenantStorageUrl($fileSertifikat[0]->path) }}" target="_blank"
                 class="btn btn-sm btn-success ">
                 Lihat File Saat Ini
             </a>
@@ -104,7 +104,7 @@
             Upload Receipt Certificate
         </label>
         @if (isset($fileSertifikat[1]))
-            <a href="{{ asset('storage/' . $fileSertifikat[1]->path) }}" target="_blank"
+            <a href="{{ tenantStorageUrl($fileSertifikat[1]->path) }}" target="_blank"
                 class="btn btn-sm btn-success ">
                 Lihat File Saat Ini
             </a>

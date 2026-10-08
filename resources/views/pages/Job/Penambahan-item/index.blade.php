@@ -24,6 +24,7 @@
             </div>
 
             <div class="d-flex align-items-center gap-2">
+                @include('pages.Job._export-data', ['exportType' => 'penambahan-item'])
                 {{-- Form Pencarian Data --}}
                 <form action="{{ url()->current() }}" method="GET" class="m-0">
                     <div class="input-group">
@@ -36,11 +37,13 @@
                 </form>
 
                 {{-- Tombol Tambah Data --}}
-                <a href="{{ route('job.penambahan-item.create') }}"
-                    class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-2 shadow-sm px-3 py-2 fw-medium">
-                    <i class="bi bi-plus-lg fs-6 lh-1"></i>
-                    <span>Tambah Data</span>
-                </a>
+                @can('job/penambahan-item/create')
+                    <a href="{{ route('job.penambahan-item.create') }}"
+                        class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-2 shadow-sm px-3 py-2 fw-medium">
+                        <i class="bi bi-plus-lg fs-6 lh-1"></i>
+                        <span>Tambah Data</span>
+                    </a>
+                @endcan
             </div>
         </div>
 

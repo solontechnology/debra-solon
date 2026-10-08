@@ -25,7 +25,7 @@
                             Pengaturan Penomoran
                         </h2>
                         <div class="text-secondary small">
-                            Atur periode reset dan metode pembuatan nomor otomatis atau manual untuk tiap kategori dokumen.
+                            Atur reset nomor, metode pembuatan, dan format nomor tiap kategori dokumen.
                         </div>
                     </div>
                 </div>
@@ -72,10 +72,8 @@
                 <div class="list-group list-group-flush">
                     @foreach ($settings as $setting)
                         <div class="list-group-item p-3 p-md-4">
-                            <div class="row align-items-center g-3">
-                                
-                                <!-- Category Title & Badge -->
-                                <div class="col-lg-4">
+                            <div class="row g-3">
+                                <div class="col-12">
                                     <div class="d-flex align-items-center gap-3">
                                         <div class="avatar bg-primary-subtle text-primary rounded-3 fw-bold">
                                             {{ strtoupper(substr($setting->kategori, 0, 2)) }}
@@ -91,13 +89,12 @@
                                     </div>
                                 </div>
 
-                                <!-- Reset Period Selection -->
-                                <div class="col-md-6 col-lg-4">
-                                    <label class="form-label fw-medium text-secondary mb-2 d-flex align-items-center gap-1">
+                                <div class="col-lg-6">
+                                    <label class="form-label fw-medium text-secondary mb-2 setting-control-label">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar-time" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none"><path d="M11.795 21h-6.795a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v4" /><path d="M18 18m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" /><path d="M15 3v4" /><path d="M7 3v4" /><path d="M3 11h16" /><path d="M18 16.496v1.504l1 1" /></svg>
-                                        Periode Reset Urutan
+                                        Reset Urutan Nomor (n)
                                     </label>
-                                    <div class="btn-group w-100" role="group">
+                                    <div class="btn-group w-100 setting-choice-group" role="group">
                                         <input type="radio" 
                                                class="btn-check" 
                                                name="settings[{{ $setting->id }}][reset_period]" 
@@ -106,7 +103,7 @@
                                                @checked($setting->reset_period === 'month') 
                                                autocomplete="off">
                                         <label class="btn btn-outline-secondary" for="reset_month_{{ $setting->id }}">
-                                            Per Bulan
+                                            Reset per Bulan
                                         </label>
 
                                         <input type="radio" 
@@ -117,18 +114,20 @@
                                                @checked($setting->reset_period === 'year') 
                                                autocomplete="off">
                                         <label class="btn btn-outline-secondary" for="reset_year_{{ $setting->id }}">
-                                            Per Tahun
+                                            Reset per Tahun
                                         </label>
+                                    </div>
+                                    <div class="form-text">
+                                        Menentukan kapan urutan <code>n</code> kembali ke awal. Pengaturan ini terpisah dari format bulan.
                                     </div>
                                 </div>
 
-                                <!-- Mode Selection -->
-                                <div class="col-md-6 col-lg-4">
-                                    <label class="form-label fw-medium text-secondary mb-2 d-flex align-items-center gap-1">
+                                <div class="col-lg-6">
+                                    <label class="form-label fw-medium text-secondary mb-2 setting-control-label">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-adjustments" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none"><path d="M4 10a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M6 4v4" /><path d="M6 12v8" /><path d="M10 16a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M12 4v10" /><path d="M12 18v2" /><path d="M16 7a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M18 4v1" /><path d="M18 9v11" /></svg>
                                         Metode Penomoran
                                     </label>
-                                    <div class="btn-group w-100" role="group">
+                                    <div class="btn-group w-100 setting-choice-group" role="group">
                                         <input type="radio" 
                                                class="btn-check" 
                                                name="settings[{{ $setting->id }}][mode]" 
@@ -155,6 +154,43 @@
                                     </div>
                                 </div>
 
+                                <div class="col-lg-8">
+                                    <label for="format_{{ $setting->id }}" class="form-label fw-medium text-secondary mb-2 setting-control-label">
+                                        Format Nomor
+                                    </label>
+                                    <input type="text"
+                                           class="form-control font-monospace"
+                                           id="format_{{ $setting->id }}"
+                                           name="settings[{{ $setting->id }}][format]"
+                                           value="{{ old("settings.{$setting->id}.format", $setting->format ?: 'nnn/CN/mm/yyyy') }}"
+                                           maxlength="100"
+                                           required
+                                           data-number-format>
+                                    <div class="form-text">
+                                        Awali dengan <code>n</code> (contoh <code>nnn/CN/mm/yyyy</code>).
+                                        <code>n</code> = nomor urut, <code>m</code> = bulan, <code>y</code> = tahun.
+                                        Teks seperti <code>CN</code> dan pemisah dianggap literal.
+                                    </div>
+                                    <div class="small text-primary mt-1">
+                                        Contoh hasil: <span class="font-monospace" data-number-preview></span>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-4">
+                                    <label for="month_format_{{ $setting->id }}" class="form-label fw-medium text-secondary mb-2 setting-control-label">
+                                        Format Bulan
+                                    </label>
+                                    <select class="form-select" id="month_format_{{ $setting->id }}"
+                                            name="settings[{{ $setting->id }}][month_format]" data-month-format>
+                                        <option value="number" @selected(old("settings.{$setting->id}.month_format", $setting->month_format) === 'number')>
+                                            Angka (01–12)
+                                        </option>
+                                        <option value="roman" @selected(old("settings.{$setting->id}.month_format", $setting->month_format) === 'roman')>
+                                            Romawi (I–XII)
+                                        </option>
+                                    </select>
+                                </div>
+
                             </div>
                         </div>
                     @endforeach
@@ -173,5 +209,71 @@
     </form>
 
 </div>
+
+@push('addStyle')
+    <style>
+        .setting-control-label {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            min-height: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .setting-choice-group > .btn {
+            flex: 1 1 0;
+            min-height: 2.5rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.35rem;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 575.98px) {
+            .setting-control-label {
+                min-height: auto;
+            }
+
+            .setting-choice-group > .btn {
+                white-space: normal;
+                padding-inline: 0.4rem;
+            }
+        }
+    </style>
+@endpush
+
+@push('addScript')
+    <script>
+        document.querySelectorAll('[data-number-format]').forEach((input) => {
+            const container = input.closest('.list-group-item');
+            const monthFormat = container.querySelector('[data-month-format]');
+            const preview = container.querySelector('[data-number-preview]');
+            const romanMonths = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+
+            const updatePreview = () => {
+                const now = new Date();
+                const monthNumber = now.getMonth() + 1;
+                const result = input.value.replace(/n+|m+|y+/g, (token) => {
+                    if (token[0] === 'n') return '1'.padStart(token.length, '0');
+                    if (token[0] === 'm') {
+                        return monthFormat.value === 'roman'
+                            ? romanMonths[monthNumber - 1]
+                            : String(monthNumber).padStart(token.length, '0');
+                    }
+                    return token.length === 2
+                        ? String(now.getFullYear()).slice(-2)
+                        : String(now.getFullYear());
+                });
+
+                preview.textContent = result;
+            };
+
+            input.addEventListener('input', updatePreview);
+            monthFormat.addEventListener('change', updatePreview);
+            updatePreview();
+        });
+    </script>
+@endpush
 
 @endsection

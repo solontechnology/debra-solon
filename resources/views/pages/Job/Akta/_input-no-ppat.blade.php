@@ -61,6 +61,11 @@
                                 Dibuat pada:
                                 {{ \Carbon\Carbon::parse($formOrder->nomorPpat->tanggal)->format('d M Y') }}
                             </div>
+                            @if ($formOrder->nomorPpat->notarisRekanan)
+                                <div class="form-text mt-1">
+                                    Notaris rekanan: <strong>{{ $formOrder->nomorPpat->notarisRekanan->nama }}</strong>
+                                </div>
+                            @endif
                         </div>
                     @elseif ($penomoranSetting?->mode === 'manual')
                         <div class="mb-3 form_manual_nomor">
@@ -76,11 +81,12 @@
                             <div class="form-text mt-1 text-muted small">
                                 <i class="bi bi-info-circle me-1"></i> Penomoran untuk kategori ini diatur secara
                                 <strong>Manual</strong>.
+                                Nomor ini milik {{ \App\Models\Setting::namaNotaris() }}.
                             </div>
                         </div>
                     @else
                         {{-- Mode Otomatis --}}
-                        <div class="alert alert-info d-flex align-items-center gap-2 mb-3 p-2 rounded-3 text-break overflow-hidden"
+                        <div class="system_number_info alert alert-info d-flex align-items-center gap-2 mb-3 p-2 rounded-3 text-break overflow-hidden"
                             role="alert">
                             <i class="bi bi-magic fs-6 text-info flex-shrink-0"></i>
                             <div class="lh-sm text-break" style="font-size: 0.725rem;">
@@ -122,7 +128,7 @@
                             @php
                                 $rekanan = $formOrder->nomorPpat->rekanan ?? 0;
                             @endphp
-                            <input class="form-check-input" name="rekanan" {{ $rekanan ? 'checked' : '' }}
+                            <input class="form-check-input" name="rekanan" value="1" {{ $rekanan ? 'checked' : '' }}
                                 type="checkbox" role="switch" id="switchCheckNotarisRekanan{{ $key }}">
                             <label class="form-check-label fw-semibold text-dark ms-2"
                                 for="switchCheckNotarisRekanan{{ $key }}">
@@ -135,13 +141,29 @@
                     @if (!$formOrder->nomorPpat)
                         <div class="mb-3 form_rekanan" style="display: none;">
                             <label class="form-label fw-semibold text-secondary small mb-1 required">
+                                Notaris Rekanan
+                            </label>
+                            <select class="form-select select2-notaris-rekanan" name="notaris_rekanan_id">
+                                <option value="">Pilih notaris rekanan</option>
+                                @foreach ($notarisRekananOptions as $notarisRekanan)
+                                    <option value="{{ $notarisRekanan->id }}">
+                                        {{ $notarisRekanan->nama }}{{ $notarisRekanan->kota ? ' — ' . $notarisRekanan->kota->name : '' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="mb-3 form_rekanan" style="display: none;">
+                            <label class="form-label fw-semibold text-secondary small mb-1 required">
                                 Nomor {{ $tipe === 'covernot' ? 'Cover note' : strtoupper($tipe) }} Rekanan
                             </label>
+                            <div class="form-text mb-2">
+                                Nomor ini milik notaris rekanan dan dipakai pada job kantor Anda. Pengambilan otomatis dari database rekanan belum terhubung; masukkan nomor yang diberikan rekanan.
+                            </div>
                             <div class="input-group">
                                 <span class="input-group-text bg-light text-secondary"><i
                                         class="bi bi-journal-text"></i></span>
                                 <input type="text" autocomplete="off" class="form-control" name="nomor_rekanan"
-                                    placeholder="Masukkan nomor {{ $tipe === 'covernot' ? 'Cover note' : strtoupper($tipe) }} rekanan">
+                                    placeholder="Masukkan nomor {{ $tipe === 'covernot' ? 'Cover note' : strtoupper($tipe) }}">
                             </div>
                         </div>
                     @endif
@@ -181,6 +203,29 @@
                 var $formContext{{ $key }} = $("#form_ppat{{ $key }}");
                 var $formRekanan{{ $key }} = $formContext{{ $key }}.find(".form_rekanan");
                 var $switchRekanan{{ $key }} = $("#switchCheckNotarisRekanan{{ $key }}");
+                var $partnerSelect{{ $key }} = $formContext{{ $key }}.find("[name='notaris_rekanan_id']");
+                var $partnerNumber{{ $key }} = $formContext{{ $key }}.find("[name='nomor_rekanan']");
+                var $systemNumber{{ $key }} = $formContext{{ $key }}.find("[name='nomor']");
+                var $manualSystemNumber{{ $key }} = $formContext{{ $key }}.find(".form_manual_nomor");
+                var $systemNumberInfo{{ $key }} = $formContext{{ $key }}.find(".system_number_info");
+
+                $formContext{{ $key }}.find(".select2-notaris-rekanan").select2({
+                    theme: "bootstrap-5",
+                    width: "100%",
+                    dropdownParent: $("#modalPPat{{ $key }}"),
+                    placeholder: "Pilih notaris rekanan"
+                });
+
+                var syncPartnerRequired{{ $key }} = function() {
+                    var isPartnerNumber = $switchRekanan{{ $key }}.is(":checked");
+                    $partnerSelect{{ $key }}.prop("required", isPartnerNumber);
+                    $partnerNumber{{ $key }}.prop("required", isPartnerNumber);
+                    $manualSystemNumber{{ $key }}.toggle(!isPartnerNumber);
+                    $systemNumberInfo{{ $key }}.toggle(!isPartnerNumber);
+                    if ($systemNumber{{ $key }}.length) {
+                        $systemNumber{{ $key }}.prop("required", !isPartnerNumber);
+                    }
+                };
 
                 // Inisialisasi awal jika switch ter-check dari backend
                 if ($switchRekanan{{ $key }}.is(":checked")) {
@@ -188,6 +233,7 @@
                 } else {
                     $formRekanan{{ $key }}.hide();
                 }
+                syncPartnerRequired{{ $key }}();
 
                 // Toggle animation
                 $switchRekanan{{ $key }}.on("change", function() {
@@ -196,6 +242,7 @@
                     } else {
                         $formRekanan{{ $key }}.slideUp('fast');
                     }
+                    syncPartnerRequired{{ $key }}();
                 });
             @endif
         });

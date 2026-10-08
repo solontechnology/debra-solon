@@ -27,12 +27,7 @@
 
             {{-- Tampilkan tombol Export HANYA jika $tipe adalah 'covernot' --}}
             <div class="d-flex align-items-center gap-2">
-                {{-- Button Export Excel --}}
-                <a href="{{ route('job.export-akta', array_merge(request()->query(), ['tipe' => strtolower($tipe)])) }}"
-                    class="btn btn-success d-inline-flex align-items-center justify-content-center gap-2 shadow-sm px-3 py-2 fw-medium">
-                    <i class="bi bi-file-earmark-excel fs-6 lh-1"></i>
-                    <span>Export Excel</span>
-                </a>
+                @include('pages.Job._export-data', ['exportType' => strtolower($tipe)])
 
                 {{-- Filter Modal Component --}}
                 <div class="d-flex align-items-center">

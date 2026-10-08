@@ -15,6 +15,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 
 class NotarisController extends Controller
@@ -99,7 +100,19 @@ class NotarisController extends Controller
     public function simpanNomorPPAT(Request $request)
     {
         $request->validate([
-            "tanggal_nomor" => "required",
+            "form_id" => ["required", "integer", "exists:job_divisi_form_orders,id"],
+            "kategori" => ["required", Rule::in(array_keys(PenomoranSetting::kategori()))],
+            "tanggal_nomor" => ["required", "date"],
+            "tanggal_expired" => ["nullable", "date"],
+            "rekanan" => ["nullable", "boolean"],
+            "notaris_rekanan_id" => [
+                "required_if:rekanan,1",
+                "nullable",
+                "integer",
+                Rule::exists('notaris_rekanans', 'id')->whereNull('deleted_at'),
+            ],
+            "nomor_rekanan" => ["required_if:rekanan,1", "nullable", "string", "max:255", "not_regex:/^\\s*$/"],
+            "nomor" => ["nullable", "string", "max:255"],
         ], [
             "tanggal_nomor.required" => "Tanggal nomor harus diisi",
         ]);
@@ -108,83 +121,43 @@ class NotarisController extends Controller
 
         try {
 
-            if ($request->rekanan && $request->nomor_rekanan) {
+            if ($request->boolean('rekanan')) {
+                $partnerNumberDuplicate = NomorPpat::query()
+                    ->where('kategori', $request->kategori)
+                    ->where('notaris_rekanan_id', $request->notaris_rekanan_id)
+                    ->where('rekanan', 1)
+                    ->where('nomor', trim($request->nomor_rekanan))
+                    ->exists();
+                if ($partnerNumberDuplicate) {
+                    throw new Exception('Nomor tersebut sudah pernah dicatat untuk notaris rekanan dan kategori ini.');
+                }
+
                 $item = NomorPpat::create([
-                    "nomor" => $request->nomor_rekanan,
+                    "nomor" => trim($request->nomor_rekanan),
                     "job_divisi_form_order_id" => $request->form_id,
                     "user_id" => Auth::user()->id,
                     "tanggal" => Carbon::parse($request->tanggal_nomor),
                     "rekanan" => 1,
                     "tanggal_expired" => $request->tanggal_expired,
-                    "kategori" => $request->kategori
+                    "kategori" => $request->kategori,
+                    "notaris_rekanan_id" => $request->notaris_rekanan_id,
                 ]);
 
+                $this->updateEstimasiJobDivisi(
+                    JobDivisiFormOrder::findOrFail($request->form_id)
+                );
 
                 DB::commit();
                 return redirect()->back()->with("success", "Berhasil simpan nomor rekanan");
             }
 
-            // $kategori = $request->kategori;
-            // $tanggal_nomor = $request->tanggal_nomor;
-
-            // $nomor = $this->inputNomorServis->execute($kategori, $tanggal_nomor);
             $kategori = $request->kategori;
             $tanggal_nomor = $request->tanggal_nomor;
-            // dd([
-            //     'kategori_dari_form' => $request->kategori,
-            //     'semua_setting' => PenomoranSetting::pluck('kategori')->toArray(),
-            // ]);
-
-            $setting = PenomoranSetting::where(
-                'kategori',
-                $kategori
-            )->first();
-
-            if (!$setting) {
-                throw new Exception(
-                    "Pengaturan penomoran untuk kategori {$kategori} belum tersedia."
-                );
-            }
-
-            if ($setting->mode === 'manual') {
-
-                $request->validate([
-                    'nomor' => 'required|string|max:255',
-                ], [
-                    'nomor.required' => 'Nomor harus diisi',
-                ]);
-
-                $nomor = $request->nomor;
-
-                // Cek nomor duplikat
-                $queryDuplicate = NomorPpat::query()
-                    ->where('kategori', $kategori)
-                    ->where('nomor', $nomor)
-                    ->where('rekanan', 0);
-
-                $tanggal = Carbon::parse($tanggal_nomor);
-
-                if ($setting->reset_period === 'month') {
-                    $queryDuplicate
-                        ->whereMonth('tanggal', $tanggal->month)
-                        ->whereYear('tanggal', $tanggal->year);
-                } else {
-                    $queryDuplicate
-                        ->whereYear('tanggal', $tanggal->year);
-                }
-
-                if ($queryDuplicate->exists()) {
-                    throw new Exception(
-                        "Nomor {$nomor} sudah digunakan pada periode tersebut."
-                    );
-                }
-            } else {
-
-                $nomor = $this->inputNomorServis->execute(
-                    $kategori,
-                    $tanggal_nomor
-                );
-            }
+            $nomor = $this->inputNomorServis->resolveForSystem(
+                $kategori,
+                $tanggal_nomor,
+                $request->input('nomor')
+            );
 
             $item = NomorPpat::create([
                 "nomor" => $nomor,

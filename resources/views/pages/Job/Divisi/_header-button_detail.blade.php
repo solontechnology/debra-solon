@@ -1,26 +1,34 @@
 <div class="my-3 d-flex justify-content-end gap-3">
     @if (!in_array($jobDivisi->status, ['Pra Akad', 'Batal Akad', 'Selesai','Freeze']))
-        <span class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#modalSelesaiAkad">
-            Selesai
-        </span>
+        @can('job/divisi/selesai')
+            <span class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#modalSelesaiAkad">
+                Selesai
+            </span>
+        @endcan
     @endif
     @if ($jobDivisi->status === 'Pra Akad')
-        <div class="btn btn-outline-primary " data-bs-toggle="modal" data-bs-target="#modalAkad">
-            Akad
-        </div>
+        @can('job/divisi/akad')
+            <div class="btn btn-outline-primary " data-bs-toggle="modal" data-bs-target="#modalAkad">
+                Akad
+            </div>
+        @endcan
     @endif
     @if ($jobDivisi->status !== 'Selesai')
-        <div class="btn btn-outline-warning " data-bs-toggle="modal" data-bs-target="#modalFreeze">
-            Freeze (Lock Data)
-        </div>
+        @can('job/divisi/freeze')
+            <div class="btn btn-outline-warning " data-bs-toggle="modal" data-bs-target="#modalFreeze">
+                Freeze (Lock Data)
+            </div>
+        @endcan
     @endif
     @if ($jobDivisi->status !== 'Selesai' && $jobDivisi->status !== 'Batal Akad')
-        <form action="" method="POST" class="form-batal-akad">
-            @csrf
-            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalBatalAkad">
-                Batal Akad
-            </button>
-        </form>
+        @can('job/divisi/batal-akad')
+            <form action="" method="POST" class="form-batal-akad">
+                @csrf
+                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalBatalAkad">
+                    Batal Akad
+                </button>
+            </form>
+        @endcan
     @endif
     @if ($jobDivisi->status === 'Batal Akad')
         @can('job/divisi/buka-batal')

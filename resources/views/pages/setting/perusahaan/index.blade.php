@@ -29,7 +29,7 @@
                                         style="width: 150px; height: 150px; border-radius: 50%; overflow: hidden; margin: auto; border: 2px solid #30ff07;">
 
                                         @if ($item?->foto_profil)
-                                            <img src="{{ Storage::url($item->foto_profil) }}" alt="avatar"
+                                            <img src="{{ tenantStorageUrl($item->foto_profil) }}" alt="avatar"
                                                 style="width: 100%; height: 100%; object-fit: cover; object-position: center; display: block;">
                                         @else
                                             <div
@@ -60,7 +60,7 @@
                                     </p>
 
                                     @if ($item?->skNotaris?->file)
-                                        <a href="{{ Storage::url($item->skNotaris->file) }}" target="_blank"
+                                        <a href="{{ tenantStorageUrl($item->skNotaris->file) }}" target="_blank"
                                             class="text-primary text-decoration-none">
                                             Lihat SK Notaris
                                         </a>
@@ -85,7 +85,7 @@
                                     </p>
 
                                     @if ($item?->skPpat?->file)
-                                        <a href="{{ Storage::url($item->skPpat->file) }}" target="_blank"
+                                        <a href="{{ tenantStorageUrl($item->skPpat->file) }}" target="_blank"
                                             class="text-primary text-decoration-none">
                                             Lihat SK PPAT
                                         </a>
@@ -182,7 +182,7 @@
                                     <div class="col-sm-9">
 
                                         @if ($item?->foto_ktp)
-                                            <a href="{{ Storage::url($item->foto_ktp) }}" target="_blank"
+                                            <a href="{{ tenantStorageUrl($item->foto_ktp) }}" target="_blank"
                                                 class="text-primary text-decoration-none">
                                                 Lihat KTP
                                             </a>

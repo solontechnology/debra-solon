@@ -4,7 +4,7 @@
 </button>
 
 <!-- Modal -->
-<form action="{{ route('finance.job-divisi.update', $item->id) }}" method="post" class="form_approve">
+<form action="{{ route('finance.job-divisi.update', [$item->id, 'type' => request('type')]) }}" method="post" class="form_approve">
 
     @csrf
     @method('PUT')

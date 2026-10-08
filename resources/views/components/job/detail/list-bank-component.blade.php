@@ -49,7 +49,7 @@
                                     @if ($item->files && $item->files->count() > 0)
                                         <div class="d-flex flex-wrap gap-2">
                                             @foreach ($item->files as $index => $f)
-                                                <a href="{{ asset('storage/' . $f->file_path) }}" target="_blank"
+                                                <a href="{{ tenantStorageUrl($f->file_path) }}" target="_blank"
                                                     class="d-inline-flex align-items-center px-2 py-1 rounded-2 bg-white border border-light-subtle text-decoration-none shadow-sm transition-hover"
                                                     title="{{ $f->file_name ?? 'Buka file lampiran' }}">
                                                     <div class="bg-warning bg-opacity-10 p-1 rounded me-2 border border-warning-subtle d-flex align-items-center justify-content-center flex-shrink-0"

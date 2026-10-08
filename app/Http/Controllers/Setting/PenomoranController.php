@@ -24,12 +24,21 @@ class PenomoranController extends Controller
             'settings' => 'required|array',
             'settings.*.reset_period' => 'required|in:month,year',
             'settings.*.mode' => 'required|in:automatic,manual',
+            'settings.*.format' => [
+                'required',
+                'string',
+                'max:100',
+                'regex:/^n+[A-Z0-9\/._-]*(?:m+[A-Z0-9\/._-]*)?(?:y+[A-Z0-9\/._-]*)?$/',
+            ],
+            'settings.*.month_format' => 'required|in:number,roman',
         ]);
 
         foreach ($request->settings as $id => $data) {
-            PenomoranSetting::where('id', $id)->update([
+            PenomoranSetting::whereKey($id)->update([
                 'reset_period' => $data['reset_period'],
                 'mode' => $data['mode'],
+                'format' => $data['format'],
+                'month_format' => $data['month_format'],
             ]);
         }
 

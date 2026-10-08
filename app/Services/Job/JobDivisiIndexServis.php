@@ -4,10 +4,16 @@ namespace App\Services\Job;
 
 use App\Models\JobDivisi;
 use App\Models\MasterDataFormOrder;
+use App\Services\Akta\WorkflowAktaService;
 use Illuminate\Http\Request;
 
 class JobDivisiIndexServis
 {
+    public function __construct(
+        private WorkflowAktaService $workflowAktaService,
+        private JobDivisiProgressService $progressService
+    ) {}
+
     public function execute(Request $request, array $options = []): array
     {
         $completedOnly = (bool) ($options["completed_only"] ?? false);
@@ -25,20 +31,21 @@ class JobDivisiIndexServis
             ->filter(fn($value) => filled($value))
             ->count();
 
-        $items = JobDivisi::with(
+        $items = JobDivisi::with([
             "bank",
             "listBank",
             "objek",
             "divisiYangDituju",
             "jenisAkad",
             "debitur",
-            "listPembeli",   // tambah
-            "listPenjual",   // tambah
+            "listPembeli",
+            "listPenjual",
             "pembatalan.user",
             "pembatalan.user2",
             "formOrder.nomorPpat",
-            "finance"
-        )
+            "formOrder.statusJobOps" => fn ($query) => $query->orderBy('id'),
+            "finance",
+        ])
             ->orderBy("is_pending", "desc")
             ->orderBy("id", "desc")
             ->when($kode, function ($query) use ($kode) {
@@ -79,7 +86,40 @@ class JobDivisiIndexServis
             ->paginate(12)
             ->withQueryString();
 
-        $items->getCollection()->transform(function ($item) {
+        $categories = $items->getCollection()
+            ->flatMap(fn ($item) => $item->formOrder->pluck('kategori'))
+            ->filter()
+            ->unique();
+        $workflows = $categories->mapWithKeys(fn ($category) => [
+            $category => $this->workflowAktaService->forCategory($category),
+        ])->all();
+
+        $items->getCollection()->transform(function ($item) use ($workflows) {
+            $item->progress = $this->progressService->summarize($item->formOrder, $workflows);
+            $item->progressByCategory = $item->formOrder
+                ->groupBy('kategori')
+                ->map(function ($formOrders, $category) use ($workflows) {
+                    $categoryLabels = [
+                        'notaris' => 'Notaris',
+                        'ppat' => 'PPAT',
+                        'legalisasi' => 'Legalisasi',
+                        'waarmerking' => 'Waarmerking',
+                        'surat-keluar' => 'Surat Keluar',
+                        'wasiat' => 'Wasiat',
+                        'covernot' => 'Cover Note',
+                        'pajak' => 'Pajak',
+                        'pnbp_voucher' => 'PNBP/Voucher',
+                        'operasional' => 'Operasional',
+                    ];
+
+                    return [
+                        'key' => $category,
+                        'label' => $categoryLabels[$category] ?? str($category)->replace(['-', '_'], ' ')->headline()->toString(),
+                        'progress' => $this->progressService->summarize($formOrders, $workflows),
+                        'form_orders' => $formOrders,
+                    ];
+                })
+                ->values();
             $tanggalEstimasiInternal = $item->tanggal_estimasi_selesai;
             $tanggalEstimasiEksternal = $item->tanggal_estimasi_selesai_eksternal;
 

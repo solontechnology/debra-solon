@@ -3,6 +3,8 @@
 namespace App\View\Components\Job\Akta;
 
 use Closure;
+use App\Models\JobAktaWorkflowStage;
+use App\Services\Akta\WorkflowAktaService;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
 
@@ -22,33 +24,37 @@ class EditAkta extends Component
     public function render(): View|Closure|string
     {
         $tipe = $this->tipe ?? 'notaris';
-
-        $tipeConfig = $this->tipe ?? 'notaris';
-        if ($tipe === "notaris" || $tipe === "ppat") {
-            $tipeConfig = "notaris";
-        }
-
-        $client = config('app.notaris', 'default');
-
-        $workflow = config("workflow.akta.$client.$tipeConfig")
-            ?? config("workflow.akta.default.$tipeConfig")
-            ?? [];
-
-        $steps = collect($workflow)->pluck('name')->toArray();
-
-        $currentStatus = $this->statusJobOps->last()->status ?? 'Belum diproses';
-
-        $nextStep = $this->getNextStep($workflow, $currentStatus);
-
+        $workflowService = app(WorkflowAktaService::class);
+        $workflow = $workflowService->forCategory($tipe);
+        $lastStatus = $this->statusJobOps->last();
+        $stepState = $workflowService->currentStep($workflow, $lastStatus);
+        $nextStep = $stepState['next_step'];
+        $approvalPending = $stepState['pending_approval'];
+        $currentStatus = $stepState['current_status'];
         $nextStatus = $nextStep['name'] ?? 'Selesai';
-
         $isApproval = $nextStep['approval']['enabled'] ?? false;
         $isPenugasan = $nextStep['penugasan'] ?? false;
-
-        $approvalLabel = $nextStep['approval']['label'] ?? 'Approve';
-        $previousStep = $this->getPreviousStep($workflow, $nextStatus);
-
-        $rejectStatus = $previousStep['name'] ?? $currentStatus;
+        $activeStage = $stepState['active_stage'];
+        $stageModel = $activeStage?->workflowStage;
+        if (!$stageModel && !empty($nextStep['id'])) {
+            $stageModel = JobAktaWorkflowStage::with([
+                'users:id',
+                'roles:id',
+                'assignerUsers:id',
+                'assignerRoles:id',
+            ])->find($nextStep['id']);
+        }
+        $steps = array_column($workflow, 'name');
+        $canDecideApproval = $approvalPending
+            && $approvalPending->workflowStage
+            && $workflowService->canApprove($approvalPending->workflowStage, auth()->id());
+        $isAssignedWork = $activeStage !== null;
+        $canAssignStage = $isPenugasan
+            && !$isAssignedWork
+            && $stageModel
+            && $workflowService->canAssign($stageModel, auth()->id());
+        $canSubmitStage = $workflowService->canSubmitStage($stepState, (int) auth()->id());
+        $workflowAction = $isPenugasan && !$isAssignedWork ? 'assign' : 'submit';
 
         return view('components.job.akta.edit-akta', [
             'workflow' => $workflow,
@@ -57,40 +63,15 @@ class EditAkta extends Component
             'nextStatus' => $nextStatus,
             'nextStep' => $nextStep,
             'isApproval' => $isApproval,
-            'approvalLabel' => $approvalLabel,
-            "rejectStatus" => $rejectStatus,
             "users" => $this->users,
-            "isPenugasan" => $isPenugasan
+            "isPenugasan" => $isPenugasan,
+            "activeStage" => $activeStage,
+            "isAssignedWork" => $isAssignedWork,
+            "canAssignStage" => $canAssignStage,
+            "canSubmitStage" => $canSubmitStage,
+            "workflowAction" => $workflowAction,
+            "approvalPending" => $approvalPending,
+            "canDecideApproval" => $canDecideApproval,
         ]);
-    }
-
-    private function getNextStep(array $workflow, string $currentStatus): ?array
-    {
-        if ($currentStatus === 'Belum diproses') {
-            return $workflow[0] ?? null;
-        }
-
-        $currentIndex = collect($workflow)->search(function ($step) use ($currentStatus) {
-            return ($step['name'] ?? null) === $currentStatus;
-        });
-
-        if ($currentIndex === false) {
-            return $workflow[0] ?? null;
-        }
-
-        return $workflow[$currentIndex + 1] ?? null;
-    }
-
-    private function getPreviousStep(array $workflow, string $nextStatus): ?array
-    {
-        $currentIndex = collect($workflow)->search(function ($step) use ($nextStatus) {
-            return ($step['name'] ?? null) === $nextStatus;
-        });
-
-        if ($currentIndex === false) {
-            return null;
-        }
-
-        return $workflow[$currentIndex - 2] ?? null;
     }
 }

@@ -24,6 +24,7 @@
             </div>
 
             <div class="d-flex align-items-center gap-2">
+                @include('pages.Job._export-data', ['exportType' => 'pembatalan-item'])
                 {{-- Form Pencarian Data --}}
                 <form action="{{ url()->current() }}" method="GET" class="m-0">
                     <div class="input-group">

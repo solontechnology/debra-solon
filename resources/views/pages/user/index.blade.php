@@ -27,6 +27,9 @@
                                 Role
                             </th>
                             <th>
+                                Employee
+                            </th>
+                            <th>
                                 Aksi
                             </th>
                         </tr>
@@ -47,6 +50,19 @@
                                 </td>
                                 <td>
                                     {{ $item->roles->pluck('name')->join(', ') ?: '-' }}
+                                </td>
+                                <td>
+                                    @if ($item->employee)
+                                        @can('hris/employee/edit')
+                                            <a href="{{ route('hris.employee.edit', $item->employee) }}" class="btn btn-outline-primary btn-sm">
+                                                Lihat data employee
+                                            </a>
+                                        @else
+                                            <span class="text-muted">Terhubung</span>
+                                        @endcan
+                                    @else
+                                        <span class="text-muted">Akun mandiri</span>
+                                    @endif
                                 </td>
                                 <td>
                                     <div class="d-flex">

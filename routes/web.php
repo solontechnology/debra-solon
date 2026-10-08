@@ -8,10 +8,12 @@ use App\Http\Controllers\Export\ExportJobDivisiController;
 use App\Http\Controllers\Export\ExportQuotationJobDivisiController;
 use App\Http\Controllers\Export\ExportJobOpsController;
 use App\Http\Controllers\Export\ExportAktaController;
+use App\Http\Controllers\Export\JobDataExportController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\Finance\FinanceJobDivisiController;
 use App\Http\Controllers\Finance\FinanceReportController;
 use App\Http\Controllers\HRIS\CutiController;
+use App\Http\Controllers\HRIS\EmployeeController;
 use App\Http\Controllers\HRIS\LemburController;
 use App\Http\Controllers\Job\Akta\DataAktaController;
 use App\Http\Controllers\Job\Bermasalah\DispoController;
@@ -44,6 +46,7 @@ use App\Http\Controllers\MasterData\DeveloperController;
 use App\Http\Controllers\MasterData\DivisiController;
 use App\Http\Controllers\MasterData\FormOrderController;
 use App\Http\Controllers\MasterData\NotarisController as MasterNotarisController;
+use App\Http\Controllers\MasterData\NotarisRekananController;
 use App\Http\Controllers\MasterData\PekerjaanController;
 use App\Http\Controllers\MasterData\StatusController;
 use App\Http\Controllers\Pdf\InvoiceController;
@@ -53,8 +56,11 @@ use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\SearchWilayahController\Job;
 use App\Http\Controllers\Setting\PenomoranController;
 use App\Http\Controllers\Setting\PerusahaanController;
+use App\Http\Controllers\Setting\ApprovalConfigurationController;
+use App\Http\Controllers\Setting\TenantFeatureController;
 use App\Http\Controllers\Setting\StepOpsController;
 use App\Http\Controllers\Setting\WaController;
+use App\Http\Controllers\Setting\WorkflowAktaController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
@@ -83,7 +89,7 @@ Route::post("proses-login", [AuthController::class, "prosesLogin"])->name("prose
 Route::post("logout", [AuthController::class, "logout"])->name("logout");
 Route::get("logoutProses", [AuthController::class, "logout"])->name("logoutProses");
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'tenant.menu'])->group(function () {
 
     Route::post("uploadFile", [FileController::class, "uploadFile"])->name("uploadFile");
     Route::post("file/destroy/{id}", [FileController::class, "destroy"])->name("file.destroy");
@@ -119,6 +125,8 @@ Route::middleware('auth')->group(function () {
             Route::resource('developer', DeveloperController::class);
             Route::resource('broker', BrokerController::class);
             Route::resource('notaris', MasterNotarisController::class);
+            Route::resource('notaris-rekanan', NotarisRekananController::class)
+                ->only(['index', 'store', 'update', 'destroy']);
             Route::resource('form-order', FormOrderController::class);
             // Route::resource('paketpekerjaan', FormOrderController::class);
         });
@@ -140,6 +148,9 @@ Route::middleware('auth')->group(function () {
 
             Route::get("export-job-divisi", [ExportJobDivisiController::class, "index"])
                 ->name("export-job-divisi");
+
+            Route::get("export-data", [JobDataExportController::class, "export"])
+                ->name("data-export");
 
 
             Route::get("export-job-ops", [ExportJobOpsController::class, "export"])
@@ -423,6 +434,8 @@ Route::middleware('auth')->group(function () {
             Route::prefix("akta")
                 ->name("akta.")
                 ->group(function () {
+                    Route::post("data/{statusJobOps}/approval", [DataAktaController::class, 'decideApproval'])
+                        ->name("data.approval");
                     Route::resource("data", DataAktaController::class);
                     Route::get("filter-data/{tipe}", [DataAktaController::class, 'index'])->name("data.filter");
                 });
@@ -491,6 +504,7 @@ Route::middleware('auth')->group(function () {
     Route::prefix("hris")
         ->name("hris.")
         ->group(function () {
+            Route::resource("employee", EmployeeController::class)->except(["show"]);
             Route::resource("cuti", CutiController::class);
             Route::resource("lembur", LemburController::class);
         });
@@ -512,6 +526,18 @@ Route::middleware('auth')->group(function () {
                 "penomoran",
                 [PenomoranController::class, "index"]
             )->name("penomoran.index");
+            Route::get("workflow-akta", [WorkflowAktaController::class, "index"])
+                ->name("workflow-akta.index");
+            Route::put("workflow-akta/{category}", [WorkflowAktaController::class, "update"])
+                ->name("workflow-akta.update");
+            Route::get("approval", [ApprovalConfigurationController::class, "index"])
+                ->name("approval.index");
+            Route::put("approval/{workflowKey}", [ApprovalConfigurationController::class, "update"])
+                ->name("approval.update");
+            Route::get("features", [TenantFeatureController::class, "index"])
+                ->name("features.index");
+            Route::put("features/{featureKey}", [TenantFeatureController::class, "update"])
+                ->name("features.update");
 
             Route::put(
                 "penomoran",

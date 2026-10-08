@@ -78,7 +78,7 @@
                         {{ $index + 1 }}
                     </td>
                     <td>
-                        <a href="/storage/{{ $item->path }}" target=blank_ class="text-decoration-none">
+                        <a href="{{ tenantStorageUrl($item->path) }}" target=blank_ class="text-decoration-none">
                             {{$item->path}}
                         </a>
                     </td>

@@ -164,7 +164,7 @@
 
             {{-- Tombol Aksi Approval --}}
             @if (($penambahan_item->status ?? '') === 'menunggu approval')
-                @can('job/penambahan-item/edit')
+                @if ($penambahan_item->can_approve)
                     <div class="mt-4 pt-3 border-top d-flex align-items-center justify-content-end gap-2">
                         <form action="{{ route('job.penambahan-item.update', $penambahan_item->id) }}" method="post" class="m-0 d-flex gap-2">
                             @csrf
@@ -179,7 +179,7 @@
                             </button>
                         </form>
                     </div>
-                @endcan
+                @endif
             @endif
 
         </div>

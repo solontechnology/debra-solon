@@ -17,7 +17,7 @@ class PenomoranExport implements FromCollection, WithHeadings
 
     public function collection()
     {
-        return NomorPpat::with('formOrder.jobDivisi', 'pekerjaan')
+        return NomorPpat::with('formOrder.jobDivisi', 'pekerjaan', 'notarisRekanan')
             ->when($this->kategori, function ($query) {
                 $query->where('kategori', $this->kategori);
             })
@@ -32,13 +32,13 @@ class PenomoranExport implements FromCollection, WithHeadings
                         ? $item->pekerjaan->nama ?? '-'
                         : $item->formOrder->nama ?? '-',
 
+                    'notaris_rekanan' => $item->notarisRekanan->nama ?? '-',
                     'debitur' => $item->nama_debitur_notaris_pengambil ?? '-',
 
                     'tanggal' => $item->tanggal,
 
-                    'pengguna' => $item->notaris_pengambil
-                        ? $item->notaris_pengambil
-                        : ($item->rekanan ? 'Rekanan' : 'Internal'),
+                    'pemilik_nomor' => $item->pemilik_nomor,
+                    'dipakai_oleh' => $item->pemakai_nomor,
                 ];
             });
     }
@@ -49,9 +49,11 @@ class PenomoranExport implements FromCollection, WithHeadings
             'Parent',
             'Nomor',
             'Proses',
+            'Notaris Rekanan',
             'Debitur',
             'Tanggal',
-            'Pengguna',
+            'Pemilik Nomor',
+            'Dipakai Oleh',
         ];
     }
 }

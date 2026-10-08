@@ -134,16 +134,16 @@
                     </label>
                     <textarea readonly class="form-control">{{ $freeze->keterangan }}</textarea>
                     @if ($freeze->status === 'menunggu persetujuan')
-                        @can('berkas-bermasalah/freeze/tolak')
+                        @if ($isApprover && auth()->user()->can('berkas-bermasalah/freeze/tolak'))
                             <div class="btn btn-outline-danger mt-4 me-3 btn__tolak">
                                 Tolak
                             </div>
-                        @endcan
-                        @can('berkas-bermasalah/freeze/setuju')
+                        @endif
+                        @if ($isApprover && auth()->user()->can('berkas-bermasalah/freeze/setuju'))
                             <div class="btn btn-primary mt-4 btn__setujui">
                                 Setujui
                             </div>
-                        @endcan
+                        @endif
                     @endif
                 </form>
 

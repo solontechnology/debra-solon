@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\JobDivisi;
 use App\Models\JobDivisiFinance;
 use App\Models\StatusJobOps;
+use App\Services\Approval\ApprovalWorkflowService;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -15,11 +16,17 @@ use Inertia\Inertia;
 
 class FinanceJobDivisiController extends Controller
 {
+    public function __construct(protected ApprovalWorkflowService $approvalWorkflowService) {}
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
+        abort_unless(
+            auth()->user()->canAny(['finance/list', 'finance/approve']),
+            403
+        );
         $items = JobDivisiFinance::orderBy("id", 'desc')
             ->with(
                 "jobDivisi.userOps",
@@ -34,6 +41,11 @@ class FinanceJobDivisiController extends Controller
             ->whereHas("jobDivisi")
             ->where("tipe", $request->type)
             ->get();
+        $items->each(function (JobDivisiFinance $item) {
+            $item->can_approve = $item->status === 'Menunggu persetujuan finance'
+                && auth()->user()->can('finance/approve')
+                && $this->approvalWorkflowService->canApprove('finance', $item, (int) auth()->id());
+        });
 
 
         $type = $request->type;
@@ -89,10 +101,36 @@ class FinanceJobDivisiController extends Controller
         if (!$item) {
             return redirect()->back()->with("error", "Data tidak ditemukan");
         }
+        $isApprovalRequest = $item->status === 'Menunggu persetujuan finance';
+        if ($isApprovalRequest) {
+            $request->validate(['status' => ['required', 'in:Disetujui,Tolak']]);
+            abort_unless(auth()->user()->can('finance/approve'), 403);
+            abort_unless(
+                $this->approvalWorkflowService->canApprove('finance', $item, (int) auth()->id()),
+                403,
+                'Anda bukan approver yang ditetapkan untuk pengajuan finance ini.'
+            );
+        }
 
         DB::beginTransaction();
 
         try {
+            $item = JobDivisiFinance::with("formOrder")->lockForUpdate()->findOrFail($id);
+            if ($isApprovalRequest) {
+                abort_unless(
+                    $item->status === 'Menunggu persetujuan finance',
+                    409,
+                    'Pengajuan finance sudah diproses.'
+                );
+                abort_unless(in_array($request->status, ['Disetujui', 'Tolak'], true), 422);
+                abort_unless(auth()->user()->can('finance/approve'), 403);
+                abort_unless(
+                    $this->approvalWorkflowService->canApprove('finance', $item, (int) auth()->id()),
+                    403,
+                    'Anda bukan approver yang ditetapkan untuk pengajuan finance ini.'
+                );
+            }
+
             $formOrder = $item->formOrder;
 
 
@@ -125,8 +163,12 @@ class FinanceJobDivisiController extends Controller
             // dd($item->toArray(), "commit");
             DB::commit();
             return redirect()->back()->with("success", "Data berhasil diubah");
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpExceptionInterface $exception) {
+            DB::rollBack();
+            throw $exception;
         } catch (Exception $th) {
             DB::rollBack();
+            report($th);
 
             return redirect()->back()->with("error", "Gagal melakukan perubahan, Coba beberapa saat lagi");
         }

@@ -20,6 +20,22 @@ class StatusJobOps extends Model
     {
         return $this->belongsTo(User::class, "next_user", "id");
     }
+
+    public function workflowStage()
+    {
+        return $this->belongsTo(JobAktaWorkflowStage::class, 'workflow_stage_id');
+    }
+
+    public function approvedBy()
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function formOrder()
+    {
+        return $this->belongsTo(JobDivisiFormOrder::class, 'job_divisi_form_order_id');
+    }
+
     public function statusJobOps()
     {
         return $this->hasMany(StatusJobOps::class)

@@ -159,7 +159,7 @@
 
             {{-- Tombol Aksi Approval --}}
             @if (($pembatalanItem->status ?? '') === 'menunggu persetujuan')
-                @can('job/pembatalan-item/edit')
+                @if ($canApprove)
                     <div class="mt-4 pt-3 border-top d-flex align-items-center justify-content-end gap-2">
                         @include('pages.Job.pembatalan-item._modal_tolak')
 
@@ -172,7 +172,7 @@
                             </button>
                         </form>
                     </div>
-                @endcan
+                @endif
             @endif
 
         </div>

@@ -1,38 +1,43 @@
 @php
-    $lastStatus = $statusJobOps->last();
-    $isSuperAdmin = auth()->user()->hasRole('super admin');
-    $currentUserId = auth()->id();
-
-    $assignedStaffId = $lastStatus->user_id ?? null;
-    $activeStep = $nextStatus;
-
-    // Menunggu TTD Notaris sekarang langsung berurutan setelah Selesai Minuta
-    $isPenugasanStep =
-        str_contains($activeStep, 'Penugasan') ||
-        $activeStep === 'Menunggu TTD Notaris' ||
-        $activeStep === 'Selesai Minuta';
-
-    $isStaffStep = !$isPenugasanStep;
-
-    // $canAccess =
-    //     $isSuperAdmin ||
-    //     (
-    //         $isPenugasanStep &&
-    //         auth()->user()->can('job/akta/penugasan')
-    //     ) ||
-    //     (
-    //         $isStaffStep &&
-    //         $assignedStaffId == $currentUserId
-    //     );
 @endphp
 
 <div>
-    {{-- @if ($canAccess) --}}
-        @if ($currentStatus !== 'Selesai')
+    @if ($approvalPending)
+        <div class="d-flex flex-column gap-2">
+            <span class="badge bg-warning-subtle text-warning-emphasis">
+                {{ $approvalPending->status }}: Menunggu approval
+            </span>
+            <small class="text-secondary">
+                Ditugaskan kepada: {{ $approvalPending->user?->name ?? 'Belum ada petugas' }}
+            </small>
+            @if ($canDecideApproval)
+                <form action="{{ route('job.akta.data.approval', $approvalPending) }}" method="post">
+                    @csrf
+                    <textarea name="comment" class="form-control form-control-sm mb-2"
+                        placeholder="Catatan approval (opsional)"></textarea>
+                    <div class="d-flex gap-1">
+                        <button type="submit" name="decision" value="approve" class="btn btn-success btn-sm">
+                            Approve
+                        </button>
+                        <button type="submit" name="decision" value="reject" class="btn btn-danger btn-sm">
+                            Tolak
+                        </button>
+                    </div>
+                </form>
+            @endif
+        </div>
+    @elseif ($currentStatus !== 'Selesai' && $nextStep)
+        @if ($canAssignStage || $canSubmitStage)
             @if ($currentStatus !== '')
                 <button type="button" class="btn btn-primary btn-md"
                     data-bs-toggle="modal" data-bs-target="#modalEditAkta{{ $key }}">
-                    Edit
+                    @if ($workflowAction === 'assign')
+                        Tugaskan {{ $nextStatus }}
+                    @elseif ($isApproval)
+                        Ajukan hasil {{ $nextStatus }}
+                    @else
+                        Proses {{ $nextStatus }}
+                    @endif
                 </button>
             @endif
 
@@ -41,9 +46,8 @@
                 @csrf
 
                 <input type="text" value="{{ $formOrder->id }}" name="form_id" hidden>
-                <input type="hidden" name="current_status" value="{{ $currentStatus }}">
-                <input type="hidden" name="next_status" value="{{ $nextStatus }}">
-                <input type="hidden" name="reject_status" value="{{ $rejectStatus }}">
+                <input type="hidden" name="kategori" value="{{ $tipe }}">
+                <input type="hidden" name="workflow_action" value="{{ $workflowAction }}">
 
                 <div class="modal fade" id="modalEditAkta{{ $key }}" tabindex="-1"
                     aria-labelledby="modalEditAkta{{ $key }}Label" aria-hidden="true">
@@ -85,23 +89,27 @@
                                         </div>
 
                                         <div class="mb-3">
-                                            <label class="form-label">Status Saat Ini</label>
+                                            <label class="form-label">{{ $isAssignedWork ? 'Stage yang dikerjakan' : 'Status Sebelumnya' }}</label>
                                             <input type="text" class="form-control" disabled
-                                                value="{{ $currentStatus }}">
+                                                value="{{ $isAssignedWork ? $nextStatus : $currentStatus }}">
                                         </div>
 
-                                        <div class="mb-3">
+                                        @if (!$isAssignedWork)
+                                            <div class="mb-3">
                                             <label class="form-label">Status Berikutnya</label>
                                             <input type="text" class="form-control" disabled
                                                 value="{{ $nextStatus }}">
                                         </div>
+                                        @endif
 
-                                        @if ($isPenugasan)
+                                        @if ($workflowAction === 'assign')
                                             <div class="mb-3">
-                                                <label for="" class="form-label required">Staff</label>
+                                                <label for="assigned-staff-{{ $key }}" class="form-label required">
+                                                    Petugas yang ditugaskan
+                                                </label>
                                                 <select name="staff" class="form-select select2_ops"
-                                                    data-placeholder="Pilih Staff">
-                                                    <option value=""></option>
+                                                    id="assigned-staff-{{ $key }}" required>
+                                                    <option value="">Pilih petugas</option>
                                                     @foreach ($users as $user)
                                                         <option value="{{ $user['value'] }}">
                                                             {{ $user['label'] }}
@@ -109,11 +117,17 @@
                                                     @endforeach
                                                 </select>
                                             </div>
+                                        @elseif ($isAssignedWork)
+                                            <div class="alert alert-info">
+                                                Petugas stage ini: {{ $activeStage->user?->name ?? 'Belum ditentukan' }}.
+                                                Setelah pekerjaan selesai, ajukan hasilnya
+                                                {{ $isApproval ? 'untuk diperiksa approver.' : 'untuk menutup stage.' }}
+                                            </div>
                                         @endif
 
                                         <div>
-                                            <label class="form-label required">Keterangan</label>
-                                            <textarea name="keterangan" class="form-control">-</textarea>
+                                            <label class="form-label">Keterangan / hasil pekerjaan</label>
+                                            <textarea name="keterangan" class="form-control">{{ $activeStage?->keterangan ?? '' }}</textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -126,7 +140,15 @@
 
                                 <button type="submit" name="tipe" value="next_step"
                                     class="btn btn-primary btn__submit_data{{ $key }}">
-                                    Selesai {{ $nextStatus }}
+                                    @if ($workflowAction === 'assign')
+                                        Tetapkan Petugas
+                                    @elseif ($isApproval)
+                                        Ajukan Hasil untuk Approval
+                                    @elseif ($isAssignedWork)
+                                        Selesaikan Stage
+                                    @else
+                                        Selesaikan {{ $nextStatus }}
+                                    @endif
                                 </button>
                             </div>
 
@@ -136,5 +158,5 @@
 
             </form>
         @endif
-    {{-- @endif --}}
+    @endif
 </div>
