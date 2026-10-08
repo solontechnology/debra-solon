@@ -65,7 +65,7 @@
                                 Pengguna
                             </th>
                             <th class="py-3 text-center text-secondary text-uppercase font-monospace small fw-bold">
-                                Upload Doc
+                                File
                             </th>
                             <th class="py-3 pe-4 text-center text-secondary text-uppercase font-monospace small fw-bold">
                                 Aksi
@@ -149,23 +149,24 @@
 
                                 {{-- Upload Doc --}}
                                 <td class="text-center">
-                                    <button
-                                        class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 shadow-sm px-2.5 py-1.5"
-                                        title="Upload Document">
-                                        <i class="bi bi-cloud-upload fs-6"></i>
-                                        <span class="small">Upload</span>
-                                    </button>
+                                    @if ($item->file_notaris_pengambil)
+                                        <a href="{{ asset('storage/' . $item->file_notaris_pengambil) }}"
+                                            target="_blank">{{ basename($item->file_notaris_pengambil) }}</a>
+                                    @else
+                                        <span class="text-muted small fst-italic">
+                                            <i class="bi bi-slash-circle me-1"></i>Tidak ada file
+                                        </span>
+                                    @endif
                                 </td>
 
                                 {{-- Action Buttons --}}
                                 <td class="pe-4 text-center">
                                     <div class="d-flex align-items-center justify-content-center gap-2">
+                                        @include('pages.Laporan.nomor-notaris._modal_upload')
                                         @include('pages.Laporan.nomor-notaris._modal_edit')
 
                                         @if ($item->rekanan === 1)
-                                            <button class="btn btn-success btn-sm px-3 fw-medium">
-                                                Terima
-                                            </button>
+                                            <button class="btn btn-success btn-sm px-3 fw-medium">Terima</button>
                                         @endif
                                     </div>
                                 </td>

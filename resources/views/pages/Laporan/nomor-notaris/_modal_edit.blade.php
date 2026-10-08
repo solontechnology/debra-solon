@@ -1,4 +1,4 @@
-<button type="button" class="btn btn-outline-secondary btn-edit" data-id="{{ $item->id }}"
+<button type="button" class="btn btn-outline-secondary btn-edit" style=" height: 38px;" data-id="{{ $item->id }}"
     data-proses="{{ $item->form_order_id }}" data-notaris="{{ $item->notaris_pengambil }}"
     data-debitur="{{ $item->nama_debitur_notaris_pengambil }}" data-objek="{{ $item->objek_notaris_pengambil }}"
     data-tanggal="{{ \Carbon\Carbon::parse($item->tanggal)->format('Y-m-d') }}">
