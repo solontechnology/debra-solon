@@ -58,7 +58,7 @@
                                 <span class="fw-semibold text-dark">{{ $ppat->formOrder->nama ?? '-' }}</span>
                             </td>
                             <td>
-                                <code class="fw-bold text-dark fs-6 bg-light px-2 py-1 rounded border">
+                                <code class="fw-bold text-dark bg-light px-2 py-1 rounded border">
                                     {{ $ppat->nomor }}
                                 </code>
                             </td>
@@ -84,7 +84,7 @@
                                 </div>
                             </td>
                             <td>
-                                <code class="fw-bold text-dark fs-6 bg-light px-2 py-1 rounded border">
+                                <code class="fw-bold text-dark bg-light px-2 py-1 rounded border">
                                     {{ $ppat->formOrder->objek->no_sertifikat ??
                                     $ppat->formOrder->jobDivisi->objek->pluck('no_sertifikat')->implode(', ') ?:
                                         '-' }}
@@ -209,7 +209,7 @@
                                 </div>
                             </td>
                             <td><code
-                                    class="fw-bold text-dark fs-6 bg-light px-2 py-1 rounded border">{{ $formOrder->objek?->no_sertifikat ?? $job?->objek?->pluck('no_sertifikat')->implode(', ') ?: '-' }}</code>
+                                    class="fw-bold text-dark  bg-light px-2 py-1 rounded border">{{ $formOrder->objek?->no_sertifikat ?? $job?->objek?->pluck('no_sertifikat')->implode(', ') ?: '-' }}</code>
                             </td>
                             <td class="text-secondary small"><i
                                     class="bi bi-calendar-event me-1 text-muted"></i>{{ $formOrder->created_at?->format('d M Y') ?? '-' }}
@@ -314,7 +314,7 @@
                                         class="fw-semibold text-dark">{{ $ppat->formOrder?->nama === 'Covernot' ? 'Cover note' : $ppat->formOrder?->nama ?? '-' }}</span>
                                 </td>
                                 <td>
-                                    <code class="fw-bold text-dark fs-6 bg-light px-2 py-1 rounded border">
+                                    <code class="fw-bold text-dark  bg-light px-2 py-1 rounded border">
                                         {{ $ppat->nomor }}
                                     </code>
                                 </td>
@@ -341,7 +341,7 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <code class="fw-bold text-dark fs-6 bg-light px-2 py-1 rounded border">
+                                    <code class="fw-bold text-dark  bg-light px-2 py-1 rounded border">
                                         {{ $ppat->formOrder?->objek?->no_sertifikat ??
                                             ($ppat->formOrder?->jobDivisi?->objek?->pluck('no_sertifikat')->implode(', ') ?: '-') }}
                                     </code>
@@ -452,7 +452,7 @@
                                     </div>
                                 </td>
                                 <td><code
-                                        class="fw-bold text-dark fs-6 bg-light px-2 py-1 rounded border">{{ $formOrder->objek?->no_sertifikat ?? $job?->objek?->pluck('no_sertifikat')->implode(', ') ?: '-' }}</code>
+                                        class="fw-bold text-dark  bg-light px-2 py-1 rounded border">{{ $formOrder->objek?->no_sertifikat ?? $job?->objek?->pluck('no_sertifikat')->implode(', ') ?: '-' }}</code>
                                 </td>
                                 <td class="text-secondary small"><i
                                         class="bi bi-calendar-event me-1 text-muted"></i>{{ $formOrder->created_at?->format('d M Y') ?? '-' }}
