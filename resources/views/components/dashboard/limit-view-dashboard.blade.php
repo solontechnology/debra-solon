@@ -310,8 +310,7 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <span
-                                        class="fw-semibold text-dark">{{ $ppat->formOrder->nama === 'Covernot' ? 'Cover note' : $ppat->formOrder?->nama ?? '-' }}</span>
+                                   <span class="fw-semibold text-dark">{{ $ppat->formOrder?->nama === 'Covernot' ? 'Cover note' : ($ppat->formOrder?->nama ?? '-') }}</span>
                                 </td>
                                 <td>
                                     <code class="fw-bold text-dark fs-6 bg-light px-2 py-1 rounded border">
