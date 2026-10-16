@@ -2,21 +2,25 @@
 
 namespace App\Http\Controllers\Laporan;
 
+use App\Exports\PenomoranExport;
 use App\Http\Controllers\Controller;
 use App\Models\JobDivisiFormOrder;
 use App\Models\MasterDataFormOrder;
 use App\Models\MasterDataFormOrderDetail;
 use App\Models\NomorPpat;
 use App\Models\NotarisRekanan;
-use App\Models\PenomoranSetting;
 use App\Models\Pekerjaan;
+use App\Models\PenomoranSetting;
 use App\Services\Akta\InputNomorServis;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Exports\PenomoranExport;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
+// use App\Models\NomorPpat;
+// use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 
 class PenomoranController extends Controller
@@ -29,19 +33,19 @@ class PenomoranController extends Controller
         $filters = $this->validateDateFilters($request);
 
         $masterPekerjaan = Pekerjaan::query()
-            ->when($kategori, fn ($query) => $query->where('kategori', $kategori))
+            ->when($kategori, fn($query) => $query->where('kategori', $kategori))
             ->orderBy('nama')
             ->get();
         $penomoranSetting = $kategori
             ? PenomoranSetting::query()->where('kategori', $kategori)->first()
             : null;
 
-      $items = NomorPpat::with([
-    'formOrder.jobDivisi.debitur',
-    'formOrder.objek',
-    'notarisRekanan',
-])
-            ->when($kategori, fn ($query) => $query->where('kategori', $kategori))
+        $items = NomorPpat::with([
+            'formOrder.jobDivisi.debitur',
+            'formOrder.objek',
+            'notarisRekanan',
+        ])
+            ->when($kategori, fn($query) => $query->where('kategori', $kategori))
             ->when(($filters['filter_type'] ?? null) === 'month', function ($query) use ($filters) {
                 $query->whereMonth('tanggal', $filters['month'])
                     ->whereYear('tanggal', $filters['year']);
@@ -157,8 +161,8 @@ class PenomoranController extends Controller
         $numbers = NomorPpat::query()
             ->with('notarisRekanan')
             ->whereNotNull('notaris_rekanan_id')
-            ->when($selectedRekananId, fn ($query) => $query->where('notaris_rekanan_id', $selectedRekananId))
-            ->when($kategori, fn ($query) => $query->where('kategori', $kategori))
+            ->when($selectedRekananId, fn($query) => $query->where('notaris_rekanan_id', $selectedRekananId))
+            ->when($kategori, fn($query) => $query->where('kategori', $kategori))
             ->when(($filters['filter_type'] ?? null) === 'month', function ($query) use ($filters) {
                 $query->whereMonth('tanggal', $filters['month'])
                     ->whereYear('tanggal', $filters['year']);
@@ -170,11 +174,11 @@ class PenomoranController extends Controller
             ->get(['id', 'notaris_rekanan_id', 'kategori', 'nomor', 'tanggal', 'job_divisi_form_order_id', 'rekanan']);
 
         $jobs = $numbers
-            ->filter(fn ($number) => (int) $number->job_divisi_form_order_id > 0 && (int) $number->rekanan === 1)
-            ->groupBy(fn ($number) => $number->notaris_rekanan_id . '|' . $number->kategori . '|' . trim($number->nomor));
+            ->filter(fn($number) => (int) $number->job_divisi_form_order_id > 0 && (int) $number->rekanan === 1)
+            ->groupBy(fn($number) => $number->notaris_rekanan_id . '|' . $number->kategori . '|' . trim($number->nomor));
         $reported = $numbers
-            ->filter(fn ($number) => (int) $number->job_divisi_form_order_id === 0 && (int) $number->rekanan === 0)
-            ->groupBy(fn ($number) => $number->notaris_rekanan_id . '|' . $number->kategori . '|' . trim($number->nomor));
+            ->filter(fn($number) => (int) $number->job_divisi_form_order_id === 0 && (int) $number->rekanan === 0)
+            ->groupBy(fn($number) => $number->notaris_rekanan_id . '|' . $number->kategori . '|' . trim($number->nomor));
 
         $comparison = $jobs->keys()
             ->merge($reported->keys())
@@ -202,7 +206,7 @@ class PenomoranController extends Controller
                         : ($jobRecords->isNotEmpty() ? 'Hanya di Job' : 'Hanya di Pelaporan'),
                 ];
             })
-            ->sortBy(fn ($row) => strtolower($row['notaris_rekanan'] . '|' . $row['kategori'] . '|' . $row['nomor']))
+            ->sortBy(fn($row) => strtolower($row['notaris_rekanan'] . '|' . $row['kategori'] . '|' . $row['nomor']))
             ->values();
         $categories = PenomoranSetting::kategori();
 
@@ -264,6 +268,70 @@ class PenomoranController extends Controller
         ]);
 
         return back()->with('success', 'Berhasil update data');
+    }
+
+    public function perpanjang(Request $request)
+    {
+        $request->validate([
+            'nomor_ppat_id' => ['required', 'integer', 'exists:nomor_ppats,id'],
+        ]);
+
+        $formOrderBaru = DB::transaction(function () use ($request) {
+            $nomor = NomorPpat::with('formOrder.jobDivisi')
+                ->lockForUpdate()
+                ->findOrFail($request->nomor_ppat_id);
+
+            $formOrderLama = $nomor->formOrder;
+            $jobDivisi = $formOrderLama?->jobDivisi;
+
+            if (!$formOrderLama || !$jobDivisi) {
+                throw ValidationException::withMessages([
+                    'nomor_ppat_id' => 'Data Form Order atau pekerjaan induk tidak ditemukan.',
+                ]);
+            }
+
+            if ($jobDivisi->status === 'Batal Akad') {
+                throw ValidationException::withMessages([
+                    'nomor_ppat_id' => 'Pekerjaan Batal Akad tidak dapat diperpanjang.',
+                ]);
+            }
+
+            if (
+                !$nomor->tanggal_expired ||
+                \Carbon\Carbon::parse($nomor->tanggal_expired)->startOfDay()->gt(today())
+            ) {
+                throw ValidationException::withMessages([
+                    'nomor_ppat_id' => 'Nomor belum expired.',
+                ]);
+            }
+
+            // Cegah duplikasi apabila Form Order perpanjangan sudah dibuat.
+            $sudahAda = \App\Models\JobDivisiFormOrder::query()
+                ->where('job_divisi_id', $formOrderLama->job_divisi_id)
+                ->where('kategori', $formOrderLama->kategori)
+                ->where('created_at', '>', \Carbon\Carbon::parse(
+                    $nomor->tanggal_expired
+                )->startOfDay())
+                ->whereDoesntHave('nomorPpat')
+                ->exists();
+
+            if ($sudahAda) {
+                throw ValidationException::withMessages([
+                    'nomor_ppat_id' => 'Form Order perpanjangan untuk proses ini sudah tersedia.',
+                ]);
+            }
+
+            // Salin atribut Form Order lama ke record baru.
+            $formOrderBaru = $formOrderLama->replicate();
+            $formOrderBaru->save();
+
+            return $formOrderBaru;
+        });
+
+        return redirect()->back()->with(
+            'success',
+            'Form Order perpanjangan berhasil ditambahkan.'
+        );
     }
     // public function update(Request $request)
     // {

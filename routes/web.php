@@ -64,6 +64,8 @@ use App\Http\Controllers\Setting\WorkflowAktaController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Setting\PenomoranController as SettingPenomoranController;
+use App\Http\Controllers\Laporan\PenomoranController as LaporanPenomoranController;
 
 // 1. Halaman Utama / Landing Page
 Route::get('/', function () {
@@ -563,6 +565,11 @@ Route::get('/notifikasi/{id}/read', function ($id) {
 
     return redirect($notif->link);
 })->name('notifikasi.read');
+
+Route::post(
+    '/job/nomor/perpanjang',
+    [LaporanPenomoranController::class, 'perpanjang']
+)->name('job.nomor.perpanjang');
 
 
 

@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Controller;
 use App\Models\ApprovalFreez;
 use App\Models\JobDivisi;
 use App\Models\JobDivisiFormOrder;
 use App\Models\NomorPpat;
+use App\Models\Pekerjaan;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 
 class DashboardController extends Controller
 {
@@ -123,7 +126,7 @@ class DashboardController extends Controller
             ->get();
 
 
-
+$masterPekerjaan = Cache::remember('master_pekerjaan', 86400, fn() => Pekerjaan::orderBy("nama", "asc")->get());
         // =====================================================
         // NOMOR PPAT / COVERNOT
         // =====================================================
@@ -297,6 +300,7 @@ class DashboardController extends Controller
             'nomorPpats' => $nomorPpats,
             'nomorPpatExpired' => $nomorPpatExpired,
             'nomorCovernotExpired' => $nomorCovernotExpired,
+            'masterPekerjaan' => $masterPekerjaan,
         ]);
     }
 

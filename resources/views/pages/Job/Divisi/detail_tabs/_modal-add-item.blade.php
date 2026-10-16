@@ -1,4 +1,4 @@
-@if ($jobDivisi->status !== 'Batal Akad')
+@if ($jobDivisi->status !== 'Batal Akad' && $jobDivisi->status !== 'Akad')
     <div class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#ModalAddItem">
         Tambah Item
     </div>

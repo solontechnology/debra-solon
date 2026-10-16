@@ -3,7 +3,7 @@
     class="btn btn-outline-info d-inline-flex align-items-center gap-2 px-3 py-2 shadow-sm fw-medium rounded-3"
     data-bs-toggle="modal" data-bs-target="#modalPPat{{ $key }}">
     <i class="bi bi-file-earmark-text fs-6"></i>
-    <span>Nomor {{ $tipe==='covernot' ? 'Cover note' : strtoupper($tipe) }}</span>
+    <span>{{ $buttonLabel ?? ('Nomor ' . ($tipe === 'covernot' ? 'Cover note' : strtoupper($tipe))) }}</span>
 </button>
 
 <!-- Modal -->
