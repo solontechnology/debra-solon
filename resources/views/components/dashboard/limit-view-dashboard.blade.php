@@ -1,8 +1,8 @@
 @php
-    $ppatNomorRows = $ppatItems->getCollection()->where('type', 'nomor')->pluck('item')->values();
-    $ppatNewRows = $ppatItems->getCollection()->where('type', 'proses')->pluck('item')->values();
-    $covernotNomorRows = $covernotItems->getCollection()->where('type', 'nomor')->pluck('item')->values();
-    $covernotNewRows = $covernotItems->getCollection()->where('type', 'proses')->pluck('item')->values();
+    $ppatNomorRows = $ppatItems->getCollection()->where('type', 'nomor')->pluck('item')->filter(fn ($item) => $item->formOrder?->jobDivisi?->status !== 'Batal Akad')->values();
+    $ppatNewRows = $ppatItems->getCollection()->where('type', 'proses')->pluck('item')->filter(fn ($item) => $item->formOrder?->jobDivisi?->status !== 'Batal Akad')->values();
+    $covernotNomorRows = $covernotItems->getCollection()->where('type', 'nomor')->pluck('item')->filter(fn ($item) => $item->formOrder?->jobDivisi?->status !== 'Batal Akad')->values();
+    $covernotNewRows = $covernotItems->getCollection()->where('type', 'proses')->pluck('item')->filter(fn ($item) => $item->formOrder?->jobDivisi?->status !== 'Batal Akad')->values();
 @endphp
 
 <!-- Card 1: Nomor PPAT Expired -->
