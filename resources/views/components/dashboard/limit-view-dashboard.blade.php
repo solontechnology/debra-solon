@@ -310,7 +310,8 @@
                                     </span>
                                 </td>
                                 <td>
-                                   <span class="fw-semibold text-dark">{{ $ppat->formOrder?->nama === 'Covernot' ? 'Cover note' : ($ppat->formOrder?->nama ?? '-') }}</span>
+                                    <span
+                                        class="fw-semibold text-dark">{{ $ppat->formOrder?->nama === 'Covernot' ? 'Cover note' : $ppat->formOrder?->nama ?? '-' }}</span>
                                 </td>
                                 <td>
                                     <code class="fw-bold text-dark fs-6 bg-light px-2 py-1 rounded border">
@@ -341,9 +342,8 @@
                                 </td>
                                 <td>
                                     <code class="fw-bold text-dark fs-6 bg-light px-2 py-1 rounded border">
-                                        {{ $ppat->formOrder->objek->no_sertifikat ??
-                                        $ppat->formOrder->jobDivisi->objek->pluck('no_sertifikat')->implode(', ') ?:
-                                            '-' }}
+                                        {{ $ppat->formOrder?->objek?->no_sertifikat ??
+                                            ($ppat->formOrder?->jobDivisi?->objek?->pluck('no_sertifikat')->implode(', ') ?: '-') }}
                                     </code>
                                 </td>
                                 <td class="text-secondary small">
