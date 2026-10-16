@@ -499,10 +499,8 @@
                 </span>
 
                 <h5 class="fw-bold">Tambah Data Perpanjangan proses
-                    <span>
-                        <h3>
-                            {{ $formOrder->kategori === 'covernot' ? 'Cover note' : $formOrder->kategori }} ?
-                        </h3>
+                    <span
+                        class="fw-semibold text-dark">{{ $ppat->formOrder?->nama === 'Covernot' ? 'Cover note' : $ppat->formOrder?->nama ?? '-' }}
                     </span>
                 </h5>
                 <p class="text-secondary mb-4">
