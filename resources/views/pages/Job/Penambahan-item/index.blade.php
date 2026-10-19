@@ -24,7 +24,6 @@
             </div>
 
             <div class="d-flex align-items-center gap-2">
-                @include('pages.Job._export-data', ['exportType' => 'penambahan-item'])
                 {{-- Form Pencarian Data --}}
                 <form action="{{ url()->current() }}" method="GET" class="m-0">
                     <div class="input-group">
@@ -37,13 +36,11 @@
                 </form>
 
                 {{-- Tombol Tambah Data --}}
-                @can('job/penambahan-item/create')
-                    <a href="{{ route('job.penambahan-item.create') }}"
-                        class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-2 shadow-sm px-3 py-2 fw-medium">
-                        <i class="bi bi-plus-lg fs-6 lh-1"></i>
-                        <span>Tambah Data</span>
-                    </a>
-                @endcan
+                <a href="{{ route('job.penambahan-item.create') }}"
+                    class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-2 shadow-sm px-3 py-2 fw-medium">
+                    <i class="bi bi-plus-lg fs-6 lh-1"></i>
+                    <span>Tambah Data</span>
+                </a>
             </div>
         </div>
 
@@ -69,10 +66,14 @@
                             <tr>
                                 {{-- Parent --}}
                                 <td class="ps-4 fw-semibold">
-                                    <a href="{{ route('job.divisi.show', $item->jobDivisi->id) }}"
-                                        class="text-decoration-none">
-                                        <span class="text-primary">{{ $item->jobDivisi->kode ?? '-' }}</span>
-                                    </a>
+                                        @if ($item->jobDivisi)
+    <a href="{{ route('job.divisi.show', $item->jobDivisi->id) }}"
+        class="text-decoration-none">
+        <span class="text-primary">{{ $item->jobDivisi->kode }}</span>
+    </a>
+@else
+    <span class="text-muted">-</span>
+@endif
                                 </td>
 
                                 {{-- Kode --}}
@@ -83,21 +84,21 @@
                                     {{ $item->detail->first()->pekerjaan->nama ?? '-' }}
                                 </td>
                                 <td class="fw-medium text-dark">
-                                    @forelse ($item->jobDivisi->debitur as $namaDebitur)
-                                        <span>{{ $namaDebitur->nama }}</span>
-                                    @empty
-                                        <span class="text-muted">-</span>
-                                    @endforelse
+                                    @forelse ($item->jobDivisi?->debitur ?? [] as $namaDebitur)
+    <span>{{ $namaDebitur->nama }}</span>
+@empty
+    <span class="text-muted">-</span>
+@endforelse
                                 </td>
                                 <td class="fw-medium text-dark">
                                     {{ $item->jobDivisi->jenisAkad->nama ?? '-' }}
                                 </td>
                                 <td class="fw-medium text-dark">
-                                    @forelse ($item->jobDivisi->listBank as $bank)
-                                        <span class="badge bg-light text-dark border">{{ $bank->nama_bank }}</span>
-                                    @empty
-                                        <span class="text-muted">-</span>
-                                    @endforelse
+                                    @forelse ($item->jobDivisi?->listBank ?? [] as $bank)
+    <span class="badge bg-light text-dark border">{{ $bank->nama_bank }}</span>
+@empty
+    <span class="text-muted">-</span>
+@endforelse
                                 </td>
                                 {{-- <td class="fw-medium text-dark">
                                     {{ $item->kode ?? '-' }}
@@ -146,7 +147,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="text-center py-5 text-muted">
+                                <td colspan="9" class="text-center py-5 text-muted">
                                     <div class="d-flex flex-column align-items-center justify-content-center">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48"
                                             fill="currentColor" class="bi bi-inbox text-secondary mb-2 opacity-50"

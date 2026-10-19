@@ -24,7 +24,6 @@
             </div>
 
             <div class="d-flex align-items-center gap-2">
-                @include('pages.Job._export-data', ['exportType' => 'pembatalan-item'])
                 {{-- Form Pencarian Data --}}
                 <form action="{{ url()->current() }}" method="GET" class="m-0">
                     <div class="input-group">
@@ -131,7 +130,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="text-center py-5 text-muted">
+                                <td colspan="9" class="text-center py-5 text-muted">
                                     <div class="d-flex flex-column align-items-center justify-content-center">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48"
                                             fill="currentColor" class="bi bi-inbox text-secondary mb-2 opacity-50"
