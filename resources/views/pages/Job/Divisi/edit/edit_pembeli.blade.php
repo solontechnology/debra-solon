@@ -50,7 +50,7 @@
                             <div class="col-md-6">
                                 <label class="form-label text-secondary small fw-bold required">NIK</label>
                                 <input type="text" name="nik" class="form-control @error('nik') is-invalid @enderror"
-                                    value="{{ old('nik', $pembeli->nik) }}">
+                                    value="{{ old('nik', $pembeli->nik) }}" maxlength="16">
                                 @error('nik')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror

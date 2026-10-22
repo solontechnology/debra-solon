@@ -63,6 +63,7 @@
                                     <input type="text"
                                         class="form-control @error("penjual.$key.nik") is-invalid @enderror"
                                         name="penjual[{{ $key }}][nik]"
+                                        maxlength="16"
                                         value="{{ old("penjual.$key.nik", $item['nik'] ?? '') }}"
                                         placeholder="16 digit NIK">
                                     @error("penjual.$key.nik")
@@ -216,7 +217,7 @@
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label text-secondary small fw-bold required">NIK</label>
-                                    <input type="text" class="form-control" name="penjual[${i}][nik]" placeholder="16 digit NIK">
+                                    <input type="text" class="form-control" name="penjual[${i}][nik]" placeholder="16 digit NIK maxlength="16"">
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label text-secondary small fw-bold required">NOMOR TELEPON</label>

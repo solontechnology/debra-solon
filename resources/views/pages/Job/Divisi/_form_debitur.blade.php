@@ -54,6 +54,7 @@
                                 <input type="text"
                                     class="form-control @error("debitur.$key.nik") is-invalid @enderror"
                                     name="debitur[{{ $key }}][nik]"
+                                    maxlength="16"
                                     value="{{ old("debitur.$key.nik", $item['nik'] ?? '') }}"
                                     placeholder="16 digit NIK">
                                 @error("debitur.$key.nik")
@@ -212,7 +213,7 @@
 
                                         <div class="col-md-4">
                                             <label class="form-label text-secondary small fw-bold required">NIK</label>
-                                            <input type="text" class="form-control" name="debitur[${i}][nik]" placeholder="16 digit NIK">
+                                            <input type="text" class="form-control" name="debitur[${i}][nik]" placeholder="16 digit NIK" maxlength="16">
                                         </div>
 
                                         <div class="col-md-4">

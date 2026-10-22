@@ -33,7 +33,7 @@
                                 <label class="form-label text-secondary small fw-bold required">NIK</label>
                                 <input type="text" name="nik"
                                     class="form-control @error('nik') is-invalid @enderror"
-                                    value="{{ old('nik', $debitur->nik) }}" placeholder="16 digit NIK">
+                                    value="{{ old('nik', $debitur->nik) }}" placeholder="16 digit NIK" maxlength="16">
                                 @error('nik')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
