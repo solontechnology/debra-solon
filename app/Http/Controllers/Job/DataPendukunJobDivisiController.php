@@ -61,10 +61,10 @@ class DataPendukunJobDivisiController extends Controller
                 "bank" => "required|array|min:1",
                 "bank.*.bank" => "required",
                 "bank.*.pimpinan" => "required",
-                "bank.*.kepala_legal" => "required",
-                "bank.*.legal" => "required",
-                "bank.*.kepala_marketing" => "required",
-                "bank.*.marketing" => "required",
+                "bank.*.kepala_legal" => "required|string",
+                "bank.*.legal" => "required|string",
+                "bank.*.kepala_marketing" => "required|string",
+                "bank.*.marketing" => "required|string",
                 // "bank.*.file" => "required",
             ];
         }
@@ -453,15 +453,35 @@ class DataPendukunJobDivisiController extends Controller
         foreach ($formDataBank as $item) {
             $getBank = $bank->where("id", $item["bank"])->first();
 
+            if (!$getBank) {
+                continue;
+            }
+
+            $resolveBankPerson = function ($value, $relation) use ($getBank) {
+                $person = $getBank->{$relation}()->where('id', $value)->first();
+
+                return $person
+                    ? ['id' => $person->id, 'manual' => null]
+                    : ['id' => null, 'manual' => trim((string) $value)];
+            };
+            $headLegal = $resolveBankPerson($item['kepala_legal'] ?? '', 'kepalaLegal');
+            $legal = $resolveBankPerson($item['legal'] ?? '', 'legal');
+            $headMarketing = $resolveBankPerson($item['kepala_marketing'] ?? '', 'kepalaMarketing');
+            $marketing = $resolveBankPerson($item['marketing'] ?? '', 'marketing');
+
             $jobBank = JobBank::create([
                 "job_divisi_id" => $jobDivisi->id,
                 "bank_id" => $getBank->id,
                 "nama_bank" => $getBank->nama,
-                "pimpinan" => $getBank->nama_pimpinan_sekarang,
-                "head_legal" => $item["kepala_legal"],
-                "legal" => $item["legal"],
-                "head_marketing" => $item["kepala_marketing"],
-                "marketing" => $item["marketing"],
+                "pimpinan" => $item["pimpinan"] ?? $getBank->nama_pimpinan_sekarang,
+                "head_legal" => $headLegal['id'],
+                "head_legal_manual" => $headLegal['manual'],
+                "legal" => $legal['id'],
+                "legal_manual" => $legal['manual'],
+                "head_marketing" => $headMarketing['id'],
+                "head_marketing_manual" => $headMarketing['manual'],
+                "marketing" => $marketing['id'],
+                "marketing_manual" => $marketing['manual'],
                 "created_at" => now(),
                 "updated_at" => now(),
             ]);
@@ -508,23 +528,40 @@ class DataPendukunJobDivisiController extends Controller
 
         $request->validate([
             "bank" => "required",
-            "kepalaLegal" => "required",
-            "legal" => "required",
-            "kepalaMarketing" => "required",
-            "marketing" => "required",
+            "pimpinan" => "required|string|max:255",
+            "kepalaLegal" => "required|string|max:255",
+            "legal" => "required|string|max:255",
+            "kepalaMarketing" => "required|string|max:255",
+            "marketing" => "required|string|max:255",
             'files.*' => 'nullable|file|max:10240', // Maksimal 10MB per file
         ]);
 
         $bank = Bank::findOrFail($request->bank);
 
+        $resolveBankPerson = function ($value, $relation) use ($bank) {
+            $person = $bank->{$relation}()->where('id', $value)->first();
+
+            return $person
+                ? ['id' => $person->id, 'manual' => null]
+                : ['id' => null, 'manual' => trim((string) $value)];
+        };
+        $headLegal = $resolveBankPerson($request->kepalaLegal, 'kepalaLegal');
+        $legal = $resolveBankPerson($request->legal, 'legal');
+        $headMarketing = $resolveBankPerson($request->kepalaMarketing, 'kepalaMarketing');
+        $marketing = $resolveBankPerson($request->marketing, 'marketing');
+
         $jobBank->update([
             "bank_id" => $bank->id,
             "nama_bank" => $bank->nama,
-            "pimpinan" => $bank->nama_pimpinan_sekarang,
-            "head_legal" => $request->kepalaLegal,
-            "legal" => $request->legal,
-            "head_marketing" => $request->kepalaMarketing,
-            "marketing" => $request->marketing,
+            "pimpinan" => $request->pimpinan,
+            "head_legal" => $headLegal['id'],
+            "head_legal_manual" => $headLegal['manual'],
+            "legal" => $legal['id'],
+            "legal_manual" => $legal['manual'],
+            "head_marketing" => $headMarketing['id'],
+            "head_marketing_manual" => $headMarketing['manual'],
+            "marketing" => $marketing['id'],
+            "marketing_manual" => $marketing['manual'],
             "updated_at" => now(),
         ]);
 

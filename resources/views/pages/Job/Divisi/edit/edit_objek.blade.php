@@ -101,7 +101,7 @@
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label text-secondary small fw-bold">NO. SPPT</label>
+                            <label class="form-label text-secondary small fw-bold">NO. SPPT/PBB</label>
                             <input type="text" class="form-control @error('no_sppt') is-invalid @enderror"
                                 name="no_sppt" value="{{ old('no_sppt', $objek->no_sppt) }}" placeholder="Masukkan nomor SPPT">
                             @error('no_sppt')
@@ -109,14 +109,14 @@
                             @enderror
                         </div>
 
-                        <div class="col-md-4">
+                        {{-- <div class="col-md-4">
                             <label class="form-label text-secondary small fw-bold">PBB</label>
                             <input type="text" class="form-control @error('pbb') is-invalid @enderror"
                                 name="pbb" value="{{ old('pbb', $objek->pbb) }}" placeholder="Masukkan nilai PBB">
                             @error('pbb')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
-                        </div>
+                        </div> --}}
 
                         <div class="col-md-4">
                             <label class="form-label text-secondary small fw-bold">NJOP</label>

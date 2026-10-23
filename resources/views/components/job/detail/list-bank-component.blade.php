@@ -34,16 +34,16 @@
                                     <span class="text-dark">{{ $item->pimpinan ?? '-' }}</span>
                                 </td>
                                 <td>
-                                    <span class="text-muted">{{ $item->HeadLegalBank->nama ?? '-' }}</span>
+                                    <span class="text-muted">{{ $item->head_legal_manual ?: ($item->HeadLegalBank->nama ?? '-') }}</span>
                                 </td>
                                 <td>
-                                    <span class="text-muted">{{ $item->LegalBank->nama ?? '-' }}</span>
+                                    <span class="text-muted">{{ $item->legal_manual ?: ($item->LegalBank->nama ?? '-') }}</span>
                                 </td>
                                 <td>
-                                    <span class="text-muted">{{ $item->HeadMarketing->nama ?? '-' }}</span>
+                                    <span class="text-muted">{{ $item->head_marketing_manual ?: ($item->HeadMarketing->nama ?? '-') }}</span>
                                 </td>
                                 <td>
-                                    <span class="text-muted">{{ $item->Marketing->nama ?? '-' }}</span>
+                                    <span class="text-muted">{{ $item->marketing_manual ?: ($item->Marketing->nama ?? '-') }}</span>
                                 </td>
                                 <td>
                                     @if ($item->files && $item->files->count() > 0)

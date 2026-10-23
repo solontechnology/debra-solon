@@ -77,7 +77,7 @@
                                 <div class="col-md-4">
                                     <label class="form-label text-secondary small fw-bold required">KEPALA LEGAL</label>
                                     <div class="kepala_legal_bank_{{ $idx }}">
-                                        <select name="bank[{{ $idx }}][kepala_legal]" class="form-select select2 @error("bank.$idx.kepala_legal") is-invalid @enderror"
+                                        <select name="bank[{{ $idx }}][kepala_legal]" class="form-select select2 person-select @error("bank.$idx.kepala_legal") is-invalid @enderror"
                                             data-placeholder="Pilih Kepala Legal">
                                             <option value=""></option>
                                         </select>
@@ -90,7 +90,7 @@
                                 <div class="col-md-4">
                                     <label class="form-label text-secondary small fw-bold required">LEGAL</label>
                                     <div class="legal_bank_{{ $idx }}">
-                                        <select name="bank[{{ $idx }}][legal]" class="form-select select2 @error("bank.$idx.legal") is-invalid @enderror"
+                                        <select name="bank[{{ $idx }}][legal]" class="form-select select2 person-select @error("bank.$idx.legal") is-invalid @enderror"
                                             data-placeholder="Pilih Legal">
                                             <option value=""></option>
                                         </select>
@@ -103,7 +103,7 @@
                                 <div class="col-md-4">
                                     <label class="form-label text-secondary small fw-bold required">KEPALA MARKETING</label>
                                     <div class="kepala_marketing_bank_{{ $idx }}">
-                                        <select name="bank[{{ $idx }}][kepala_marketing]" class="form-select select2 @error("bank.$idx.kepala_marketing") is-invalid @enderror"
+                                        <select name="bank[{{ $idx }}][kepala_marketing]" class="form-select select2 person-select @error("bank.$idx.kepala_marketing") is-invalid @enderror"
                                             data-placeholder="Pilih Kepala Marketing">
                                             <option value=""></option>
                                         </select>
@@ -116,7 +116,7 @@
                                 <div class="col-md-4">
                                     <label class="form-label text-secondary small fw-bold required">MARKETING</label>
                                     <div class="marketing_bank_{{ $idx }}">
-                                        <select name="bank[{{ $idx }}][marketing]" class="form-select select2 @error("bank.$idx.marketing") is-invalid @enderror"
+                                        <select name="bank[{{ $idx }}][marketing]" class="form-select select2 person-select @error("bank.$idx.marketing") is-invalid @enderror"
                                             data-placeholder="Pilih Marketing">
                                             <option value=""></option>
                                         </select>
@@ -310,7 +310,7 @@
                                 <div class="col-md-4">
                                     <label class="form-label text-secondary small fw-bold required">KEPALA LEGAL</label>
                                     <div class="kepala_legal_bank_${i}">
-                                        <select name="bank[${i}][kepala_legal]" class="form-select select2" data-placeholder="Pilih Kepala Legal">
+                                        <select name="bank[${i}][kepala_legal]" class="form-select select2 person-select" data-placeholder="Pilih Kepala Legal">
                                             <option value=""></option>
                                         </select>
                                     </div>
@@ -318,7 +318,7 @@
                                 <div class="col-md-4">
                                     <label class="form-label text-secondary small fw-bold required">LEGAL</label>
                                     <div class="legal_bank_${i}">
-                                        <select name="bank[${i}][legal]" class="form-select select2" data-placeholder="Pilih Legal">
+                                        <select name="bank[${i}][legal]" class="form-select select2 person-select" data-placeholder="Pilih Legal">
                                             <option value=""></option>
                                         </select>
                                     </div>
@@ -326,7 +326,7 @@
                                 <div class="col-md-4">
                                     <label class="form-label text-secondary small fw-bold required">KEPALA MARKETING</label>
                                     <div class="kepala_marketing_bank_${i}">
-                                        <select name="bank[${i}][kepala_marketing]" class="form-select select2" data-placeholder="Pilih Kepala Marketing">
+                                        <select name="bank[${i}][kepala_marketing]" class="form-select select2 person-select" data-placeholder="Pilih Kepala Marketing">
                                             <option value=""></option>
                                         </select>
                                     </div>
@@ -334,7 +334,7 @@
                                 <div class="col-md-4">
                                     <label class="form-label text-secondary small fw-bold required">MARKETING</label>
                                     <div class="marketing_bank_${i}">
-                                        <select name="bank[${i}][marketing]" class="form-select select2" data-placeholder="Pilih Marketing">
+                                        <select name="bank[${i}][marketing]" class="form-select select2 person-select" data-placeholder="Pilih Marketing">
                                             <option value=""></option>
                                         </select>
                                     </div>
@@ -362,15 +362,32 @@
 
                         $(`.card_bank_${i_bank}`).fadeIn(300);
 
-                        $(`.card_bank_${i_bank} .select2`).select2({
+                        $(`.card_bank_${i_bank} .select2`).each(function() {
+                            $(this).select2({
                             theme: 'bootstrap-5',
-                            width: '100%'
+                            width: '100%',
+                            tags: $(this).hasClass('person-select'),
+                            createTag: function(params) {
+                                const term = $.trim(params.term);
+                                if (!term) return null;
+                                return { id: term, text: term, newTag: true };
+                            }
+                            });
                         });
                     });
 
-                    $('.card-body-bank .select2').select2({
+                    $('.card-body-bank .select2').each(function() {
+                    $(this).select2({
                         theme: 'bootstrap-5',
-                        width: '100%'
+                        width: '100%',
+                        tags: $(this).hasClass('person-select'),
+                        createTag: function(params) {
+                            const term = $.trim(params.term);
+                            if (!term) return null;
+                            return { id: term, text: term, newTag: true };
+                        },
+                        insertTag: function(data, tag) { data.push(tag); }
+                    });
                     });
                 });
             </script>

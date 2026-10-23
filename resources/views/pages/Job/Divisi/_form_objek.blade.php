@@ -136,7 +136,7 @@
                             </div>
 
                             <div class="col-md-4">
-                                <label class="form-label text-secondary small fw-bold required">NO. SPPT</label>
+                                <label class="form-label text-secondary small fw-bold required">NO. SPPT/PBB</label>
                                 <input type="text"
                                     class="form-control @error("objek.$idx.no_sppt") is-invalid @enderror"
                                     name="objek[{{ $idx }}][no_sppt]"
@@ -147,7 +147,7 @@
                                 @enderror
                             </div>
 
-                            <div class="col-md-4">
+                            {{-- <div class="col-md-4">
                                 <label class="form-label text-secondary small fw-bold required">PBB</label>
                                 <input type="text" class="form-control @error("objek.$idx.pbb") is-invalid @enderror"
                                     name="objek[{{ $idx }}][pbb]"
@@ -156,7 +156,7 @@
                                 @error("objek.$idx.pbb")
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                            </div>
+                            </div> --}}
 
                             <div class="col-md-4">
                                 <label class="form-label text-secondary small fw-bold required">NJOP</label>
@@ -382,13 +382,13 @@
                                 <input type="text" class="form-control" name="objek[${i}][luas_tanah]" placeholder="Contoh: 150 m2">
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label text-secondary small fw-bold required">NO. SPPT</label>
+                                <label class="form-label text-secondary small fw-bold required">NO. SPPT/PBB</label>
                                 <input type="text" class="form-control" name="objek[${i}][no_sppt]" placeholder="Masukkan nomor SPPT">
                             </div>
-                            <div class="col-md-4">
-                                <label class="form-label text-secondary small fw-bold required">PBB</label>
-                                <input type="text" class="form-control" name="objek[${i}][pbb]" placeholder="Masukkan nilai PBB">
-                            </div>
+                            // <div class="col-md-4">
+                            //     <label class="form-label text-secondary small fw-bold required">PBB</label>
+                            //     <input type="text" class="form-control" name="objek[${i}][pbb]" placeholder="Masukkan nilai PBB">
+                            // </div>
                             <div class="col-md-4">
                                 <label class="form-label text-secondary small fw-bold required">NJOP</label>
                                 <input type="text" class="form-control" name="objek[${i}][njop]" placeholder="Masukkan nilai NJOP">

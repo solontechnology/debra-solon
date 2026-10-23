@@ -38,14 +38,17 @@
 
                             <div class="col-md-6">
                                 <label class="form-label text-secondary small fw-bold">NAMA PIMPINAN</label>
-                                <input type="text" class="form-control pimpinan_bank" value="{{ $bankData->pimpinan }}"
-                                    readonly required>
+                                <input type="text" name="pimpinan" class="form-control pimpinan_bank @error('pimpinan') is-invalid @enderror"
+                                    value="{{ old('pimpinan', $bankData->pimpinan) }}" placeholder="Masukkan nama pimpinan" required>
+                                @error('pimpinan')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
 
                             <div class="col-md-6">
                                 <label class="form-label text-secondary small fw-bold required">KEPALA LEGAL</label>
                                 <select name="kepalaLegal"
-                                    class="form-select select2 kepala_legal @error('kepalaLegal') is-invalid @enderror">
+                                    class="form-select select2 person-select kepala_legal @error('kepalaLegal') is-invalid @enderror">
                                     <option value="">Pilih Kepala Legal </option>
 
                                 </select>
@@ -57,7 +60,7 @@
                             <div class="col-md-6">
                                 <label class="form-label text-secondary small fw-bold required">LEGAL</label>
                                 <select name="legal"
-                                    class="form-select select2 legal @error('legal') is-invalid @enderror">
+                                    class="form-select select2 person-select legal @error('legal') is-invalid @enderror">
                                     <option value="">Pilih Legal</option>
                                 </select>
                                 @error('legal')
@@ -68,7 +71,7 @@
                             <div class="col-md-6">
                                 <label class="form-label text-secondary small fw-bold required">KEPALA MARKETING</label>
                                 <select name="kepalaMarketing"
-                                    class="form-select select2 kepala_marketing @error('kepalaMarketing') is-invalid @enderror">
+                                    class="form-select select2 person-select kepala_marketing @error('kepalaMarketing') is-invalid @enderror">
                                     <option value="">Pilih Kepala Marketing</option>
                                 </select>
                                 @error('kepalaMarketing')
@@ -79,7 +82,7 @@
                             <div class="col-md-6">
                                 <label class="form-label text-secondary small fw-bold required">MARKETING</label>
                                 <select name="marketing"
-                                    class="form-select select2 marketing @error('marketing') is-invalid @enderror">
+                                    class="form-select select2 person-select marketing @error('marketing') is-invalid @enderror">
                                     <option value="">Pilih Marketing</option>
                                 </select>
                                 @error('marketing')
@@ -189,9 +192,16 @@
         $(document).ready(function() {
             const list_bank = @json($bank);
 
-            $('.select2').select2({
+            $('.select2').each(function() {
+                $(this).select2({
                 theme: 'bootstrap-5',
-                width: '100%'
+                width: '100%',
+                tags: $(this).hasClass('person-select'),
+                createTag: function(params) {
+                    const term = $.trim(params.term);
+                    return term ? { id: term, text: term, newTag: true } : null;
+                }
+                });
             });
 
             const loadBankData = (id_bank) => {
@@ -201,58 +211,33 @@
 
                 if (!item) return;
 
-                $('.pimpinan_bank').val(item.nama_pimpinan_sekarang);
+                if ($('.select_bank').data('changed')) {
+                    $('.pimpinan_bank').val(item.nama_pimpinan_sekarang || '');
+                }
 
-                $('.kepala_legal').empty();
-                $('.legal').empty();
-                $('.kepala_marketing').empty();
-                $('.marketing').empty();
+                const fillPerson = (selector, rows, selectedId, manualValue, placeholder) => {
+                    const $select = $(selector).empty();
+                    $select.append(new Option(placeholder, ''));
+                    rows.forEach((row) => $select.append(new Option(row.nama, row.id)));
 
-                $('.kepala_legal').append(`<option value="">Pilih Kepala Legal</option>`);
-                item.kepala_legal.forEach((row) => {
-                    $('.kepala_legal').append(`
-    <option value="${row.id}"
-        ${row.id == "{{ $bankData->head_legal }}" ? 'selected' : ''}>
-        ${row.nama}
-    </option>
-`);
+                    if (manualValue) {
+                        $select.append(new Option(manualValue, manualValue, true, true));
+                    } else if (selectedId) {
+                        $select.val(String(selectedId));
+                    }
+                    $select.trigger('change.select2');
+                };
 
-                });
-
-                $('.legal').append(`<option value="">Pilih Legal</option>`);
-                item.legal.forEach((row) => {
-                    $('.legal').append(`
-    <option value="${row.id}"
-        ${row.id == "{{ $bankData->legal }}" ? 'selected' : ''}>
-        ${row.nama}
-    </option>
-`);
-                });
-
-                $('.kepala_marketing').append(`<option value="">Pilih Kepala Marketing</option>`);
-                item.kepala_marketing.forEach((row) => {
-                    $('.kepala_marketing').append(`
-    <option value="${row.id}"
-        ${row.id == "{{ $bankData->head_marketing }}" ? 'selected' : ''}>
-        ${row.nama}
-    </option>
-`);
-                });
-
-                $('.marketing').append(`<option value="">Pilih Marketing</option>`);
-                item.marketing.forEach((row) => {
-                    $('.marketing').append(`
-    <option value="${row.id}"
-        ${row.id == "{{ $bankData->marketing }}" ? 'selected' : ''}>
-        ${row.nama}
-    </option>
-`);
-                });
+                fillPerson('.kepala_legal', item.kepala_legal || [], @json($bankData->head_legal), @json($bankData->head_legal_manual), 'Pilih Kepala Legal');
+                fillPerson('.legal', item.legal || [], @json($bankData->legal), @json($bankData->legal_manual), 'Pilih Legal');
+                fillPerson('.kepala_marketing', item.kepala_marketing || [], @json($bankData->head_marketing), @json($bankData->head_marketing_manual), 'Pilih Kepala Marketing');
+                fillPerson('.marketing', item.marketing || [], @json($bankData->marketing), @json($bankData->marketing_manual), 'Pilih Marketing');
             }
 
             loadBankData($('.select_bank').val());
 
             $(document).on('change', '.select_bank', function() {
+                $(this).data('changed', true);
                 loadBankData($(this).val());
             });
 
