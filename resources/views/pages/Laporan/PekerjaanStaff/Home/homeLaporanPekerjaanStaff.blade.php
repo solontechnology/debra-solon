@@ -7,7 +7,7 @@
 
 @section('content')
     <div class="card">
-        <div class="card-header">
+        <div class="card-header justify-content-end">
             @include('pages.Laporan.PekerjaanStaff.Home._modal_select_pekerjaan_staff')
         </div>
         <div class="card-body">

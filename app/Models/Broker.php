@@ -9,6 +9,7 @@ class Broker extends Model
     protected $table = 'brokers';
     protected $guarded = [];
 
+    
     public function marketing(){
         return $this->hasMany(BrokerMarketing::class, 'broker_id');
     }

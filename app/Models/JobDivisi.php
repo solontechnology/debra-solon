@@ -165,6 +165,11 @@ class JobDivisi extends Model
         return $this->belongsTo(User::class, "created_by", "id");
     }
 
+    public function updatedBy()
+    {
+        return $this->belongsTo(User::class, "updated_by", "id");
+    }
+
     public function userOps()
     {
         return $this->belongsTo(User::class, "user_operasional", "id");
@@ -179,7 +184,21 @@ class JobDivisi extends Model
     {
         parent::boot();
 
+        static::creating(function ($model) {
+            if (empty($model->created_by) && auth()->check()) {
+                $model->created_by = auth()->id();
+            }
+
+            if (auth()->check()) {
+                $model->updated_by = auth()->id();
+            }
+        });
+
         static::updating(function ($model) {
+            if (auth()->check()) {
+                $model->updated_by = auth()->id();
+            }
+
             if ($model->status === "Selesai") {
                 $model->is_pending = 0;
             }

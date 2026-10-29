@@ -624,9 +624,13 @@ class DataPendukunJobDivisiController extends Controller
     {
         foreach ($request->badan_hukum as $idx => $item) {
             // 1. Simpan Data Badan Hukum
+            $userId = auth()->id();
+
             $badanHukum = JobDivisiBadanHukum::create([
                 "job_divisi_id" => $jobDivisi->id,
-                "user_id"       => auth()->id(),
+                "user_id"       => $userId,
+                "created_by"    => $userId,
+                "updated_by"    => $userId,
                 "nama_pt"       => $item["nama_pt"],
                 "npwp"          => $item["npwp"],
                 "nib"           => $item["nib"],
@@ -685,6 +689,7 @@ class DataPendukunJobDivisiController extends Controller
             'nama_dirut' => $request->nama_dirut,
             'phone'      => $request->phone,
             'alamat'     => $request->alamat,
+            'updated_by' => auth()->id() ?? $badanHukum->user_id,
         ]);
 
         // Handle upload file baru (tanpa menimpa yang lama)
@@ -742,19 +747,23 @@ class DataPendukunJobDivisiController extends Controller
             ->with("marketing")
             ->get();
 
+        $userId = auth()->id();
+
         $formDataBroker = $formDataBroker
-            ->map(function ($item) use ($jobDivisi, $getAllBroker) {
+            ->map(function ($item) use ($jobDivisi, $getAllBroker, $userId) {
                 $getBroker = $getAllBroker->where("id", $item["broker"])->first();
                 $getMarketing = $getBroker->marketing->where("id", $item["nama_agent"])->first();
 
                 return [
                     "job_divisi_id" => $jobDivisi->id,
-                    "created_at" => now(),
-                    "updated_at" => now(),
-                    "nama_pt" => $getBroker->nama_pt,
+                    "created_by"    => $userId,
+                    "updated_by"    => $userId,
+                    "created_at"    => now(),
+                    "updated_at"    => now(),
+                    "nama_pt"       => $getBroker->nama_pt,
                     "nama_pimpinan" => $getBroker->nama_pimpinan,
-                    "nama_agent" => $getMarketing->nama,
-                    "nomor_agent" => $getMarketing->no_telepon,
+                    "nama_agent"    => $getMarketing->nama,
+                    "nomor_agent"   => $getMarketing->no_telepon,
                 ];
             })->toArray();
 
@@ -792,13 +801,11 @@ class DataPendukunJobDivisiController extends Controller
             ->first();
 
         $jobBroker->update([
-
             'nama_pt' => $broker->nama_pt,
             'nama_pimpinan' => $broker->nama_pimpinan,
-
             'nama_agent' => $marketing?->nama,
             'nomor_agent' => $marketing?->no_telepon,
-
+            'updated_by' => auth()->id() ?? $jobBroker->user_id,
             'updated_at' => now(),
         ]);
 
@@ -825,13 +832,14 @@ class DataPendukunJobDivisiController extends Controller
     public function handelInsertDeveloper(Request $request, $jobDivisi)
     {
         $formDataDeveloper = collect($request->developer);
+        $userId = auth()->id();
 
         $developer = Developer::whereIn("id", $formDataDeveloper->pluck("developer")->toArray())
             ->with("marketing")
             ->get();
 
         $formDataDeveloper = $formDataDeveloper
-            ->map(function ($item) use ($jobDivisi, $developer) {
+            ->map(function ($item) use ($jobDivisi, $developer, $userId) {
                 $getDeveloper = $developer->where("id", $item["developer"])->first();
                 $getMarketing = $getDeveloper->marketing->where("id", $item["nama_agent"])->first();
 
@@ -843,6 +851,8 @@ class DataPendukunJobDivisiController extends Controller
                     "nama_pt" => $getDeveloper->nama_pt,
                     "nama_pimpinan" => $getDeveloper->nama_pimpinan,
                     "nama_agent" => $getMarketing->nama,
+                    "created_by" => $userId,
+                    "updated_by" => $userId,
                     "created_at" => now(),
                     "updated_at" => now(),
                 ];
@@ -882,14 +892,12 @@ class DataPendukunJobDivisiController extends Controller
             ->first();
 
         $jobDeveloper->update([
-
             'nama_perumahan' => $developer->nama_perumahan,
             'email_perusahaan' => $developer->email_perusahaan,
             'nama_pt' => $developer->nama_pt,
             'nama_pimpinan' => $developer->nama_pimpinan,
-
             'nama_agent' => $marketing?->nama,
-
+            'updated_by' => auth()->id() ?? $jobDeveloper->user_id,
             'updated_at' => now(),
         ]);
 
@@ -1712,7 +1720,9 @@ class DataPendukunJobDivisiController extends Controller
 
     public function handelInsertPendirianLembaga(Request $request, $jobDivisi)
     {
-        $formDataPendirianLembaga = collect($request->pendirian_lembaga)->map(function ($item) use ($jobDivisi) {
+        $userId = auth()->id();
+
+        $formDataPendirianLembaga = collect($request->pendirian_lembaga)->map(function ($item) use ($jobDivisi, $userId) {
             return [
                 "job_divisi_id" => $jobDivisi->id,
                 "nama_lembaga" => $item["nama_lembaga"],
@@ -1723,6 +1733,8 @@ class DataPendukunJobDivisiController extends Controller
                 "jajaran_direksi" => $item["jajaran_direksi"] ?? null,
                 "jajaran_komisaris" => $item["jajaran_komisaris"] ?? null,
                 "alamat" => $item["alamat"],
+                "created_by" => $userId,
+                "updated_by" => $userId,
                 "created_at" => now(),
                 "updated_at" => now(),
             ];
@@ -1759,6 +1771,7 @@ class DataPendukunJobDivisiController extends Controller
             "jajaran_direksi" => $request->jajaran_direksi,
             "jajaran_komisaris" => $request->jajaran_komisaris,
             "alamat" => $request->alamat,
+            "updated_by" => auth()->id() ?? $pendirianLembaga->user_id,
             "updated_at" => now(),
         ]);
 

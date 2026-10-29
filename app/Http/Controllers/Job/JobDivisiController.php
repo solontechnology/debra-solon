@@ -223,6 +223,7 @@ class JobDivisiController extends Controller
                 "kode" => $kode,
                 "user_id" => Auth::user()->id,
                 "created_by" => Auth::user()->id,
+                "updated_by" => Auth::user()->id,
                 "jenis_akad" => $request->group_proses,
                 "status" => "Pra Akad",
                 "divisi_yang_dituju" => null,
@@ -275,6 +276,7 @@ class JobDivisiController extends Controller
             "perubahanHarga",
             "jenisAkad",
             "pembuat",
+            "updatedBy",
             'userOps',
             'listBroker',
             'badanHukum',
@@ -495,6 +497,7 @@ class JobDivisiController extends Controller
                     $formUpdate["keterangan"] = $request->ringkasan["catatan"];
                 }
 
+                $formUpdate["updated_by"] = Auth::id();
                 $jobDivisi->update($formUpdate);
                 $this->updateEstimasiSelesai($jobDivisi);
             }

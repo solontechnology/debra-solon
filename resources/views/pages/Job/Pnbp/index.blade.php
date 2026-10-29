@@ -206,10 +206,10 @@
                                             class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2.5 py-1.5 fw-medium">
                                             Menunggu Pembayaran
                                         </span>
-                                    @elseif ($item->pnbp->status === 'Terbayar')
+                                    @elseif ($item->pnbp->status === 'Terbayar'|| $item->pnbp->status === 'Selesai')
                                         <span
                                             class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2.5 py-1.5 fw-medium">
-                                            Terbayar
+                                            Selesai
                                         </span>
                                     @else
                                         <span class="badge bg-light text-secondary border px-2.5 py-1.5 fw-medium">

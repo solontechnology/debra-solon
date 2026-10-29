@@ -16,12 +16,27 @@
                     <p class="text-white-50 small mb-0">Kelola detail akad, penugasan tim, dan jadwal SLA</p>
                 </div>
             </div>
-            @if ($jobDivisi->status)
-                <span class="badge bg-white text-primary fw-bold px-3 py-2 rounded-pill shadow-sm"
+            <div class="d-flex flex-wrap gap-2">
+                @if ($jobDivisi->status)
+                    <span class="badge bg-white text-primary fw-bold px-3 py-2 rounded-pill shadow-sm"
+                        style="font-size: 0.825rem;">
+                        <i class="bi bi-activity me-1 text-primary"></i> Status: {{ $jobDivisi->status }}
+                    </span>
+                @endif
+                <span class="badge bg-white text-dark fw-semibold px-3 py-2 rounded-pill shadow-sm"
                     style="font-size: 0.825rem;">
-                    <i class="bi bi-activity me-1 text-primary"></i> Status: {{ $jobDivisi->status }}
+                    <i class="bi bi-person-plus me-1 text-success"></i> Dibuat oleh: <span class="text-success fw-bold">
+                        {{ $jobDivisi->pembuat->username ?? 'Sistem' }}
+                        </span>
                 </span>
-            @endif
+                <span class="badge bg-white text-dark fw-semibold px-3 py-2 rounded-pill shadow-sm"
+                    style="font-size: 0.825rem;">
+                    <i class="bi bi-arrow-repeat me-1 text-warning"></i> Diperbarui oleh: 
+                    <span class="text-warning fw-bold">
+                        {{ $jobDivisi->updatedBy->username ?? 'Belum di perbarui' }}
+                    </span>
+                </span>
+            </div>
         </div>
 
         {{-- Card Body --}}

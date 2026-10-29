@@ -14,7 +14,29 @@
                 <!-- Card Utama Informasi Badan Hukum -->
                 <div class="card shadow-sm border border-light-subtle mb-4 rounded-3">
                     <div class="card-header bg-light bg-opacity-50 py-3 border-bottom border-light-subtle">
-                        <h5 class="mb-0 fw-bold text-dark">Informasi Badan Hukum</h5>
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                            <h5 class="mb-0 fw-bold text-dark">Informasi Badan Hukum</h5>
+                            <div class="d-flex flex-wrap justify-content-end gap-3 small text-muted">
+                                <span class="d-inline-flex align-items-center gap-1">
+                                    <i class="bi bi-person-plus-fill text-primary"></i>
+                                    <span>Create: 
+                                        <span class="text-primary fw-bold">
+                                            {{ $badanHukum->pembuat?->username ?? 'Sistem' }} 
+
+                                        </span>
+                                        {{ $badanHukum->created_at ? '• ' . $badanHukum->created_at->format('d M Y, H:i') : '' }}</span>
+                                </span>
+                                <span class="d-inline-flex align-items-center gap-1">
+                                    <i class="bi bi-arrow-repeat text-success"></i>
+                                    <span>Update: 
+                                        <span class="text-success fw-bold">
+                                            {{ $badanHukum->updatedBy?->username ??  'Belum di perbarui' }} 
+                                        </span>
+                                        {{ $badanHukum->updated_at ? '• ' . $badanHukum->updated_at->format('d M Y, H:i') : '' }}</span>
+                                        {{-- {{ dd($badanHukum) }} --}}
+                                </span>
+                            </div>
+                        </div>
                     </div>
                     <div class="card-body pt-3">
                         <div class="row g-3">

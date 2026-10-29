@@ -360,7 +360,7 @@ class PnbpController extends Controller
 
             $item->update([
                 'nominal' => $request->nominal,
-                'status' => 'Terbayar',
+                'status' => 'Selesai',
                 'paid_at' => now(),
                 'approved_by' => Auth::id()
             ]);

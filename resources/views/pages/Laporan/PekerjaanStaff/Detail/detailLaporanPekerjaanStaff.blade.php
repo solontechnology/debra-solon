@@ -7,8 +7,11 @@
 
 @section('content')
     <div class="card">
-        <div class="card-header">
-            @include('pages.Laporan.PekerjaanStaff.Detail._modal_sort_dataPekerjaanStaff')
+        <div class="card-header justify-content-end">
+            {{-- <div class="d-flex align-items-end flex-wrap gap-2"> --}}
+
+                @include('pages.Laporan.PekerjaanStaff.Detail._modal_sort_dataPekerjaanStaff')
+            {{-- </div> --}}
         </div>
         <div class="card-body">
             <div class="">

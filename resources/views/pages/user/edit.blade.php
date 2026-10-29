@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title')
-    Edit User {{ $user->name }}
+    Edit User {{ $user->username }}
 @endsection
 
 @section('content')

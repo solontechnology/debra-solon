@@ -1,5 +1,5 @@
  @php
-     $name = auth()->user()->name;
+     $name = auth()->user()->username;
      $initials = collect(explode(' ', $name))->map(fn($word) => strtoupper(substr($word, 0, 1)))->take(2)->implode('');
 
      $colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#F9C74F', '#577590', '#9B5DE5', '#F15BB5'];

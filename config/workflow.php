@@ -5,10 +5,10 @@ return [
         'default' => [
             'notaris' => [
                 // ['name' => 'Penugasan'],
-                ['name' => 'Draft'],
-                ['name' => 'Salinan'],
-                ['name' => 'Minuta'],
-                ['name' => 'Menunggu ttd Notaris'],
+                ['name' => 'Selesai Draft'],
+                ['name' => 'Selesai Salinan'],
+                ['name' => 'Selesai Minuta'],
+                ['name' => 'Selesai Menunggu ttd Notaris'],
                 ['name' => 'Selesai'],
             ],
 
@@ -24,7 +24,7 @@ return [
                 //     'name' => 'Penugasan Draft',
                 //     'penugasan' => true,
                 // ],
-                ['name' => 'Draft'],
+                ['name' => 'Selesai Draft'],
 
                 // [
                 //     'name' => 'Penugasan Renvoi Minuta Akta',
@@ -36,14 +36,14 @@ return [
                 //     'name' => 'Penugasan Salinan',
                 //     'penugasan' => true,
                 // ],
-                ['name' => 'Salinan'],
+                ['name' => 'Selesai Salinan'],
                 // [
                 //     'name' => 'Penugasan Minuta',
                 //     'penugasan' => true,
                 // ],
 
-                ['name' => 'Minuta'],
-                ['name' => 'Menunggu ttd Notaris'],
+                ['name' => 'Selesai Minuta'],
+                ['name' => 'Selesai Menunggu ttd Notaris'],
                 // ['name' => 'Selesai Menunggu ttd Notaris'],
                 ['name' => 'Selesai'],
             ],
