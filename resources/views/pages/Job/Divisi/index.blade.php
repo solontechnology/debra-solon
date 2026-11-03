@@ -59,12 +59,63 @@
                     </thead>
                     <tbody class="border-top-0">
                         @forelse ($items as $item)
+                            @php
+                                $formOrders = $item->formOrder ?? collect();
+                                $hasZeroNominal = $formOrders->contains(function ($formOrder) {
+                                    return (float) ($formOrder->harga_jual ?? 0) <= 0
+                                        || (float) ($formOrder->harga_modal ?? 0) <= 0
+                                        || (float) ($formOrder->harga_proses ?? 0) <= 0;
+                                });
+                                $hasNominalUpdate = $formOrders->contains(function ($formOrder) {
+                                    return filled($formOrder->updated_by);
+                                });
+                                $lastNominalUpdate = $formOrders
+                                    ->filter(fn ($formOrder) => filled($formOrder->updated_by))
+                                    ->sortByDesc('updated_at')
+                                    ->first();
+                            @endphp
                             <tr>
                                 <td class="ps-4 fw-semibold">
-                                    <a href="{{ route('job.divisi.show', $item->id) }}"
-                                        class="text-primary text-decoration-none">
-                                        {{ $item->kode }}
-                                    </a>
+                                    <div class="d-flex flex-column gap-2">
+                                        <a href="{{ route('job.divisi.show', $item->id) }}"
+                                            class="text-primary text-decoration-none">
+                                            {{ $item->kode }}
+                                        </a>
+
+@if ($formOrders->isNotEmpty() && $hasZeroNominal && !$hasNominalUpdate)
+    <div class="alert alert-warning border-0 rounded-3 py-2 px-3 shadow-sm mb-0 w-100"
+        style="font-size: 0.78rem; overflow-wrap: anywhere;">
+        <div class="d-flex align-items-start gap-2">
+            <i class="bi bi-exclamation-triangle-fill text-warning mt-1 flex-shrink-0"></i>
+            <div class="flex-grow-1 min-width-0">
+                <div class="fw-semibold text-warning-emphasis">
+                    Segera isi nominal form order
+                </div>
+                <small class="text-warning-emphasis d-block">
+                    Ada item form order yang masih belum diisi atau masih bernilai 0.
+                </small>
+            </div>
+        </div>
+    </div>
+@elseif ($lastNominalUpdate)
+    <div class="alert alert-success border-0 rounded-3 py-2 px-3 shadow-sm mb-0 w-100"
+        style="font-size: 0.78rem; overflow-wrap: anywhere;">
+        <div class="d-flex align-items-start gap-2">
+            <i class="bi bi-check-circle-fill text-success mt-1 flex-shrink-0"></i>
+            <div class="flex-grow-1 min-width-0">
+                <div class="fw-semibold text-success-emphasis">
+                    Form order telah diperbarui
+                </div>
+                <small class="text-success-emphasis d-block">
+                    Terakhir oleh
+                    <span class="fw-semibold">{{ $lastNominalUpdate->updatedBy?->username ?? 'System' }}</span>
+                    · {{ $lastNominalUpdate->updated_at?->format('d M Y H:i') ?? '-' }}
+                </small>
+            </div>
+        </div>
+    </div>
+@endif
+
                                 </td>
                                 <td>
                                     @php
@@ -240,6 +291,9 @@
                                                                                     default
                                                                                         => 'bg-secondary-subtle text-secondary-emphasis',
                                                                                 };
+                                                                                $isNominalKosong = (float) ($formOrder->harga_jual ?? 0) <= 0
+                                                                                    || (float) ($formOrder->harga_modal ?? 0) <= 0
+                                                                                    || (float) ($formOrder->harga_proses ?? 0) <= 0;
                                                                             @endphp
                                                                             <div class="list-group-item px-0">
                                                                                 <div

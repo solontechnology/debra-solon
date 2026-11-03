@@ -75,7 +75,8 @@ class DetailJobFormOrderController extends Controller
                 "harga_proses" => 0,
                 "lama_proses" => 1,
                 "status" => "approved",
-                "created_by" => Auth::user()->id
+                "created_by" => Auth::user()->id,
+                "updated_by" => Auth::user()->id,
             ];
 
             $objek = JobDivisiObjek::query()
@@ -146,7 +147,8 @@ class DetailJobFormOrderController extends Controller
                     "harga_jual" => str_replace(".", "", $item["harga_jual"] ?? 0),
                     "harga_modal" => str_replace(".", "", $item["harga_modal"] ?? 0),
                     "diskon" => str_replace(".", "", $item["diskon"] ?? 0),
-                    "masuk_invoice" => $item["masuk_invoice"] ?? 0
+                    "masuk_invoice" => $item["masuk_invoice"] ?? 0,
+                    "updated_by" => Auth::id(),
                 ]);
 
                 $array_form_order->push($form_order_id);

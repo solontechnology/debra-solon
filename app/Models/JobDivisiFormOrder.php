@@ -10,6 +10,27 @@ class JobDivisiFormOrder extends Model
     protected $guarded = [];
     protected $appends = ["tanggal"];
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            if (empty($model->created_by) && auth()->check()) {
+                $model->created_by = auth()->id();
+            }
+
+            if (auth()->check()) {
+                $model->updated_by = $model->updated_by ?? auth()->id();
+            }
+        });
+
+        static::updating(function ($model) {
+            if (auth()->check()) {
+                $model->updated_by = auth()->id();
+            }
+        });
+    }
+
     public function pnbp()
     {
         return $this->hasOne(Pnbp::class, "job_divisi_form_order_id", "id");
@@ -34,6 +55,11 @@ class JobDivisiFormOrder extends Model
     public function user()
     {
         return  $this->belongsTo(User::class, "created_by", "id");
+    }
+
+    public function updatedBy()
+    {
+        return $this->belongsTo(User::class, "updated_by", "id");
     }
 
     public function jobDivisi()
