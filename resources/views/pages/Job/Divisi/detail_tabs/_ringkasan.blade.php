@@ -74,10 +74,13 @@
                                 @foreach ($user as $item)
                                     <option value="{{ $item->id }}"
                                         {{ (int) $jobDivisi->user_ops === (int) $item->id ? 'selected' : '' }}>
-                                        {{ $item->name }}
+                                        {{ $item->username }}
                                     </option>
                                 @endforeach
                             </select>
+                            {{-- @foreach ($user as $item)
+                                {{dd($item)}}
+                            @endforeach --}}
                         </div>
 
                         <div class="col-md-4">
@@ -91,7 +94,7 @@
                                     <option value="{{ $item->id }}"
                                         {{ (int) $jobDivisi->user_perwakilan_akad === (int) $item->id ? 'selected' : '' }}
                                         {{ (int) $jobDivisi->user_perwakilan_akad_2 === (int) $item->id ? 'selected' : '' }}>
-                                        {{ $item->name }}
+                                        {{ $item->username }}
                                     </option>
                                 @endforeach
                             </select>

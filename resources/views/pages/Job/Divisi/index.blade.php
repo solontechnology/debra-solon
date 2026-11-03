@@ -49,8 +49,11 @@
                             <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Tanggal Akad</th>
                             <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Est. Internal</th>
                             <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Est. Eksternal</th>
+                            <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Penanggung Jawab
+                            </th>
+                            <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Dibuat Oleh</th>
                             <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Aksi</th>
-                                {{-- <th class="py-3 pe-4 text-end text-secondary text-uppercase font-monospace small fw-bold">Aksi
+                            {{-- <th class="py-3 pe-4 text-end text-secondary text-uppercase font-monospace small fw-bold">Aksi
                                 </th> --}}
                         </tr>
                     </thead>
@@ -108,7 +111,8 @@
                                                 aria-label="Progress {{ $item->kode }}"
                                                 aria-valuenow="{{ $percentage }}" aria-valuemin="0" aria-valuemax="100"
                                                 style="height: 10px; background-color: #e5e7eb; border-radius: 999px;">
-                                                <span style="display: block; width: {{ $percentage }}%; height: 100%; background-color: {{ $progressColor }}; border-radius: inherit;"></span>
+                                                <span
+                                                    style="display: block; width: {{ $percentage }}%; height: 100%; background-color: {{ $progressColor }}; border-radius: inherit;"></span>
                                             </span>
                                             <small class="text-center">
                                                 <span class="badge rounded-pill {{ $percentageLabelClass }}">
@@ -125,7 +129,8 @@
                                             <div class="modal-content text-start">
                                                 <div class="modal-header">
                                                     <div>
-                                                        <h5 class="modal-title" id="job-progress-label-{{ $item->id }}">
+                                                        <h5 class="modal-title"
+                                                            id="job-progress-label-{{ $item->id }}">
                                                             Riwayat Pengerjaan
                                                         </h5>
                                                         <small class="text-muted">Job {{ $item->kode }}</small>
@@ -136,8 +141,8 @@
                                                 <div class="modal-body">
                                                     <ul class="nav nav-tabs mb-3" role="tablist">
                                                         <li class="nav-item" role="presentation">
-                                                            <button class="nav-link active" id="history-tab-{{ $item->id }}"
-                                                                data-bs-toggle="tab"
+                                                            <button class="nav-link active"
+                                                                id="history-tab-{{ $item->id }}" data-bs-toggle="tab"
                                                                 data-bs-target="#history-content-{{ $item->id }}"
                                                                 type="button" role="tab"
                                                                 aria-controls="history-content-{{ $item->id }}"
@@ -154,10 +159,14 @@
                                                                 @php
                                                                     $percentage = $category['progress']['percentage'];
                                                                     $percentageClass = match (true) {
-                                                                        $percentage === 100 => 'bg-success-subtle text-success-emphasis',
-                                                                        $percentage >= 50 => 'bg-primary-subtle text-primary-emphasis',
-                                                                        $percentage > 0 => 'bg-warning-subtle text-warning-emphasis',
-                                                                        default => 'bg-secondary-subtle text-secondary-emphasis',
+                                                                        $percentage === 100
+                                                                            => 'bg-success-subtle text-success-emphasis',
+                                                                        $percentage >= 50
+                                                                            => 'bg-primary-subtle text-primary-emphasis',
+                                                                        $percentage > 0
+                                                                            => 'bg-warning-subtle text-warning-emphasis',
+                                                                        default
+                                                                            => 'bg-secondary-subtle text-secondary-emphasis',
                                                                     };
                                                                     $progressBarClass = match (true) {
                                                                         $percentage === 100 => 'bg-success',
@@ -166,12 +175,15 @@
                                                                     };
                                                                 @endphp
                                                                 <section class="border rounded p-3 mb-3">
-                                                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                                                        <h6 class="fw-semibold mb-0">{{ $category['label'] }}</h6>
+                                                                    <div
+                                                                        class="d-flex justify-content-between align-items-center mb-2">
+                                                                        <h6 class="fw-semibold mb-0">
+                                                                            {{ $category['label'] }}</h6>
                                                                         <small class="text-muted">
                                                                             {{ $category['progress']['completed'] }}/{{ $category['progress']['total'] }}
                                                                             selesai
-                                                                            <span class="badge rounded-pill {{ $percentageClass }}">
+                                                                            <span
+                                                                                class="badge rounded-pill {{ $percentageClass }}">
                                                                                 {{ $percentage }}%
                                                                             </span>
                                                                         </small>
@@ -189,39 +201,69 @@
                                                                         @foreach ($category['form_orders'] as $formOrder)
                                                                             @php
                                                                                 $lastWorkStatus = $formOrder->statusJobOps->last();
-                                                                                $statusLabel = filled($lastWorkStatus?->status)
+                                                                                $statusLabel = filled(
+                                                                                    $lastWorkStatus?->status,
+                                                                                )
                                                                                     ? $lastWorkStatus->status
                                                                                     : match (true) {
-                                                                                        $lastWorkStatus?->approval_status === 'pending' => 'Menunggu approval',
-                                                                                        $lastWorkStatus?->approval_status === 'rejected' || $lastWorkStatus?->work_status === 'rework' => 'Perlu perbaikan',
-                                                                                        $lastWorkStatus?->work_status === 'completed' => 'Selesai',
-                                                                                        $lastWorkStatus?->work_status === 'assigned' => 'Ditugaskan',
+                                                                                        $lastWorkStatus?->approval_status ===
+                                                                                            'pending'
+                                                                                            => 'Menunggu approval',
+                                                                                        $lastWorkStatus?->approval_status ===
+                                                                                            'rejected' ||
+                                                                                            $lastWorkStatus?->work_status ===
+                                                                                                'rework'
+                                                                                            => 'Perlu perbaikan',
+                                                                                        $lastWorkStatus?->work_status ===
+                                                                                            'completed'
+                                                                                            => 'Selesai',
+                                                                                        $lastWorkStatus?->work_status ===
+                                                                                            'assigned'
+                                                                                            => 'Ditugaskan',
                                                                                         default => 'Belum diproses',
                                                                                     };
                                                                                 $statusClass = match (true) {
-                                                                                    $lastWorkStatus?->approval_status === 'pending' => 'bg-warning-subtle text-warning-emphasis',
-                                                                                    $lastWorkStatus?->approval_status === 'rejected' || $lastWorkStatus?->work_status === 'rework' => 'bg-danger-subtle text-danger-emphasis',
-                                                                                    $lastWorkStatus?->work_status === 'completed' => 'bg-success-subtle text-success-emphasis',
-                                                                                    $lastWorkStatus?->work_status === 'assigned' => 'bg-primary-subtle text-primary-emphasis',
-                                                                                    default => 'bg-secondary-subtle text-secondary-emphasis',
+                                                                                    $lastWorkStatus?->approval_status ===
+                                                                                        'pending'
+                                                                                        => 'bg-warning-subtle text-warning-emphasis',
+                                                                                    $lastWorkStatus?->approval_status ===
+                                                                                        'rejected' ||
+                                                                                        $lastWorkStatus?->work_status ===
+                                                                                            'rework'
+                                                                                        => 'bg-danger-subtle text-danger-emphasis',
+                                                                                    $lastWorkStatus?->work_status ===
+                                                                                        'completed'
+                                                                                        => 'bg-success-subtle text-success-emphasis',
+                                                                                    $lastWorkStatus?->work_status ===
+                                                                                        'assigned'
+                                                                                        => 'bg-primary-subtle text-primary-emphasis',
+                                                                                    default
+                                                                                        => 'bg-secondary-subtle text-secondary-emphasis',
                                                                                 };
                                                                             @endphp
                                                                             <div class="list-group-item px-0">
-                                                                                <div class="d-flex justify-content-between align-items-start gap-3">
+                                                                                <div
+                                                                                    class="d-flex justify-content-between align-items-start gap-3">
                                                                                     <div>
-                                                                                        <div class="fw-medium">{{ $formOrder->nama }}</div>
+                                                                                        <div class="fw-medium">
+                                                                                            {{ $formOrder->nama }}</div>
                                                                                         <small class="text-muted">
                                                                                             {{ $formOrder->created_at?->format('d M Y H:i') ?? '-' }}
                                                                                         </small>
                                                                                     </div>
                                                                                     <div class="text-end">
-                                                                                        <span class="badge {{ $statusClass }}">
+                                                                                        <span
+                                                                                            class="badge {{ $statusClass }}">
                                                                                             {{ $statusLabel }}
                                                                                         </span>
                                                                                         @if ($lastWorkStatus?->approval_status === 'pending')
-                                                                                            <div><small class="text-warning-emphasis">Menunggu approval</small></div>
-                                                                                        @elseif ($lastWorkStatus?->approval_status === 'rejected')
-                                                                                            <div><small class="text-danger">Ditolak, perlu perbaikan</small></div>
+                                                                                            <div><small
+                                                                                                    class="text-warning-emphasis">Menunggu
+                                                                                                    approval</small></div>
+                                 @elseif($lastWorkStatus?->approval_status === 'rejected')<div><small
+                                                                                                    class="text-danger">Ditolak,
+                                                                                                    perlu perbaikan</small>
+                                                                                            </div>
                                                                                         @endif
                                                                                     </div>
                                                                                 </div>
@@ -291,13 +333,24 @@
                                             }),
                                             'hasil' => $item->tanggal_estimasi_selesai_eksternal,
                                         ]) }} --}}
-                                        {{ $item->tanggal_estimasi_selesai ?: '-' }}
+                                        {{ $item->tanggal_estimasi_selesai?->format('d-m-Y') ?? '-' }}
                                     </span>
                                 </td>
                                 <td>
                                     <span class="badge bg-light text-secondary border">
                                         {{-- {{dd($item)}} --}}
-                                        {{ $item->tanggal_estimasi_selesai_eksternal ?: '-' }}
+                                        {{-- {{ $item->tanggal_estimasi_selesai_eksternal?->format('d-m-Y') ?? '-' }} --}}
+                                        {{ $item->tanggal_estimasi_selesai_eksternal?->format('d-m-Y') ?? '-' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="fw-bold">
+                                        {{ $user->firstWhere('id', $item->user_ops)?->username ?? '-' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="fw-bold">
+                                        {{ $item->pembuat->username ?? '-' }}
                                     </span>
                                 </td>
                                 <td class="pe-4 text-end">
@@ -340,7 +393,7 @@
                         @empty
                             {{-- Penambahan Empty State agar tabel tidak terlihat rusak saat data kosong --}}
                             <tr>
-                                <td colspan="11" class="text-center py-5 text-muted">
+                                <td colspan="13" class="text-center py-5 text-muted">
                                     <div class="d-flex flex-column align-items-center justify-content-center">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48"
                                             fill="currentColor" class="bi bi-inbox text-secondary mb-2 opacity-50"

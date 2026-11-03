@@ -2,11 +2,14 @@
 
 @section('title', 'Job Divisi ' . $jobDivisi->kode)
 
-@section('page-heading')
+{{-- @section('page-heading')
     Job Divisi {{ $jobDivisi->kode }}
     <br>
     Debitur : {{ $jobDivisi->debitur?->pluck('nama')->filter()->join(', ') ?: '-' }}
-@endsection
+    <br>
+    Developer : {{ $jobDivisi->developer?->pluck('nama_perumahan')->filter()->join(', ') ?: '-' }}
+    
+@endsection --}}
 
 @push('page-title')
     <nav style="--bs-breadcrumb-divider: url(&#34;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='%236c757d'/%3E%3C/svg%3E&#34;);"
@@ -46,6 +49,11 @@
         .bg-batal {
             color: #ffa4a4 !important;
         }
+        @media (min-width: 768px) {
+    .info-divider {
+        border-right: 1px solid var(--tblr-border-color);
+    }
+}
     </style>
 @endpush
 
@@ -53,6 +61,71 @@
     @can('job/divisi/edit')
         @include('pages.Job.Divisi._header-button_detail')
     @endcan
+
+    @php
+        $debiturList   = $jobDivisi->debitur?->pluck('nama')->filter() ?? collect();
+        $developerList = $jobDivisi->developer?->pluck('nama_perumahan')->filter() ?? collect();
+    @endphp
+
+   <div class="card mb-3">
+    <div class="card-body py-3">
+        <div class="row g-3 g-md-0 align-items-stretch">
+            {{-- Debitur --}}
+            <div class="col-12 col-md-6 pe-md-4 info-divider">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="avatar avatar-md bg-blue-lt flex-shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" class="icon icon-2">
+                            <path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0" />
+                            <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
+                        </svg>
+                    </span>
+                    <div class="min-w-0">
+                        <div class="text-dark text-uppercase fw-bold" style="font-size: .7rem; letter-spacing: .04em;">Debitur</div>
+                        <div class="d-flex flex-wrap gap-1 mt-1">
+                            @forelse ($debiturList as $nama)
+                                <span class="badge bg-blue-lt">{{ $nama }}</span>
+                            @empty
+                                <span class="text-secondary">-</span>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Developer --}}
+            <div class="col-12 col-md-6 ps-md-4">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="avatar avatar-md bg-orange-lt flex-shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" class="icon icon-2">
+                            <path d="M3 21l18 0" />
+                            <path d="M9 8l1 0" />
+                            <path d="M9 12l1 0" />
+                            <path d="M9 16l1 0" />
+                            <path d="M14 8l1 0" />
+                            <path d="M14 12l1 0" />
+                            <path d="M14 16l1 0" />
+                            <path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16" />
+                        </svg>
+                    </span>
+                    <div class="min-w-0">
+                        <div class="text-dark text-uppercase fw-bold" style="font-size: .7rem; letter-spacing: .04em;">Developer</div>
+                        <div class="d-flex flex-wrap gap-1 mt-1">
+                            @forelse ($developerList as $nama)
+                                <span class="badge bg-orange-lt">{{ $nama }}</span>
+                            @empty
+                                <span class="text-secondary">-</span>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
     <div class="card">
         <div class="card-header">
             <ul class="nav nav-tabs card-header-tabs" data-bs-toggle="tabs" role="tablist">

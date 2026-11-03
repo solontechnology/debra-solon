@@ -57,6 +57,7 @@ class JobDivisiController extends Controller
      */
     public function index(Request $request)
     {
+        //  $user = Cache::remember('master_users',/ 86400, fn() => User::orderBy("name", "asc")->get());
         return view("pages.Job.Divisi.index", $this->jobDivisiIndexServis->execute($request));
     }
 
