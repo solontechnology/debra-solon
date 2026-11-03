@@ -25,8 +25,8 @@
             </div>
 
             <div class="d-flex align-items-center gap-2">
-                @include('pages.Job._export-data', ['exportType' => 'divisi'])
-
+                {{-- @include('pages.Job._export-data', ['exportType' => 'divisi']) --}}
+                @include('pages.Job._export-data', ['exportType' => 'divisi', 'exportScope' => 'aktif'])
                 <div class="d-flex align-items-center">
                     @include('pages.Job.Divisi._filter_divisi')
                 </div>
@@ -260,7 +260,8 @@
                                                                                             <div><small
                                                                                                     class="text-warning-emphasis">Menunggu
                                                                                                     approval</small></div>
-                                 @elseif($lastWorkStatus?->approval_status === 'rejected')<div><small
+                                                                                        @elseif($lastWorkStatus?->approval_status === 'rejected')
+                                                                                            <div><small
                                                                                                     class="text-danger">Ditolak,
                                                                                                     perlu perbaikan</small>
                                                                                             </div>

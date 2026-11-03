@@ -1,51 +1,97 @@
 <?php
 
-
 namespace App\Services\Akta;
 
+use App\Models\Bank;
 use App\Models\JobDivisiFormOrder;
 use App\Models\StatusJobOps;
 use App\Models\User;
-use App\Services\Akta\WorkflowAktaService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
 class AktaService
 {
+    private const FILTER_KEYS = [
+        'parent',
+        'proses',
+        'nomor_akta',
+        'status',
+        'penugasan',
+        'penugasan_qc',
+        'nomor_objek',
+        'nama_penghadap',
+        'bank',
+        'status_akad',
+    ];
+
     public function __construct(private WorkflowAktaService $workflowAktaService) {}
 
     public function getIndexData(Request $request, ?string $tipe = null): array
     {
         $tipe = $tipe ?: 'notaris';
+        $filters = $this->resolveFilters($request, $tipe);
 
         return [
-            "items" => $this->getItems($request, $tipe),
+            "items" => $this->getItems($filters, $tipe),
             "user_ops" => $this->getUserOps(),
             "tipe" => $tipe,
-            "countFilter" => $this->countActiveFilters($request),
+            "filters" => $filters,
+            "countFilter" => collect($filters)->filter(fn($v) => filled($v))->count(),
             "prosesOptions" => $this->getProsesOptions($tipe),
             "statusOptions" => $this->getStatusOptions($tipe),
-            "bankOptions" => \App\Models\Bank::orderBy('nama')->get(),
+            "bankOptions" => Bank::orderBy('nama')->get(),
+            "statusAkadOptions" => ['Pra Akad', 'Akad', 'Batal Akad', 'Selesai'],
         ];
     }
 
-    private function countActiveFilters(Request $request): int
-    {
-        $filterKeys = [
-            'parent',
-            'nomor_akta',
-            'proses',
-            'status',
-            'penugasan',
-            'penugasan_qc',
-            'nomor_objek',
-            'nama_debitur',
-            'bank',
-            'status_akad',
-        ];
+    /** Simpan/hapus/baca filter dari session (per tipe). */
+    // private function resolveFilters(Request $request, string $tipe): array
+    // {
+    //     $sessionKey = 'akta_filter_' . $tipe;
 
-        return collect($request->only($filterKeys))
-            ->filter(fn($value) => filled($value))
-            ->count();
+    //     if ($request->boolean('reset_filter')) {
+    //         session()->forget($sessionKey);
+    //     } elseif ($request->has('apply_filter')) {
+    //         session()->put($sessionKey, $request->only(self::FILTER_KEYS));
+    //     }
+
+    //     $saved = session($sessionKey, []);
+
+    //     return collect(self::FILTER_KEYS)
+    //         ->mapWithKeys(fn($k) => [$k => $saved[$k] ?? null])
+    //         ->all();
+    // }
+    private function resolveFilters(Request $request, string $tipe, bool $persist = true): array
+    {
+        $sessionKey = 'akta_filter_' . $tipe;
+
+        if ($persist) {
+            if ($request->boolean('reset_filter')) {
+                session()->forget($sessionKey);
+            } elseif ($request->has('apply_filter')) {
+                session()->put($sessionKey, $request->only(self::FILTER_KEYS));
+            }
+        }
+
+        $saved = session($sessionKey, []);
+
+        return collect(self::FILTER_KEYS)
+            ->mapWithKeys(fn($k) => [$k => $saved[$k] ?? null])
+            ->all();
+    }
+    public function exportQuery(string $tipe): Builder
+    {
+        $filters = $this->resolveFilters(request(), $tipe, false);
+
+        return $this->baseQuery($filters, $tipe)->with([
+            'jobDivisi.jenisAkad',
+            'jobDivisi.listBank',
+            'jobDivisi.debitur',
+            'jobDivisi.objek',
+            'statusJobOps.user',
+            'statusJobOps.createdBy',
+            'nomorPpat',
+        ]);
     }
 
     private function getWorkflow(string $tipe): array
@@ -87,213 +133,99 @@ class AktaService
             ->pluck('nama');
     }
 
-    private function getItems(Request $request, string $tipe)
+    private function baseQuery(array $filters, string $tipe)
     {
-        return JobDivisiFormOrder::with([
-            'jobDivisi.jenisAkad',
-            'jobDivisi.listBank',
-            'jobDivisi.debitur',
-            'jobDivisi.objek',
-            'statusJobOps.createdBy',
-            'statusJobOps.user',
-            'statusJobOps.nextUser',
-            'statusJobOps.workflowStage.users',
-            'statusJobOps.workflowStage.roles',
-            'statusJobOps.workflowStage.assignerUsers',
-            'statusJobOps.workflowStage.assignerRoles',
-            'statusJobOps.approvedBy',
-            'nomorPpat',
-        ])
+        $latestStatus = 'status_job_ops.id = (
+            select max(s2.id) from status_job_ops s2
+            where s2.job_divisi_form_order_id = job_divisi_form_orders.id
+        )';
+
+        return JobDivisiFormOrder::query()
             ->whereNotIn("status", ["rejected", "Dibatalkan", "pending"])
-            ->whereIn('kategori', [
-                'notaris',
-                'ppat',
-                'legalisasi',
-                'waarmerking',
-                'surat-keluar',
-                'wasiat',
-                'covernot'
-            ])
             ->where('kategori', $tipe)
             ->whereHas("jobDivisi")
             ->orderBy("id", "desc")
-            ->when($request->parent, function ($query, $parent) {
-                return $query->whereHas('jobDivisi', function ($query) use ($parent) {
-                    return $query->where('kode', 'LIKE', "%$parent%");
-                });
-            })
-            ->when($request->nomor_akta, function ($query, $nomorAkta) {
-                return $query->whereHas('nomorPpat', function ($query) use ($nomorAkta) {
-                    return $query->where('nomor', 'LIKE', "%$nomorAkta%");
-                });
-            })
-            ->when($request->proses, function ($query, $proses) {
-                return $query->where('nama', $proses);
-            })
-            ->when($request->status, function ($query, $status) {
-                return $this->applyStatusFilter($query, $status);
-            })
-            ->when($request->penugasan, function ($query, $penugasan) {
-                return $query->whereHas('statusJobOps', function ($q) use ($penugasan) {
-                    $q->where('user_id', $penugasan)
-                        ->whereRaw('status_job_ops.id = (
-                select max(s2.id)
-                from status_job_ops s2
-                where s2.job_divisi_form_order_id = job_divisi_form_orders.id
-            )');
-                });
-            })
-            ->when($request->penugasan_qc, function ($query, $penugasanQc) {
-                return $query->whereHas('statusJobOps', function ($q) use ($penugasanQc) {
-                    $q->where('next_user', $penugasanQc)
-                        ->whereRaw('status_job_ops.id = (
-                select max(s2.id)
-                from status_job_ops s2
-                where s2.job_divisi_form_order_id = job_divisi_form_orders.id
-            )');
-                });
-            })
+            ->when($filters['parent'], fn($q, $v) => $q->whereHas('jobDivisi', fn($j) => $j->where('kode', 'LIKE', "%$v%")))
+            ->when($filters['proses'], fn($q, $v) => $q->where('nama', $v))
+            ->when($filters['nomor_akta'], fn($q, $v) => $q->whereHas('nomorPpat', fn($n) => $n->where('nomor', 'LIKE', "%$v%")))
+            ->when($filters['status'], fn($q, $v) => $this->applyStatusFilter($q, $v))
+            ->when($filters['penugasan'], fn($q, $v) => $q->whereHas('statusJobOps', fn($s) => $s->where('user_id', $v)->whereRaw($latestStatus)))
+            ->when($filters['penugasan_qc'], fn($q, $v) => $q->whereHas('statusJobOps', fn($s) => $s->where('next_user', $v)->whereRaw($latestStatus)))
+            ->when($filters['nomor_objek'], fn($q, $v) => $q->whereHas('jobDivisi.objek', fn($o) => $o->where('no_sertifikat', 'LIKE', "%$v%")))
+            ->when($filters['nama_penghadap'], fn($q, $v) => $q->whereHas('jobDivisi', fn($j) => $j->where(function ($j) use ($v) {
+                $j->whereHas('debitur', fn($d) => $d->where('nama', 'LIKE', "%$v%"))
+                    ->orWhereHas('listPembeli', fn($d) => $d->where('nama', 'LIKE', "%$v%"))
+                    ->orWhereHas('listPenjual', fn($d) => $d->where('nama', 'LIKE', "%$v%"));
+            })))
+            ->when($filters['bank'], fn($q, $v) => $q->whereHas('jobDivisi.listBank', fn($b) => $b->where('job_banks.bank_id', $v)))
+            ->when($filters['status_akad'], fn($q, $v) => $q->whereHas('jobDivisi', fn($j) => $j->where('status', $v)));
+    }
 
-            ->when($request->nomor_objek, function ($query, $nomorObjek) {
-                return $query->whereHas('jobDivisi.objek', function ($q) use ($nomorObjek) {
-                    $q->where('no_sertifikat', 'LIKE', "%{$nomorObjek}%");
-                });
-            })
-
-            ->when($request->nama_debitur, function ($query, $namaDebitur) {
-                return $query->whereHas('jobDivisi.debitur', function ($q) use ($namaDebitur) {
-                    $q->where('nama', 'LIKE', "%{$namaDebitur}%");
-                });
-            })
-
-            ->when($request->bank, function ($query, $bank) {
-                return $query->whereHas('jobDivisi.listBank', function ($q) use ($bank) {
-                    $q->where('banks.id', $bank);
-                });
-            })
-
-            ->when($request->status_akad, function ($query, $statusAkad) {
-                return $query->whereHas('jobDivisi', function ($q) use ($statusAkad) {
-                    $q->where('status', $statusAkad);
-                });
-            })
+    private function getItems(array $filters, string $tipe)
+    {
+        return $this->baseQuery($filters, $tipe)
+            ->with([
+                'jobDivisi.jenisAkad',
+                'jobDivisi.listBank',
+                'jobDivisi.debitur',
+                'jobDivisi.objek',
+                'statusJobOps.createdBy',
+                'statusJobOps.user',
+                'statusJobOps.nextUser',
+                'statusJobOps.workflowStage.users',
+                'statusJobOps.workflowStage.roles',
+                'statusJobOps.workflowStage.assignerUsers',
+                'statusJobOps.workflowStage.assignerRoles',
+                'statusJobOps.approvedBy',
+                'nomorPpat',
+            ])
             ->paginate(10)
-            ->withQueryString();
+            ->withQueryString()
+            ->appends(['apply_filter' => null, 'reset_filter' => null]);
+    }
+
+    public function getItemsForExport(Request $request, string $tipe)
+    {
+        // Export ikut filter yang lagi aktif di session
+        $filters = $this->resolveFilters($request, $tipe);
+
+        return $this->baseQuery($filters, $tipe)
+            ->with([
+                'jobDivisi.jenisAkad',
+                'jobDivisi.listBank',
+                'jobDivisi.debitur',
+                'jobDivisi.objek',
+                'statusJobOps.createdBy',
+                'statusJobOps.user',
+                'statusJobOps.nextUser',
+                'nomorPpat',
+            ])
+            ->get();
     }
 
     private function applyStatusFilter($query, string $status)
     {
+        $latest = 'status_job_ops.id = (
+            select max(l.id) from status_job_ops as l
+            where l.job_divisi_form_order_id = job_divisi_form_orders.id
+        )';
+
         if ($status === 'Belum diproses') {
             return $query->doesntHave('statusJobOps');
         }
 
         if ($status === 'Perlu Perbaikan') {
-            return $query->whereHas('statusJobOps', function ($query) {
-                return $query->whereNotNull('status_penolakan')
-                    ->whereRaw('status_job_ops.id = (
-                        select max(status_job_ops_latest.id)
-                        from status_job_ops as status_job_ops_latest
-                        where status_job_ops_latest.job_divisi_form_order_id = job_divisi_form_orders.id
-                    )');
-            });
+            return $query->whereHas('statusJobOps', fn($q) => $q->whereNotNull('status_penolakan')->whereRaw($latest));
         }
 
-        return $query->whereHas('statusJobOps', function ($query) use ($status) {
-            return $query->where('status', $status)
-                ->whereNull('status_penolakan')
-                ->whereRaw('status_job_ops.id = (
-                    select max(status_job_ops_latest.id)
-                    from status_job_ops as status_job_ops_latest
-                    where status_job_ops_latest.job_divisi_form_order_id = job_divisi_form_orders.id
-                )');
-        });
+        return $query->whereHas('statusJobOps', fn($q) => $q->where('status', $status)->whereNull('status_penolakan')->whereRaw($latest));
     }
 
     private function getUserOps()
     {
-        return User::orderBy('name', 'asc')
-            ->get()
-            ->map(function ($user) {
-                return [
-                    'value' => (string) $user->id,
-                    'label' => $user->name,
-                ];
-            });
-    }
-
-    public function getItemsForExport(Request $request, string $tipe)
-    {
-        return JobDivisiFormOrder::with([
-            'jobDivisi.jenisAkad',
-            'jobDivisi.listBank',
-            'jobDivisi.debitur',
-            'jobDivisi.objek',
-            'statusJobOps.createdBy',
-            'statusJobOps.user',
-            'statusJobOps.nextUser',
-            'nomorPpat',
-        ])
-            ->whereNotIn("status", ["rejected", "Dibatalkan", "pending"])
-            ->whereIn('kategori', [
-                'notaris',
-                'ppat',
-                'legalisasi',
-                'waarmerking',
-                'surat-keluar',
-                'wasiat',
-                'covernot'
-            ])
-            ->where('kategori', $tipe)
-            ->whereHas("jobDivisi")
-            ->orderBy("id", "desc")
-            ->when($request->parent, function ($query, $parent) {
-                return $query->whereHas('jobDivisi', function ($query) use ($parent) {
-                    return $query->where('kode', 'LIKE', "%$parent%");
-                });
-            })
-            ->when($request->nomor_akta, function ($query, $nomorAkta) {
-                return $query->whereHas('nomorPpat', function ($query) use ($nomorAkta) {
-                    return $query->where('nomor', 'LIKE', "%$nomorAkta%");
-                });
-            })
-            ->when($request->proses, function ($query, $proses) {
-                return $query->where('nama', $proses);
-            })
-            ->when($request->status, function ($query, $status) {
-                return $this->applyStatusFilter($query, $status);
-            })
-            ->when($request->penugasan, function ($query, $penugasan) {
-                return $query->whereHas('statusJobOps', function ($q) use ($penugasan) {
-                    $q->where('user_id', $penugasan)
-                        ->whereRaw('status_job_ops.id = (select max(s2.id) from status_job_ops s2 where s2.job_divisi_form_order_id = job_divisi_form_orders.id)');
-                });
-            })
-            ->when($request->penugasan_qc, function ($query, $penugasanQc) {
-                return $query->whereHas('statusJobOps', function ($q) use ($penugasanQc) {
-                    $q->where('next_user', $penugasanQc)
-                        ->whereRaw('status_job_ops.id = (select max(s2.id) from status_job_ops s2 where s2.job_divisi_form_order_id = job_divisi_form_orders.id)');
-                });
-            })
-            ->when($request->nomor_objek, function ($query, $nomorObjek) {
-                return $query->whereHas('jobDivisi.objek', function ($q) use ($nomorObjek) {
-                    $q->where('no_sertifikat', 'LIKE', "%{$nomorObjek}%");
-                });
-            })
-            ->when($request->nama_debitur, function ($query, $namaDebitur) {
-                return $query->whereHas('jobDivisi.debitur', function ($q) use ($namaDebitur) {
-                    $q->where('nama', 'LIKE', "%{$namaDebitur}%");
-                });
-            })
-            ->when($request->bank, function ($query, $bank) {
-                return $query->whereHas('jobDivisi.listBank', function ($q) use ($bank) {
-                    $q->where('banks.id', $bank);
-                });
-            })
-            ->when($request->status_akad, function ($query, $statusAkad) {
-                return $query->whereHas('jobDivisi', function ($q) use ($statusAkad) {
-                    $q->where('status', $statusAkad);
-                });
-            })
-            ->get();
+        return User::orderBy('name', 'asc')->get()->map(fn($user) => [
+            'value' => (string) $user->id,
+            'label' => $user->name,
+        ]);
     }
 }

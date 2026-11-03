@@ -21,96 +21,43 @@ class DataPajakController extends Controller
     /**
      * Display a listing of the resource.
      */
-
+    // private const FILTER_KEYS = [
+    //     'parent',
+    //     'proses',
+    //     'nomor_objek',
+    //     'nama_debitur',
+    //     'nama_bank',
+    //     'pembayaran_min',
+    //     'pembayaran_max',
+    //     'kode_billing',
+    //     'status_akad',
+    //     'status',
+    // ];
     public function index(Request $request)
     {
         $tipe = "pajak";
 
-        $parent = $request->parent;
-        $proses = $request->proses;
-        $nomorObjek = $request->nomor_objek;
-        $namaDebitur = $request->nama_debitur;
-        $namaBank = $request->nama_bank;
-        $statusAkad = $request->status_akad;
-        $status = $request->status;
-
-        /*
-    |--------------------------------------------------------------------------
-    | Jumlah filter aktif
-    |--------------------------------------------------------------------------
-    */
-
-        $countFilter = collect([
-            'parent' => $parent,
-            'proses' => $proses,
-            'nomor_objek' => $nomorObjek,
-            'nama_debitur' => $namaDebitur,
-            'nama_bank' => $namaBank,
-            'status_akad' => $statusAkad,
-            'status' => $status,
-        ])
-            ->filter(fn($value) => filled($value))
-            ->count();
-
-
-        /*
-    |--------------------------------------------------------------------------
-    | Option Proses
-    |--------------------------------------------------------------------------
-    */
+        $filters     = \App\Services\Job\PajakFilter::resolve($request);
+        $countFilter = \App\Services\Job\PajakFilter::count($filters);
 
         $prosesOptions = JobDivisiFormOrder::query()
             ->whereNotIn('status', ['rejected', 'Dibatalkan'])
             ->where('kategori', $tipe)
             ->whereHas('jobDivisi')
-            ->select('nama')
             ->whereNotNull('nama')
-            ->distinct()
-            ->orderBy('nama')
-            ->pluck('nama');
-
-
-        /*
-    |--------------------------------------------------------------------------
-    | Option Status Akad
-    |--------------------------------------------------------------------------
-    */
+            ->select('nama')->distinct()->orderBy('nama')->pluck('nama');
 
         $statusAkadOptions = JobDivisi::query()
-            ->whereHas('formOrder', function ($query) use ($tipe) {
-                $query
-                    ->where('kategori', $tipe)
-                    ->whereNotIn('status', ['rejected', 'Dibatalkan']);
-            })
+            ->whereHas('formOrder', fn($q) => $q->where('kategori', $tipe)->whereNotIn('status', ['rejected', 'Dibatalkan']))
             ->whereNotNull('status')
-            ->select('status')
-            ->distinct()
-            ->orderBy('status')
-            ->pluck('status');
-
-
-        /*
-    |--------------------------------------------------------------------------
-    | Option Status Pajak
-    |--------------------------------------------------------------------------
-    */
+            ->select('status')->distinct()->orderBy('status')->pluck('status');
 
         $statusOptions = StatusJobOps::query()
             ->whereNotNull('status')
-            ->select('status')
-            ->distinct()
-            ->orderBy('status')
-            ->pluck('status')
-            ->prepend('Belum dikerjakan')
-            ->unique()
-            ->values();
+            ->select('status')->distinct()->orderBy('status')->pluck('status')
+            ->prepend('Belum dikerjakan')->unique()->values();
 
-
-        /*
-    |--------------------------------------------------------------------------
-    | Data Pajak
-    |--------------------------------------------------------------------------
-    */
+        $bankOptions = \App\Models\Bank::where('is_active', 1)->orderBy('nama')->pluck('nama');
 
         $items = JobDivisiFormOrder::with([
             'jobDivisi.jenisAkad',
@@ -124,198 +71,28 @@ class DataPajakController extends Controller
             'nomorPpat',
         ])
             ->orderBy('id', 'desc')
-
             ->whereNotIn('status', ['rejected', 'Dibatalkan'])
-
             ->where('kategori', $tipe)
+            ->whereHas('jobDivisi');
 
-            ->whereHas('jobDivisi')
+        \App\Services\Job\PajakFilter::apply($items, $filters);
 
-
-            /*
-        |--------------------------------------------------------------------------
-        | Filter Parent
-        |--------------------------------------------------------------------------
-        */
-
-            ->when($parent, function ($query) use ($parent) {
-
-                $query->whereHas('jobDivisi', function ($query) use ($parent) {
-
-                    $query->where(
-                        'kode',
-                        'LIKE',
-                        "%{$parent}%"
-                    );
-                });
-            })
-
-
-            /*
-        |--------------------------------------------------------------------------
-        | Filter Proses
-        |--------------------------------------------------------------------------
-        */
-
-            ->when($proses, function ($query) use ($proses) {
-
-                $query->where(
-                    'nama',
-                    $proses
-                );
-            })
-
-
-            /*
-        |--------------------------------------------------------------------------
-        | Filter Nomor Objek
-        |--------------------------------------------------------------------------
-        */
-
-            ->when($nomorObjek, function ($query) use ($nomorObjek) {
-
-                $query->whereHas('jobDivisi.objek', function ($query) use ($nomorObjek) {
-
-                    $query->where(
-                        'no_sertifikat',
-                        'LIKE',
-                        "%{$nomorObjek}%"
-                    );
-                });
-            })
-
-
-            /*
-        |--------------------------------------------------------------------------
-        | Filter Nama Debitur
-        |--------------------------------------------------------------------------
-        */
-
-            ->when($namaDebitur, function ($query) use ($namaDebitur) {
-
-                $query->whereHas('jobDivisi.debitur', function ($query) use ($namaDebitur) {
-
-                    $query->where(
-                        'nama',
-                        'LIKE',
-                        "%{$namaDebitur}%"
-                    );
-                });
-            })
-
-
-            /*
-        |--------------------------------------------------------------------------
-        | Filter Nama Bank
-        |--------------------------------------------------------------------------
-        */
-
-            ->when($namaBank, function ($query) use ($namaBank) {
-
-                $query->whereHas('jobDivisi.listBank', function ($query) use ($namaBank) {
-
-                    $query->where(
-                        'nama_bank',
-                        'LIKE',
-                        "%{$namaBank}%"
-                    );
-                });
-            })
-
-
-            /*
-        |--------------------------------------------------------------------------
-        | Filter Status Akad
-        |--------------------------------------------------------------------------
-        */
-
-            ->when($statusAkad, function ($query) use ($statusAkad) {
-
-                $query->whereHas('jobDivisi', function ($query) use ($statusAkad) {
-
-                    $query->where(
-                        'status',
-                        $statusAkad
-                    );
-                });
-            })
-
-
-            /*
-        |--------------------------------------------------------------------------
-        | Filter Status Pajak
-        |--------------------------------------------------------------------------
-        */
-
-            ->when($status, function ($query) use ($status) {
-
-                if ($status === 'Belum dikerjakan') {
-
-                    return $query->doesntHave('statusJobOps');
-                }
-
-                return $query->whereHas('statusJobOps', function ($query) use ($status) {
-
-                    $query->where('status', $status);
-                });
-            })
-
-
-            ->paginate(10)
-            ->withQueryString();
-
-
-        /*
-    |--------------------------------------------------------------------------
-    | User
-    |--------------------------------------------------------------------------
-    */
+        $items = $items->paginate(10)->withQueryString()
+            ->appends(['apply_filter' => null, 'reset_filter' => null]);
 
         $users = User::orderBy('name')->get();
-
 
         return view('pages.Job.Pajak.index', compact(
             'items',
             'countFilter',
+            'filters',
             'prosesOptions',
             'statusAkadOptions',
             'statusOptions',
+            'bankOptions',
             'users'
         ));
     }
-    // public function index()
-    // {
-    //     $tipe = "pajak";
-    //     $items = JobDivisiFormOrder::with([
-    //         "jobDivisi.jenisAkad",
-    //         "jobDivisi.objek",
-    //         "jobDivisi.debitur",
-    //         "jobDivisi.listBank",
-    //         "jobDivisi.finance",
-    //         "statusJobOps.createdBy",
-    //         "statusJobOps.user",
-    //         "nomorPpat"
-    //     ])
-    //         ->orderBy("id", "desc")
-    //         ->whereNotIn("status", ["rejected", "Dibatalkan"])
-    //         // ->where("status", "!=", "pending")
-    //         ->where('kategori', $tipe) // ✅ legalisasi, pajak, akta ['notaris', 'ppat', 'legalisasi']
-    //         ->whereHas("jobDivisi")
-    //         ->paginate(10);
-
-    //     $userOps = User::orderBy("name", "asc")->get()->map(function ($user) {
-    //         return [
-    //             'value' => (string)$user->id,
-    //             'label' => $user->name,
-    //         ];
-    //     });
-
-
-    //     return view("pages.Job.Pajak.index", [
-    //         "items" => $items,
-    //     ]);
-    // }
-
     /**
      * Show the form for creating a new resource.
      */

@@ -10,7 +10,66 @@ $jobFields = [
     'status' => 'Status',
     'created_at' => 'Tanggal Dibuat',
 ];
+$aktaFields = [
+    'parent'      => 'Parent',
+    'process'     => 'Proses',
+    'number'      => 'Nomor Akta',
+    'status'      => 'Status',
+    'assigned_to' => 'Petugas',
+    'assigned_qc' => 'Petugas QC',
+    'object'      => 'Nomor Objek',
+    'participant' => 'Nama Penghadap',
+    'bank'        => 'Nama Bank',
+    'status_akad' => 'Status Akad',
+];
+$divisiFields = [
+    'parent'            => 'Kode',
+    'status'            => 'Status',
+    // 'progress'          => 'Progress',
+    'participant'       => 'Nama Penghadap',
+    'bank'              => 'Bank',
+    'object'            => 'Objek',
+    'akad_type'         => 'Jenis Akad',
+    'akad_date'         => 'Tanggal Akad',
+    'estimate_internal' => 'Est. Internal',
+    'estimate_external' => 'Est. Eksternal',
+    'person_in_charge'  => 'Penanggung Jawab',
+    'created_by_user'   => 'Dibuat Oleh',
+];
+$opsFields = [
+    'parent'      => 'Parent',
+    'status_akad' => 'Status Akad',
+    'process'     => 'Proses',
+    'object'      => 'Nomor Objek',
+    'participant' => 'Nama Penghadap',
+    'bank'        => 'Nama Bank',
+    'process_fee' => ['label' => 'Biaya Proses', 'permission' => 'job/ops/biaya proses'],
+    'work_status' => 'Status Pengerjaan',
+];
+$pajakFields = [
+    'parent'       => 'Parent',
+    'process'      => 'Proses',
+    'object'       => 'Nomor Objek',
+    'participant' => 'Nama Penghadap',
+    'bank'         => 'Nama Bank',
+    'tax_payment'  => 'Pembayaran',
+    'billing_code' => 'Kode Billing',
+    'status_akad'  => 'Status Akad',
+    'status'       => 'Status',
+];
 
+$pnbpFields = [
+    'parent'          => 'Parent',
+    'process'         => 'Proses',
+    'object'          => 'Nomor Objek',
+    'participant'     => 'Nama Penghadap',
+    'bank'            => 'Nama Bank',
+    'pnbp_officer'    => 'Nama Petugas',
+    'status_akad'     => 'Status Akad',
+    'status'          => 'Status',
+    'virtual_account' => 'Nomor VA',
+    'amount'          => 'Nominal',
+];
 $formOrderFields = $jobFields + [
     'number' => 'Nomor Akta',
     'assigned_to' => 'Petugas',
@@ -34,23 +93,25 @@ $exports = [
     'divisi' => [
         'label' => 'Job Divisi',
         'permission' => 'job/divisi/list',
-        'fields' => $jobFields + [
-            'akad_date' => 'Tanggal Akad',
-            'estimate_internal' => 'Estimasi Selesai Internal',
-            'estimate_external' => 'Estimasi Selesai Eksternal',
-        ],
+        'fields' => $divisiFields,
     ],
 ];
 
 foreach ($formOrderTypes as $key => $type) {
+    $isAkta = in_array($key, ['notaris', 'ppat', 'legalisasi', 'waarmerking', 'surat-keluar', 'wasiat', 'covernot'], true);
+
     $exports[$key] = [
-        'label' => 'Job '.$type['label'],
+        'label' => 'Job ' . $type['label'],
         'permission' => $type['permission'],
         'category' => $type['category'],
-        'fields' => $formOrderFields + ($key === 'pnbp' ? [
-            'virtual_account' => 'Nomor VA',
-            'amount' => 'Nominal',
-        ] : []),
+        'fields' => $isAkta
+    ? $aktaFields
+    : match ($key) {
+        'operasional' => $opsFields,
+        'pajak'       => $pajakFields,
+        'pnbp'        => $pnbpFields,
+        default       => $formOrderFields,
+    },
     ];
 }
 

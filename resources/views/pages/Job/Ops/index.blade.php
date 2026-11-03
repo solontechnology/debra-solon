@@ -36,6 +36,7 @@
 
             <div class="d-flex align-items-center gap-2">
                 <div class="d-flex align-items-center gap-2">
+                    {{-- @include('pages.Job._export-data', ['exportType' => 'operasional']) --}}
                     @include('pages.Job._export-data', ['exportType' => 'operasional'])
                 </div>
 
@@ -221,8 +222,11 @@
                                             ])
 
                                             {{-- EDIT STATUS / PENUGASAN --}}
+                                            @if ($status != 'Selesai')
                                             <x-job.ops.edit-status-ops :formOrder="$item" :key="$key" :jobDivisi="$item->jobDivisi"
                                                 :statusOps="$item->statusJobOps" :userOps="$userOps" :userPermission="$permissionAll" />
+                                                
+                                            @endif
 
                                             {{-- DISPO --}}
                                             @if ($canProgress && $item->status !== 'dispo')

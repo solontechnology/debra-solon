@@ -1,9 +1,9 @@
 <button type="button" class="btn btn-warning position-relative" data-bs-toggle="modal"
-    data-bs-target="#modalFilterPnbp">
-     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-search"
+    data-bs-target="#modalFilterPnbp" title="Filter">
+     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-funnel me-1"
         viewBox="0 0 16 16">
         <path
-            d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0" />
+            d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2z" />
     </svg>
     @if ($countFilter)
         <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger text-white">
@@ -13,67 +13,177 @@
 </button>
 
 <div class="modal fade" id="modalFilterPnbp" tabindex="-1" aria-labelledby="modalFilterPnbpLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <form action="{{ route('job.pnbp.index') }}" method="GET">
+                <input type="hidden" name="apply_filter" value="1">
+
                 <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="modalFilterPnbpLabel">Filter PNBP/Voucher</h1>
+                    <div>
+                        <h1 class="modal-title fs-5" id="modalFilterPnbpLabel">Filter PNBP/Voucher</h1>
+                        <div class="text-secondary small">Filter tersimpan sampai lu klik Reset Filter.</div>
+                    </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
+
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="filter_parent" class="form-label">Parent</label>
-                        <input type="text" id="filter_parent" class="form-control" name="parent"
-                            value="{{ request('parent') }}" placeholder="Kode/ID parent">
+
+                    <div class="text-secondary text-uppercase fw-bold small mb-2">Pekerjaan</div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label for="filter_parent" class="form-label">Parent</label>
+                            <input type="text" id="filter_parent" class="form-control" name="parent"
+                                value="{{ $filters['parent'] ?? '' }}" placeholder="Kode parent">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="filter_proses" class="form-label">Proses</label>
+                            <select id="filter_proses" name="proses" class="form-select select2_filter_pnbp">
+                                <option value="">Semua proses</option>
+                                @foreach ($prosesOptions as $opt)
+                                    <option value="{{ $opt }}"
+                                        {{ ($filters['proses'] ?? '') === $opt ? 'selected' : '' }}>{{ $opt }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="filter_petugas" class="form-label">Nama Petugas</label>
+                            <select id="filter_petugas" name="petugas" class="form-select select2_filter_pnbp">
+                                <option value="">Semua petugas</option>
+                                @foreach ($users as $u)
+                                    <option value="{{ $u->id }}"
+                                        {{ (string) ($filters['petugas'] ?? '') === (string) $u->id ? 'selected' : '' }}>
+                                        {{ $u->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="filter_status_akad" class="form-label">Status Akad</label>
+                            <select id="filter_status_akad" name="status_akad" class="form-select select2_filter_pnbp">
+                                <option value="">Semua status akad</option>
+                                @foreach ($statusAkadOptions as $opt)
+                                    <option value="{{ $opt }}"
+                                        {{ ($filters['status_akad'] ?? '') === $opt ? 'selected' : '' }}>{{ $opt }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="filter_proses" class="form-label">Proses</label>
-                        <select id="filter_proses" name="proses" class="form-select">
-                            <option value="">Semua proses</option>
-                            @foreach ($prosesOptions as $proses)
-                                <option value="{{ $proses }}" {{ request('proses') === $proses ? 'selected' : '' }}>
-                                    {{ $proses }}
-                                </option>
-                            @endforeach
-                        </select>
+                    <div class="text-secondary text-uppercase fw-bold small mb-2">Pihak &amp; Objek</div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label for="filter_nomor_objek" class="form-label">Nomor Objek</label>
+                            <input type="text" id="filter_nomor_objek" class="form-control" name="nomor_objek"
+                                value="{{ $filters['nomor_objek'] ?? '' }}" placeholder="No sertifikat">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="filter_nama_penghadap" class="form-label">Nama Penghadap</label>
+                            <input type="text" id="filter_nama_penghadap" class="form-control" name="nama_penghadap"
+                                value="{{ $filters['nama_penghadap'] ?? '' }}" placeholder="Nama penghadap">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="filter_nama_bank" class="form-label">Nama Bank</label>
+                            <select id="filter_nama_bank" name="nama_bank" class="form-select select2_filter_pnbp">
+                                <option value="">Semua bank</option>
+                                @foreach ($bankOptions as $namaBank)
+                                    <option value="{{ $namaBank }}"
+                                        {{ ($filters['nama_bank'] ?? '') === $namaBank ? 'selected' : '' }}>
+                                        {{ $namaBank }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="filter_nomor_objek" class="form-label">Nomor Objek</label>
-                        <input type="text" id="filter_nomor_objek" class="form-control" name="nomor_objek"
-                            value="{{ request('nomor_objek') }}" placeholder="Nomor objek">
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="filter_nama_debitur" class="form-label">Nama Debitur</label>
-                        <input type="text" id="filter_nama_debitur" class="form-control" name="nama_debitur"
-                            value="{{ request('nama_debitur') }}" placeholder="Nama debitur">
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="filter_nama_bank" class="form-label">Nama Bank</label>
-                        <input type="text" id="filter_nama_bank" class="form-control" name="nama_bank"
-                            value="{{ request('nama_bank') }}" placeholder="Nama bank">
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="filter_status" class="form-label">Status</label>
-                        <select id="filter_status" name="status" class="form-select">
-                            <option value="">Semua status</option>
-                            @foreach ($statusOptions as $status)
-                                <option value="{{ $status }}" {{ request('status') === $status ? 'selected' : '' }}>
-                                    {{ $status }}
-                                </option>
-                            @endforeach
-                        </select>
+                    <div class="text-secondary text-uppercase fw-bold small mb-2">Pembayaran</div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="filter_status" class="form-label">Status</label>
+                            <select id="filter_status" name="status" class="form-select select2_filter_pnbp">
+                                <option value="">Semua status</option>
+                                @foreach ($statusOptions as $opt)
+                                    <option value="{{ $opt }}"
+                                        {{ ($filters['status'] ?? '') === $opt ? 'selected' : '' }}>{{ $opt }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="filter_nomor_va" class="form-label">Nomor VA</label>
+                            <input type="text" id="filter_nomor_va" class="form-control" name="nomor_va"
+                                value="{{ $filters['nomor_va'] ?? '' }}" placeholder="Nomor VA">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="filter_nominal_min" class="form-label">Nominal Minimal</label>
+                            <div class="input-group">
+                                <span class="input-group-text">Rp</span>
+                                <input type="text" inputmode="numeric" id="filter_nominal_min"
+                                    class="form-control input-rupiah" name="nominal_min"
+                                    value="{{ $filters['nominal_min'] ?? '' }}" placeholder="0">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="filter_nominal_max" class="form-label">Nominal Maksimal</label>
+                            <div class="input-group">
+                                <span class="input-group-text">Rp</span>
+                                <input type="text" inputmode="numeric" id="filter_nominal_max"
+                                    class="form-control input-rupiah" name="nominal_max"
+                                    value="{{ $filters['nominal_max'] ?? '' }}" placeholder="0">
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <a href="{{ route('job.pnbp.index') }}" class="btn btn-secondary">Reset Filter</a>
-                    <button type="submit" class="btn btn-primary">Terapkan Filter</button>
+
+                <div class="modal-footer d-flex align-items-center">
+                    <a href="{{ route('job.pnbp.index', ['reset_filter' => 1]) }}"
+                        class="btn btn-outline-warning me-auto">Reset Filter</a>
+                    {{-- <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button> --}}
+                    <button type="submit" class="btn btn-outline-primary">Terapkan Filter</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+@push('addStyle')
+    <style>
+        #modalFilterPnbp .modal-content > form {
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 auto;
+            min-height: 0;
+            max-height: 100%;
+        }
+        #modalFilterPnbp .modal-footer {
+            padding: 1rem 1.25rem !important;
+            gap: .5rem;
+        }
+        #modalFilterPnbp .modal-footer > * {
+            margin: 0 !important;
+        }
+    </style>
+@endpush
+
+@push('addScript')
+    <script>
+        $('#modalFilterPnbp').on('shown.bs.modal', function() {
+            $(this).find('.select2_filter_pnbp').each(function() {
+                if (!$(this).hasClass('select2-hidden-accessible')) {
+                    $(this).select2({
+                        width: '100%',
+                        dropdownParent: $('#modalFilterPnbp'),
+                        theme: 'bootstrap-5'
+                    });
+                }
+            });
+        });
+
+        // Format ribuan di input nominal (11.000 -> backend ambil angkanya aja)
+        $('#modalFilterPnbp').on('input', '.input-rupiah', function() {
+            const digits = this.value.replace(/\D/g, '');
+            this.value = digits ? Number(digits).toLocaleString('id-ID') : '';
+        });
+    </script>
+@endpush

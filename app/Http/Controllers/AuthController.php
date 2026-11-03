@@ -1,8 +1,10 @@
 <?php
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -120,15 +122,28 @@ class AuthController extends Controller
             $loginType => $decryptedEmail,
             'password' => $decryptedPassword
         ];
-        
 
-        if (Auth::attempt($credentials)) {
+        $user = User::query()->where($loginType, $decryptedEmail)->first();
+
+        if (!$user) {
+            return redirect()->back()->withErrors([
+                'email' => 'Username atau email tidak ditemukan.'
+            ]);
+        }
+
+        if (!Hash::check($decryptedPassword, $user->password)) {
+            return redirect()->back()->withErrors([
+                'password' => 'Password yang kamu masukkan salah.'
+            ]);
+        }
+
+        if (Auth::loginUsingId($user->id)) {
             $request->session()->regenerate();
             return redirect()->intended('/dashboard');
         }
 
         return redirect()->back()->withErrors([
-            'email' => 'Email/Username atau password salah'
+            'email' => 'Login gagal. Periksa kembali username/email dan password.'
         ]);
     }
     public function logout(Request $request)
@@ -137,6 +152,6 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect()->route('login');
     }
 }

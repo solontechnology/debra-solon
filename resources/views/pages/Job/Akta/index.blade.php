@@ -27,6 +27,7 @@
 
             {{-- Tampilkan tombol Export HANYA jika $tipe adalah 'covernot' --}}
             <div class="d-flex align-items-center gap-2">
+                {{-- @include('pages.Job._export-data', ['exportType' => strtolower($tipe)]) --}}
                 @include('pages.Job._export-data', ['exportType' => strtolower($tipe)])
 
                 {{-- Filter Modal Component --}}
@@ -49,7 +50,6 @@
                                 Nomor Akta</th>
                             <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Status</th>
                             <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Petugasan</th>
-                            {{-- <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Penugasan QC</th> --}}
                             <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nomor Objek</th>
                             <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nama Penghadap</th>
                             <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nama Bank</th>

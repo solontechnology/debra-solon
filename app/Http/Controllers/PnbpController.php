@@ -16,99 +16,46 @@ class PnbpController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
-    {
-        $parent = $request->parent;
-        $proses = $request->proses;
-        $nomorObjek = $request->nomor_objek;
-        $namaDebitur = $request->nama_debitur;
-        $namaBank = $request->nama_bank;
-        $status = $request->status;
+  public function index(Request $request)
+{
+    $filters     = \App\Services\Job\PnbpFilter::resolve($request);
+    $countFilter = \App\Services\Job\PnbpFilter::count($filters);
 
-        $countFilter = collect([
-            'parent' => $parent,
-            'proses' => $proses,
-            'nomor_objek' => $nomorObjek,
-            'nama_debitur' => $namaDebitur,
-            'nama_bank' => $namaBank,
-            'status' => $status,
-        ])
-            ->filter(fn($value) => filled($value))
-            ->count();
+    $prosesOptions = JobDivisiFormOrder::query()
+        ->whereNotIn("status", ["rejected", "Dibatalkan", "pending"])
+        ->where("kategori", "pnbp_voucher")
+        ->whereHas("jobDivisi")
+        ->select('nama')->distinct()->orderBy('nama')->pluck('nama');
 
-        $prosesOptions = JobDivisiFormOrder::query()
-            ->whereNotIn("status", ["rejected", "Dibatalkan", "pending"])
-            ->where("kategori", "pnbp_voucher")
-            ->whereHas("jobDivisi")
-            ->select('nama')
-            ->distinct()
-            ->orderBy('nama')
-            ->pluck('nama');
+    $statusOptions = Pnbp::query()
+        ->whereNotNull('status')
+        ->select('status')->distinct()->orderBy('status')->pluck('status')
+        ->prepend('Belum dikerjakan')->unique()->values();
 
-        $statusOptions = Pnbp::query()
-            ->whereNotNull('status')
-            ->select('status')
-            ->distinct()
-            ->orderBy('status')
-            ->pluck('status')
-            ->prepend('Belum dikerjakan')
-            ->unique()
-            ->values();
+    $bankOptions = \App\Models\Bank::where('is_active', 1)->orderBy('nama')->pluck('nama');
+    $statusAkadOptions = ['Pra Akad', 'Akad', 'Batal Akad', 'Selesai'];
 
-        $items = JobDivisiFormOrder::orderBy("id", "desc")
-            ->with(
-                "pnbp.user",
-                "jobDivisi.objek",
-                "jobDivisi.debitur",
-                "jobDivisi.listBank",
-            )
-            ->whereNotIn("status", ["rejected", "Dibatalkan", "pending"])
-            ->where("kategori", "pnbp_voucher")
-            ->whereHas("jobDivisi")
-            ->when($parent, function ($query) use ($parent) {
-                return $query->whereHas('jobDivisi', function ($query) use ($parent) {
-                    return $query->where('kode', 'LIKE', "%$parent%");
-                });
-            })
-            ->when($proses, function ($query) use ($proses) {
-                return $query->where('nama', $proses);
-            })
-            ->when($nomorObjek, function ($query) use ($nomorObjek) {
-                return $query->whereHas('jobDivisi.objek', function ($query) use ($nomorObjek) {
-                    return $query->where('no_sertifikat', 'LIKE', "%$nomorObjek%");
-                });
-            })
-            ->when($namaDebitur, function ($query) use ($namaDebitur) {
-                return $query->whereHas('jobDivisi.debitur', function ($query) use ($namaDebitur) {
-                    return $query->where('nama', 'LIKE', "%$namaDebitur%");
-                });
-            })
-            ->when($namaBank, function ($query) use ($namaBank) {
-                return $query->whereHas('jobDivisi.listBank', function ($query) use ($namaBank) {
-                    return $query->where('nama_bank', 'LIKE', "%$namaBank%");
-                });
-            })
-            ->when($status, function ($query) use ($status) {
-                if ($status === 'Belum dikerjakan') {
-                    return $query->doesntHave('pnbp');
-                }
+    $items = JobDivisiFormOrder::orderBy("id", "desc")
+        ->with(
+            "pnbp.user", "jobDivisi.objek", "jobDivisi.debitur",
+            "jobDivisi.listPembeli", "jobDivisi.listPenjual", "jobDivisi.listBank"
+        )
+        ->whereNotIn("status", ["rejected", "Dibatalkan", "pending"])
+        ->where("kategori", "pnbp_voucher")
+        ->whereHas("jobDivisi");
 
-                return $query->whereHas('pnbp', function ($query) use ($status) {
-                    return $query->where('status', $status);
-                });
-            })
-            ->paginate(12)
-            ->withQueryString();
-        $users = User::orderBy('name')->get();
+    \App\Services\Job\PnbpFilter::apply($items, $filters);
 
-        return view("pages.Job.Pnbp.index", compact(
-            "items",
-            "countFilter",
-            "prosesOptions",
-            "statusOptions",
-            "users"
-        ));
-    }
+    $items = $items->paginate(12)->withQueryString()
+        ->appends(['apply_filter' => null, 'reset_filter' => null]);
+
+    $users = User::orderBy('name')->get();
+
+    return view("pages.Job.Pnbp.index", compact(
+        "items", "countFilter", "filters", "prosesOptions", "statusOptions",
+        "bankOptions", "statusAkadOptions", "users"
+    ));
+}
 
     /**
      * Show the form for creating a new resource.

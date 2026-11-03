@@ -71,7 +71,7 @@
                             <th class="py-3 freeze-proses text-secondary text-uppercase font-monospace small fw-bold">Proses
                             </th>
                             <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nomor Objek</th>
-                            <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nama Debitur</th>
+                            <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nama Penghadap</th>
                             <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nama Bank</th>
                             <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Pembayaran</th>
                             <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Kode Billing</th>

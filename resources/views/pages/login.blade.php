@@ -70,9 +70,12 @@
                         novalidate>
                         @csrf
                         <div class="mb-3">
-                            <label class="form-label">Email address</label>
-                            <input type="email" class="form-control" id="inputEmail" placeholder="your@email.com"
+                            <label class="form-label">Username atau email</label>
+                            <input type="text" class="form-control @error('email') is-invalid @enderror" id="inputEmail" placeholder="Username atau email"
                                 autocomplete="off" />
+                            @error('email')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
                         </div>
 
                         <div class="mb-2">
@@ -83,7 +86,7 @@
                                 </span> --}}
                             </label>
                             <div class="input-group input-group-flat">
-                                <input type="password" class="form-control" placeholder="Your password"
+                                <input type="password" class="form-control @error('password') is-invalid @enderror" placeholder="Masukkan password"
                                     autocomplete="off" id="password" />
                                 <span class="input-group-text">
                                     <a href="#" class="link-secondary" id="togglePassword" title="Show password"
@@ -99,6 +102,9 @@
                                     </a>
                                 </span>
                             </div>
+                            @error('password')
+                                <div class="text-danger small mt-1">{{ $message }}</div>
+                            @enderror
                         </div>
                         {{-- <div class="mb-2">
                             <label class="form-check">
