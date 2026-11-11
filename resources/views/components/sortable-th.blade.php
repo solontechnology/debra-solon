@@ -15,7 +15,7 @@
         default => '↕',
     };
 
-    $options = ['asc' => 'A → Z', 'desc' => 'Z → A', 'empty' => 'Kosong dulu'];
+    $options = ['asc' => 'A → Z', 'desc' => 'Z → A', 'empty' => 'Empty'];
     $aria = $active ? ($direction === 'desc' ? 'descending' : 'ascending') : 'none';
 @endphp
 
