@@ -76,6 +76,9 @@ class DataPajakController extends Controller
             ->whereHas('jobDivisi');
 
         \App\Services\Job\PajakFilter::apply($items, $filters);
+        $sort = \App\Services\Job\PajakFilter::sortKey($request->query('sort'));
+        $direction = \App\Services\Job\PajakFilter::sortDirection($request->query('direction'));
+        \App\Services\Job\PajakFilter::applySort($items, $sort, $direction);
 
         $items = $items->paginate(10)->withQueryString()
             ->appends(['apply_filter' => null, 'reset_filter' => null]);
@@ -90,7 +93,9 @@ class DataPajakController extends Controller
             'statusAkadOptions',
             'statusOptions',
             'bankOptions',
-            'users'
+            'users',
+            'sort',
+            'direction'
         ));
     }
     /**

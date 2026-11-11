@@ -65,23 +65,43 @@
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0 text-nowrap table-freeze-pnbp">
                     <thead class="bg-light">
-                        <tr>
-                            <th class="py-3 ps-4 freeze-parent text-secondary text-uppercase font-monospace small fw-bold">
-                                Parent</th>
-                            <th class="py-3 freeze-proses text-secondary text-uppercase font-monospace small fw-bold">Proses
-                            </th>
-                            <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nomor Objek</th>
-                            <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nama Penghadap</th>
-                            <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nama Bank</th>
-                            <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nama Petugas</th>
-                            <th class="py-3 text-center text-secondary text-uppercase font-monospace small fw-bold">Status
-                                Akad</th>
-                            <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Status</th>
-                            <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nomor VA</th>
-                            <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nominal</th>
-                            <th class="py-3 pe-4 text-center text-secondary text-uppercase font-monospace small fw-bold">
-                                Aksi</th>
-                        </tr>
+                        <input type="hidden" name="sort" value="{{ $sort }}">
+                        <input type="hidden" name="direction" value="{{ $direction }}">
+                        <table class="table table-hover align-middle mb-0 text-nowrap table-freeze-pnbp"
+                            data-sortable="false">
+                            <thead class="bg-light">
+                                <tr>
+                                    <x-sortable-th column="parent" :sort="$sort" :direction="$direction"
+                                        class="py-3 ps-4 freeze-parent text-secondary text-uppercase font-monospace small fw-bold">Parent</x-sortable-th>
+                                    <x-sortable-th column="proses" :sort="$sort" :direction="$direction"
+                                        class="py-3 freeze-proses text-secondary text-uppercase font-monospace small fw-bold">Proses</x-sortable-th>
+                                    <x-sortable-th column="nomor_objek" :sort="$sort" :direction="$direction"
+                                        class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nomor
+                                        Objek</x-sortable-th>
+                                    <x-sortable-th column="nama_penghadap" :sort="$sort" :direction="$direction"
+                                        class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nama
+                                        Penghadap</x-sortable-th>
+                                    <x-sortable-th column="nama_bank" :sort="$sort" :direction="$direction"
+                                        class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nama
+                                        Bank</x-sortable-th>
+                                    <x-sortable-th column="petugas" :sort="$sort" :direction="$direction"
+                                        class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nama
+                                        Petugas</x-sortable-th>
+                                    <x-sortable-th column="status_akad" :sort="$sort" :direction="$direction"
+                                        class="py-3 text-center text-secondary text-uppercase font-monospace small fw-bold">Status
+                                        Akad</x-sortable-th>
+                                    <x-sortable-th column="status" :sort="$sort" :direction="$direction"
+                                        class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Status</x-sortable-th>
+                                    <x-sortable-th column="nomor_va" :sort="$sort" :direction="$direction"
+                                        class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nomor
+                                        VA</x-sortable-th>
+                                    <x-sortable-th column="nominal" :sort="$sort" :direction="$direction"
+                                        class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nominal</x-sortable-th>
+                                    <th
+                                        class="py-3 pe-4 text-center text-secondary text-uppercase font-monospace small fw-bold">
+                                        Aksi</th>
+                                </tr>
+                            </thead>
                     </thead>
                     <tbody class="border-top-0">
                         @forelse ($items as $key => $item)
@@ -127,7 +147,7 @@
                                     ]);
                                 @endphp
 
-                                <td class="text-uppercase" >
+                                <td class="text-uppercase">
                                     <div class="d-flex flex-column gap-1">
                                         @forelse ($pihak as $peran => $nama)
                                             <span>
@@ -206,7 +226,7 @@
                                             class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2.5 py-1.5 fw-medium">
                                             Menunggu Pembayaran
                                         </span>
-                                    @elseif ($item->pnbp->status === 'Terbayar'|| $item->pnbp->status === 'Selesai')
+                                    @elseif ($item->pnbp->status === 'Terbayar' || $item->pnbp->status === 'Selesai')
                                         <span
                                             class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2.5 py-1.5 fw-medium">
                                             Selesai

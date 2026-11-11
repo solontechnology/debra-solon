@@ -11,11 +11,79 @@ use Illuminate\Support\Collection;
 
 class FinanceReportController extends Controller
 {
+    private const SORT_COLUMNS = [
+        'tanggal'        => 'date',
+        'kode'           => 'text',
+        'tipe'           => 'text',
+        'debit_account'  => 'text',
+        'credit_account' => 'text',
+        'debit'          => 'number',
+        'credit'         => 'number',
+        'peruntukan'     => 'text',
+        'keterangan'     => 'text',
+        'user'           => 'text',
+    ];
+
     public function jurnal(Request $request)
     {
         $report = $this->buildReport($request);
 
-        return view('pages.Finance.reports.jurnal', $report);
+        // whitelist
+        $sortInput = $request->query('sort');
+        $sort = is_string($sortInput) && isset(self::SORT_COLUMNS[$sortInput]) ? $sortInput : null;
+        $direction = in_array($request->query('direction'), ['asc', 'desc', 'empty'], true)
+            ? $request->query('direction')
+            : 'asc';
+
+        if ($sort) {
+            $type = self::SORT_COLUMNS[$sort];
+
+            $value = function ($row) use ($sort, $type) {
+                $v = $row[$sort] ?? null;
+                if ($v instanceof \Carbon\Carbon || $v instanceof \DateTimeInterface) {
+                    return $v->getTimestamp();
+                }
+                if ($type === 'date') {
+                    $ts = ($v && $v !== '-') ? strtotime((string) $v) : false;
+                    return $ts === false ? null : $ts;
+                }
+                if ($type === 'number') {
+                    return is_numeric($v) ? (float) $v : null;
+                }
+                $v = trim((string) $v);
+                return ($v === '' || $v === '-') ? null : $v;
+            };
+
+            $report['jurnalItems'] = collect($report['jurnalItems'])
+                ->values()
+                ->map(fn($row, $i) => ['row' => $row, 'i' => $i, 'v' => $value($row)])
+                ->sort(function ($a, $b) use ($type, $direction) {
+                    $aEmpty = $a['v'] === null;
+                    $bEmpty = $b['v'] === null;
+
+                    if ($aEmpty !== $bEmpty) {
+                        $emptyFirst = $direction === 'empty';
+                        return $aEmpty ? ($emptyFirst ? -1 : 1) : ($emptyFirst ? 1 : -1);
+                    }
+                    if ($aEmpty) {
+                        return $a['i'] <=> $b['i'];
+                    }
+
+                    $cmp = $type === 'text'
+                        ? strnatcasecmp($a['v'], $b['v'])
+                        : $a['v'] <=> $b['v'];
+
+                    if ($direction === 'desc') {
+                        $cmp = -$cmp;
+                    }
+
+                    return $cmp ?: $a['i'] <=> $b['i'];
+                })
+                ->pluck('row')
+                ->values();
+        }
+
+        return view('pages.Finance.reports.jurnal', $report + compact('sort', 'direction'));
     }
 
     public function neraca(Request $request)
@@ -25,11 +93,91 @@ class FinanceReportController extends Controller
         return view('pages.Finance.reports.neraca', $report);
     }
 
+    private const LABA_KOTOR_SORT_COLUMNS = [
+        'tanggal'    => 'date',
+        'kode'       => 'text',
+        'item'       => 'text',
+        'status'     => 'text',
+        'pendapatan' => 'number',
+        'modal'      => 'number',
+        'laba_kotor' => 'number',
+    ];
+
+    /** Sort Collection/array of array di PHP. Kosong = null, '' atau '-'. */
+    protected function sortRows($rows, array $columns, ?string $sort, string $direction)
+    {
+        $rows = collect($rows)->values();
+
+        if (!$sort || !isset($columns[$sort])) {
+            return $rows;
+        }
+
+        $type = $columns[$sort];
+
+        $value = function ($row) use ($sort, $type) {
+            $v = $row[$sort] ?? null;
+            if ($v instanceof \DateTimeInterface) {
+                return $v->getTimestamp();
+            }
+            if ($type === 'date') {
+                $ts = ($v && $v !== '-') ? strtotime((string) $v) : false;
+                return $ts === false ? null : $ts;
+            }
+            if ($type === 'number') {
+                return is_numeric($v) ? (float) $v : null;
+            }
+            $v = trim((string) $v);
+            return ($v === '' || $v === '-') ? null : $v;
+        };
+
+        return $rows
+            ->map(fn($row, $i) => ['row' => $row, 'i' => $i, 'v' => $value($row)])
+            ->sort(function ($a, $b) use ($type, $direction) {
+                $aEmpty = $a['v'] === null;
+                $bEmpty = $b['v'] === null;
+
+                if ($aEmpty !== $bEmpty) {
+                    // asc/desc: kosong di bawah, empty: kosong di atas
+                    $emptyFirst = $direction === 'empty';
+                    return $aEmpty ? ($emptyFirst ? -1 : 1) : ($emptyFirst ? 1 : -1);
+                }
+                if ($aEmpty) {
+                    return $a['i'] <=> $b['i'];
+                }
+
+                $cmp = $type === 'text'
+                    ? strnatcasecmp($a['v'], $b['v'])
+                    : $a['v'] <=> $b['v'];
+
+                if ($direction === 'desc') {
+                    $cmp = -$cmp;
+                }
+
+                // tie-breaker: urutan asli, biar stabil
+                return $cmp ?: $a['i'] <=> $b['i'];
+            })
+            ->pluck('row')
+            ->values();
+    }
     public function labaKotor(Request $request)
     {
         $report = $this->buildReport($request);
 
-        return view('pages.Finance.reports.laba-kotor', $report);
+        // whitelist
+        $sortInput = $request->query('sort');
+        $sort = is_string($sortInput) && isset(self::LABA_KOTOR_SORT_COLUMNS[$sortInput]) ? $sortInput : null;
+        $direction = in_array($request->query('direction'), ['asc', 'desc', 'empty'], true)
+            ? $request->query('direction')
+            : 'asc';
+
+        $report['grossProfitItems'] = $this->sortRows(
+            $report['grossProfitItems'],
+            self::LABA_KOTOR_SORT_COLUMNS,
+            $sort,
+            $direction
+        );
+
+        return view('pages.Finance.reports.laba-kotor', $report + compact('sort', 'direction'));
     }
 
     public function labaBersih(Request $request)

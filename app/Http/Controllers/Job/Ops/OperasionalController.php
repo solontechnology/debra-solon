@@ -34,53 +34,58 @@ class OperasionalController extends Controller
         $this->notifikasiServis = $notifikasiServis;
     }
     public function index(Request $request)
-{
-    $filters     = \App\Services\Job\OpsFilter::resolve($request);
-    $countFilter = \App\Services\Job\OpsFilter::count($filters);
+    {
+        $filters     = \App\Services\Job\OpsFilter::resolve($request);
+        $countFilter = \App\Services\Job\OpsFilter::count($filters);
 
-    $items = JobDivisiFormOrder::query()
-        ->with([
-            "jobDivisi.jenisAkad",
-            "jobDivisi.listBank",
-            "jobDivisi.debitur",
-            "jobDivisi.listPembeli",
-            "jobDivisi.listPenjual",
-            "jobDivisi.objek.desa.kecamatan.kota.provinsi",
-            "jobDivisi.userOps",
-            "statusJobOps.createdBy",
-            "statusJobOps.user",
-            "dispo",
-        ])
-        ->whereNotIn("status", ["rejected", "Dibatalkan"])
-        ->where("kategori", "operasional")
-        ->orderBy("id", "desc")
-        ->whereHas("jobDivisi");
+        $items = JobDivisiFormOrder::query()
+            ->with([
+                "jobDivisi.jenisAkad",
+                "jobDivisi.listBank",
+                "jobDivisi.debitur",
+                "jobDivisi.listPembeli",
+                "jobDivisi.listPenjual",
+                "jobDivisi.objek.desa.kecamatan.kota.provinsi",
+                "jobDivisi.userOps",
+                "statusJobOps.createdBy",
+                "statusJobOps.user",
+                "dispo",
+            ])
+            ->whereNotIn("status", ["rejected", "Dibatalkan"])
+            ->where("kategori", "operasional")
+            ->orderBy("id", "desc")
+            ->whereHas("jobDivisi");
 
-    if (Auth::user()->roles()->first()?->name === "OPS staff") {
-        $items->whereHas("statusJobOps", fn($q) => $q->where("status", "Penugasan")->where("user_id", Auth::id()));
+        if (Auth::user()->roles()->first()?->name === "OPS staff") {
+            $items->whereHas("statusJobOps", fn($q) => $q->where("status", "Penugasan")->where("user_id", Auth::id()));
+        }
+
+        \App\Services\Job\OpsFilter::apply($items, $filters);
+        $sort = \App\Services\Job\OpsFilter::sortKey($request->query('sort'));
+        $direction = \App\Services\Job\OpsFilter::sortDirection($request->query('direction'));
+        \App\Services\Job\OpsFilter::applySort($items, $sort, $direction);
+
+        $prosesList = JobDivisiFormOrder::query()
+            ->where("kategori", "operasional")
+            ->select("nama")->distinct()->orderBy("nama")->pluck("nama");
+
+        $bankList = Bank::orderBy("nama")->pluck("nama");
+        $userOps = User::orderBy("name", "asc")->get();
+        $permissionAll = Auth::user()->getAllPermissions()->pluck("name")->toArray();
+
+        return view("pages.Job.Ops.index", [
+            "items" => $items->paginate(14)->withQueryString()
+                ->appends(['apply_filter' => null, 'reset_filter' => null]),
+            "userOps" => $userOps,
+            "countFilter" => $countFilter,
+            "filters" => $filters,
+            "permissionAll" => $permissionAll,
+            "prosesList" => $prosesList,
+            "bankList" => $bankList,
+            "sort" => $sort,
+            "direction" => $direction,
+        ]);
     }
-
-    \App\Services\Job\OpsFilter::apply($items, $filters);
-
-    $prosesList = JobDivisiFormOrder::query()
-        ->where("kategori", "operasional")
-        ->select("nama")->distinct()->orderBy("nama")->pluck("nama");
-
-    $bankList = Bank::orderBy("nama")->pluck("nama");
-    $userOps = User::orderBy("name", "asc")->get();
-    $permissionAll = Auth::user()->getAllPermissions()->pluck("name")->toArray();
-
-    return view("pages.Job.Ops.index", [
-        "items" => $items->paginate(14)->withQueryString()
-            ->appends(['apply_filter' => null, 'reset_filter' => null]),
-        "userOps" => $userOps,
-        "countFilter" => $countFilter,
-        "filters" => $filters,
-        "permissionAll" => $permissionAll,
-        "prosesList" => $prosesList,
-        "bankList" => $bankList,
-    ]);
-}
 
     /**
      * Show the form for creating a new resource.

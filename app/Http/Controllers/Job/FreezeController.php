@@ -13,6 +13,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+// use Illuminate\Http\Request;
+use App\Models\User;
+
+// Ekspresi SQL per kolom. Statis (bukan input user), input cuma dipakai milih key.
+
 
 class FreezeController extends Controller
 {
@@ -21,10 +26,34 @@ class FreezeController extends Controller
         protected NotifikasiServis $notifikasiServis
     ) {}
 
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    private const SORT_COLUMNS = [
+        'kode_job' => [
+            'type' => 'text',
+            'expr' => '(select j.kode from job_divisis j where j.id = {t}.job_divisi limit 1)',
+        ],
+        'status' => [
+            'type' => 'text',
+            'expr' => '{t}.status',
+        ],
+        'diajukan_oleh' => [
+            'type' => 'text',
+            'expr' => '(select u.name from {u} u where u.id = {t}.user_id limit 1)',
+        ],
+        'tanggal_pengajuan' => [
+            'type' => 'date',
+            'expr' => '{t}.created_at',
+        ],
+        'start_date' => [
+            'type' => 'date',
+            'expr' => '{t}.start_date',
+        ],
+        'end_date' => [
+            'type' => 'date',
+            'expr' => '{t}.end_date',
+        ],
+    ];
+
+    public function index(Request $request)
     {
         abort_unless(
             Auth::user()->canAny([
@@ -34,11 +63,74 @@ class FreezeController extends Controller
             ]),
             403
         );
-        $items = ApprovalFreez::orderBy("id", "desc")->paginate(12);
+
+        // whitelist
+        $sortInput = $request->query('sort');
+        $sort = is_string($sortInput) && isset(self::SORT_COLUMNS[$sortInput]) ? $sortInput : null;
+        $direction = in_array($request->query('direction'), ['asc', 'desc', 'empty'], true)
+            ? $request->query('direction')
+            : 'asc';
+
+        $query = ApprovalFreez::query()->orderBy("id", "desc");
+        $this->applySort($query, $sort, $direction);
+
+        $items = $query->paginate(12)->withQueryString();
+
         return view("pages.Freeze.index", [
-            'items' => $items
+            'items' => $items,
+            'sort' => $sort,
+            'direction' => $direction,
         ]);
     }
+
+    private function applySort($query, ?string $sort, string $direction)
+    {
+        $col = self::SORT_COLUMNS[$sort] ?? null;
+
+        // gak ada sort aktif: urutan default (id desc) tetap jalan
+        if (!$col) {
+            return $query;
+        }
+
+        // nama tabel diambil dari model, jadi gak perlu nebak
+        $t = (new ApprovalFreez)->getTable();
+        $u = (new User)->getTable();
+        $expr = str_replace(['{t}', '{u}'], [$t, $u], $col['expr']);
+
+        $isEmpty = $col['type'] === 'text'
+            ? "NULLIF(TRIM($expr), '') IS NULL"
+            : "($expr) IS NULL";
+
+        $query->reorder();
+
+        if ($direction === 'empty') {
+            $query->orderByRaw("$isEmpty DESC")->orderByRaw("($expr) ASC");
+        } else {
+            $query->orderByRaw("$isEmpty ASC")
+                ->orderByRaw("($expr) " . ($direction === 'desc' ? 'DESC' : 'ASC'));
+        }
+
+        return $query->orderByDesc("$t.id");
+    }
+
+    /**
+     * Display a listing of the resource.
+     */
+    // public function index()
+    // {
+    //     abort_unless(
+    //         Auth::user()->canAny([
+    //             'berkas-bermasalah/freeze/list',
+    //             'berkas-bermasalah/freeze/setuju',
+    //             'berkas-bermasalah/freeze/tolak',
+    //         ]),
+    //         403
+    //     );
+    //     $items = ApprovalFreez::orderBy("id", "desc")->paginate(12);
+    //     return view("pages.Freeze.index", [
+    //         'items' => $items
+    //     ]);
+    // }
 
     /**
      * Show the form for creating a new resource.

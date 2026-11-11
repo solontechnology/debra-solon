@@ -10,6 +10,8 @@ class ArsipWarkahController extends Controller
 {
     public function __construct(protected JobDivisiIndexServis $jobDivisiIndexServis) {}
 
+    
+
     public function index(Request $request)
     {
         return view("pages.arsip.warkah.index", $this->jobDivisiIndexServis->execute($request, [

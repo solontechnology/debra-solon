@@ -15,6 +15,88 @@ use Illuminate\Support\Facades\DB;
 
 class JobDivisiIndexServis
 {
+
+    // Ekspresi SQL per kolom sort. Semua string statis (bukan input user),
+    // input user cuma dipakai buat milih key lewat whitelist.
+    private const EXPIRED_TERBESAR = '(select max(np.tanggal_expired)
+    from nomor_ppats np
+    join job_divisi_form_orders fo on fo.id = np.job_divisi_form_order_id
+    where fo.job_divisi_id = job_divisis.id)';
+
+    private const SORT_COLUMNS = [
+        'kode' => [
+            'type' => 'text',
+            'expr' => 'job_divisis.kode',
+        ],
+        // sama kayak yang tampil di view: is_pending ? 'Pending' : status
+        'status' => [
+            'type' => 'text',
+            'expr' => "CASE WHEN job_divisis.is_pending = 1 THEN 'Pending' ELSE job_divisis.status END",
+        ],
+        // urutan prioritas ngikutin tampilan view: Debitur, Pembeli, Penjual
+        'nama_penghadap' => [
+            'type' => 'text',
+            'expr' => "COALESCE(
+        NULLIF((select min(d.nama) from debiturs d where d.job_divisi_id = job_divisis.id), ''),
+        NULLIF((select min(p.nama) from pembelis p where p.job_divisi_id = job_divisis.id), ''),
+        NULLIF((select min(j.nama) from penjuals j where j.job_divisi_id = job_divisis.id), '')
+    )",
+        ],
+        'bank' => [
+            'type' => 'text',
+            'expr' => '(select min(b.nama_bank) from job_banks b where b.job_divisi_id = job_divisis.id)',
+        ],
+        'objek' => [
+            'type' => 'text',
+            'expr' => '(select min(o.no_sertifikat) from job_divisi_objeks o where o.job_divisi_id = job_divisis.id)',
+        ],
+        'jenis_akad' => [
+            'type' => 'text',
+            'expr' => '(select m.nama from master_data_form_orders m where m.id = job_divisis.jenis_akad limit 1)',
+        ],
+        // view nampilin tanggal_rencana_akad, jadi sort-nya ikut itu
+        'tanggal_akad' => [
+            'type' => 'date',
+            'expr' => 'DATE(job_divisis.tanggal_rencana_akad)',
+        ],
+        // niru logika PHP: pakai expired terbesar kalau ada, kalau gak ada pakai kolom asli
+        'est_internal' => [
+            'type' => 'date',
+            'expr' => 'DATE(COALESCE(' . self::EXPIRED_TERBESAR . ', job_divisis.tanggal_estimasi_selesai))',
+        ],
+        // niru logika PHP: expired terbesar + selisih (eksternal - internal) dari tanggal lama
+        'est_eksternal' => [
+            'type' => 'date',
+            'expr' => 'DATE(COALESCE(
+            DATE_ADD(' . self::EXPIRED_TERBESAR . ',
+                INTERVAL COALESCE(DATEDIFF(job_divisis.tanggal_estimasi_selesai_eksternal, job_divisis.tanggal_estimasi_selesai), 0) DAY),
+            job_divisis.tanggal_estimasi_selesai_eksternal
+        ))',
+        ],
+        'penanggung_jawab' => [
+            'type' => 'text',
+            'expr' => '(select u.username from users u where u.id = job_divisis.user_ops limit 1)',
+        ],
+        'dibuat_oleh' => [
+            'type' => 'text',
+            'expr' => '(select u.username from users u where u.id = job_divisis.created_by limit 1)',
+        ],
+        // view arsip nampilin: tanggal_akad kalau ada, kalau gak ada tanggal_rencana_akad
+'tanggal_akad_arsip' => [
+    'type' => 'date',
+    'expr' => 'DATE(COALESCE(job_divisis.tanggal_akad, job_divisis.tanggal_rencana_akad))',
+],
+// niru view: total harga_proses semua form order - kas masuk yang disetujui
+'piutang' => [
+    'type' => 'number',
+    'expr' => "(COALESCE((select sum(fo.harga_proses) from job_divisi_form_orders fo
+            where fo.job_divisi_id = job_divisis.id), 0)
+        - COALESCE((select sum(f.total) from job_divisi_finances f
+            where f.job_divisi_id = job_divisis.id
+            and f.tipe = 'in'
+            and LOWER(f.status) in ('disetujui', 'approved')), 0))",
+],
+    ];
     public function __construct(
         private WorkflowAktaService $workflowAktaService,
         private JobDivisiProgressService $progressService
@@ -23,127 +105,14 @@ class JobDivisiIndexServis
     public function execute(Request $request, array $options = []): array
     {
         $completedOnly = (bool) ($options["completed_only"] ?? false);
-        // $kode = $request->kode ?? $request->q;
-        // $status = $completedOnly ? null : $request->status;
-        // $tanggalAkad = $request->tanggal_akad;
-        // $namaPenghadap = $request->nama_penghadap;
-        // $user = Cache::remember('master_users', 86400, fn() => User::orderBy("name", "asc")->get());
-
-        // $countFilter = collect([
-        //     'kode' => $kode,
-        //     'status' => $status,
-        //     'tanggal_akad' => $tanggalAkad,
-        //     'nama_penghadap' => $namaPenghadap,
-        // ])
-        //     ->filter(fn($value) => filled($value))
-        //     ->count();
-        // $sessionKey = 'job_divisi_filter_' . ($completedOnly ? 'selesai' : 'aktif');
-
-        // // if ($request->boolean('reset_filter')) {
-        // //     // User klik Reset Filter -> hapus filter tersimpan
-        // //     session()->forget($sessionKey);
-        // // } elseif ($request->has('apply_filter')) {
-        // //     // User klik Terapkan Filter -> simpen pilihan terbaru
-        // //     session()->put($sessionKey, [
-        // //         'kode'           => $request->input('kode', $request->input('q')),
-        // //         'status'         => $request->input('status'),
-        // //         'tanggal_akad'   => $request->input('tanggal_akad'),
-        // //         'nama_penghadap' => $request->input('nama_penghadap'),
-        // //     ]);
-        // // }
-
-        // // // Selalu baca dari session, jadi refresh / pindah halaman tetep sama
-        // // $saved = session($sessionKey, []);
-
-        // // $kode          = $saved['kode'] ?? null;
-        // // $status        = $completedOnly ? null : ($saved['status'] ?? null);
-        // // $tanggalAkad   = $saved['tanggal_akad'] ?? null;
-        // // $namaPenghadap = $saved['nama_penghadap'] ?? null;
-        // $dateFields = ['tanggal_akad', 'est_internal', 'est_eksternal'];
-
-        // $filterKeys = [
-        //     'kode',
-        //     'status',
-        //     'nama_penghadap',
-        //     'bank',
-        //     'objek',
-        //     'jenis_akad',
-        //     'penanggung_jawab',
-        //     'dibuat_oleh',
-        //     'tanggal_akad_mode',
-        //     'tanggal_akad_dari',
-        //     'tanggal_akad_sampai',
-        //     'est_internal_mode',
-        //     'est_internal_dari',
-        //     'est_internal_sampai',
-        //     'est_eksternal_mode',
-        //     'est_eksternal_dari',
-        //     'est_eksternal_sampai',
-        // ];
-        // if ($request->boolean('reset_filter')) {
-        //     session()->forget($sessionKey);
-        // } elseif ($request->has('apply_filter')) {
-        //     $input = $request->only($filterKeys);
-        //     $input['kode'] = $request->input('kode', $request->input('q'));
-        //     session()->put($sessionKey, $input);
-        // }
-
-        // $saved   = session($sessionKey, []);
-        // $filters = collect($filterKeys)->mapWithKeys(fn($k) => [$k => $saved[$k] ?? null])->all();
-        // if ($completedOnly) {
-        //     $filters['status'] = null;
-        // }
-
-        // $toRange = function (string $p) use ($filters): ?array {
-        //     $mode   = $filters["{$p}_mode"] ?: 'hari';
-        //     $dari   = $filters["{$p}_dari"];
-        //     $sampai = $filters["{$p}_sampai"];
-
-        //     if (!filled($dari) && !filled($sampai)) {
-        //         return null;
-        //     }
-        //     $dari   = $dari ?: $sampai;   // salah satu kosong = periode tunggal
-        //     $sampai = $sampai ?: $dari;
-
-        //     try {
-        //         [$start, $end] = match ($mode) {
-        //             'bulan' => [Carbon::parse($dari . '-01')->startOfMonth(), Carbon::parse($sampai . '-01')->endOfMonth()],
-        //             'tahun' => [Carbon::create((int) $dari, 1, 1)->startOfYear(), Carbon::create((int) $sampai, 1, 1)->endOfYear()],
-        //             default => [Carbon::parse($dari)->startOfDay(), Carbon::parse($sampai)->endOfDay()],
-        //         };
-        //     } catch (\Throwable $e) {
-        //         return null;
-        //     }
-
-        //     if ($start->gt($end)) {
-        //         [$start, $end] = [$end->copy()->startOfDay(), $start->copy()->endOfDay()];
-        //     }
-
-        //     return [$start->toDateString(), $end->toDateString()];
-        // };
-
-        // $rangeAkad      = $toRange('tanggal_akad');
-        // $rangeInternal  = $toRange('est_internal');
-        // $rangeEksternal = $toRange('est_eksternal');
-
-        // $countFilter = collect($filters)
-        //     ->only(['kode', 'status', 'nama_penghadap', 'bank', 'objek', 'jenis_akad', 'penanggung_jawab', 'dibuat_oleh'])
-        //     ->filter(fn($v) => filled($v))->count()
-        //     + collect([$rangeAkad, $rangeInternal, $rangeEksternal])->filter()->count();
-
-        // $kode          = $filters['kode'];
-        // $status        = $filters['status'];
-        // // $tanggalAkad   = $filters['tanggal_akad'];
-        // $namaPenghadap = $filters['nama_penghadap'];
-        // $bank          = $filters['bank'];
-        // $objek         = $filters['objek'];
-        // $jenisAkad     = $filters['jenis_akad'];
-        // // $estInternal   = $filters['est_internal'];
-        // // $estEksternal  = $filters['est_eksternal'];
-        // $penanggungJawab = $filters['penanggung_jawab'];
-        // $dibuatOleh    = $filters['dibuat_oleh'];
         $filters     = JobDivisiFilter::resolve($request, $completedOnly);
         $countFilter = JobDivisiFilter::count($filters);
+        // whitelist: input dari URL gak boleh langsung masuk query
+        $sortInput = $request->query('sort');
+        $sort = is_string($sortInput) && isset(self::SORT_COLUMNS[$sortInput]) ? $sortInput : null;
+        $direction = in_array($request->query('direction'), ['asc', 'desc', 'empty'], true)
+            ? $request->query('direction')
+            : 'asc';
 
         $user = Cache::remember('master_users', 86400, fn() => User::orderBy("name", "asc")->get());
         $banks = Cache::remember(
@@ -157,7 +126,7 @@ class JobDivisiIndexServis
             fn() =>
             MasterDataFormOrder::orderBy('nama')->get(['id', 'nama'])
         );
-        $items = JobDivisiFilter::apply(
+        $query = JobDivisiFilter::apply(
             JobDivisi::with([
                 "bank",
                 "listBank",
@@ -177,81 +146,11 @@ class JobDivisiIndexServis
                 ->orderBy("id", "desc"),
             $filters,
             $completedOnly
-        )
+        );
+        $items = $this->applySort($query, $sort, $direction)
             ->paginate(12)
             ->withQueryString()
             ->appends(['apply_filter' => null, 'reset_filter' => null]);
-
-        // $countFilter = collect([
-        //     'kode' => $kode,
-        //     'status' => $status,
-        //     'tanggal_akad' => $tanggalAkad,
-        //     'nama_penghadap' => $namaPenghadap,
-        // ])
-        //     ->filter(fn($value) => filled($value))
-        //     ->count();
-
-
-        // $items = JobDivisi::with([
-        //     "bank",
-        //     "listBank",
-        //     "objek",
-        //     "divisiYangDituju",
-        //     "jenisAkad",
-        //     "debitur",
-        //     "listPembeli",
-        //     "listPenjual",
-        //     "pembatalan.user",
-        //     "pembatalan.user2",
-        //     "formOrder.nomorPpat",
-        //     "formOrder.statusJobOps" => fn($query) => $query->orderBy('id'),
-        //     "finance",
-        // ])
-        //     ->orderBy("is_pending", "desc")
-        //     ->orderBy("id", "desc")
-        //     ->when($kode, function ($query) use ($kode) {
-        //         return $query->where("kode", "like", "%$kode%");
-        //     })
-        //     ->when($status, function ($query) use ($status) {
-        //         if ($status === "Pending") {
-        //             return $query->where("is_pending", 1);
-        //         }
-
-        //         return $query->where("status", $status)
-        //             ->where("is_pending", 0);
-        //     })
-        //     ->when($rangeAkad, fn($q, $r) => $q->where(function ($q) use ($r) {
-        //         $q->whereBetween(DB::raw('DATE(tanggal_akad)'), $r)
-        //             ->orWhere(fn($q) => $q->whereNull('tanggal_akad')
-        //                 ->whereBetween(DB::raw('DATE(tanggal_rencana_akad)'), $r));
-        //     }))
-        //     ->when($namaPenghadap, function ($query) use ($namaPenghadap) {
-        //         return $query->where(function ($query) use ($namaPenghadap) {
-        //             $query->whereHas("debitur", fn($q) => $q->where("nama", "LIKE", "%$namaPenghadap%"))
-        //                 ->orWhereHas("listPembeli", fn($q) => $q->where("nama", "LIKE", "%$namaPenghadap%"))
-        //                 ->orWhereHas("listPenjual", fn($q) => $q->where("nama", "LIKE", "%$namaPenghadap%"));
-        //         });
-        //     })
-        //     ->when($filters['bank'], fn($q, $v) => $q->whereHas('listBank', fn($b) => $b->where('nama_bank', 'like', "%$v%")))->when($filters['objek'], fn($q, $v) => $q->whereHas('objek', fn($o) => $o->where(function ($o) use ($v) {
-        //         $o->where('nama_pemilik', 'like', "%$v%")
-        //             ->orWhere('no_sertifikat', 'like', "%$v%")
-        //             ->orWhere('alamat', 'like', "%$v%")
-        //             ->orWhere('jenis_sertifikat', 'like', "%$v%");
-        //     })))->when($filters['jenis_akad'], fn($q, $v) => $q->where('jenis_akad', $v))
-        //     ->when($rangeInternal, fn($q, $r) => $q->whereBetween(DB::raw('DATE(tanggal_estimasi_selesai)'), $r))
-        //     ->when($rangeEksternal, fn($q, $r) => $q->whereBetween(DB::raw('DATE(tanggal_estimasi_selesai_eksternal)'), $r))
-        //     ->when($filters['penanggung_jawab'], fn($q, $v) => $q->where('user_ops', $v))
-        //     ->when($filters['dibuat_oleh'], fn($q, $v) => $q->where('created_by', $v))
-        //     ->when($completedOnly, function ($query) {
-        //         return $query->where("status", "Selesai")
-        //             ->where("is_pending", 0);
-        //     }, function ($query) {
-        //         return $query->where("status", "!=", "Selesai");
-        //     })
-        //     // ->paginate(12)
-        //     // ->withQueryString();
-        //     ->paginate(12)
-        //     ->withQueryString();
 
         $categories = $items->getCollection()
             ->flatMap(fn($item) => $item->formOrder->pluck('kategori'))
@@ -284,6 +183,8 @@ class JobDivisiIndexServis
                         'label' => $categoryLabels[$category] ?? str($category)->replace(['-', '_'], ' ')->headline()->toString(),
                         'progress' => $this->progressService->summarize($formOrders, $workflows),
                         'form_orders' => $formOrders,
+                        // "sort" => $sort,
+                        // "direction" => $direction,
 
                     ];
                 })
@@ -336,20 +237,39 @@ class JobDivisiIndexServis
             "user" => $user,
             "banks" => $banks,
             "jenisAkadOptions" => $jenisAkadOptions,
-            // "filters" => [
-            //     'kode'           => $kode,
-            //     'status'         => $status,
-            //     // 'tanggal_akad'   => $tanggalAkad,
-            //     'nama_penghadap' => $namaPenghadap,
-            //     'bank'           => $bank,
-            //     'objek'          => $objek,
-            //     'jenis_akad'     => $jenisAkad,
-            //     // 'est_internal'   => $estInternal,
-            //     // 'est_eksternal'  => $estEksternal,
-            //     'penanggung_jawab' => $penanggungJawab,
-            //     'dibuat_oleh'    => $dibuatOleh,
-            // ],
             "filters" => $filters,
+            "sort" => $sort,
+            "direction" => $direction,
         ];
+    }
+    private function applySort($query, ?string $sort, string $direction)
+    {
+        $col = self::SORT_COLUMNS[$sort] ?? null;
+
+        // gak ada sort aktif: urutan default lu (is_pending desc, id desc) tetap jalan
+        if (!$col) {
+            return $query;
+        }
+
+        $query->reorder();
+
+        $expr = $col['expr'];
+
+        // date cukup cek NULL, text juga dianggap kosong kalau string kosong/spasi
+        $isEmpty = $col['type'] === 'date'
+            ? "($expr) IS NULL"
+            : "NULLIF(TRIM($expr), '') IS NULL";
+
+        if ($direction === 'empty') {
+            // kosong di atas, sisanya A-Z
+            $query->orderByRaw("$isEmpty DESC")->orderByRaw("($expr) ASC");
+        } else {
+            // kosong selalu di bawah, sisanya A-Z / Z-A
+            $query->orderByRaw("$isEmpty ASC")
+                ->orderByRaw("($expr) " . ($direction === 'desc' ? 'DESC' : 'ASC'));
+        }
+
+        // tie-breaker biar urutan antar halaman stabil
+        return $query->orderByDesc('job_divisis.id');
     }
 }

@@ -26,14 +26,87 @@ class DispoController extends Controller
         $this->notifikasiServis = $notifikasiServis;
     }
 
+    // Ekspresi SQL per kolom. Statis (bukan input user), input cuma dipakai milih key.
+    private const SORT_COLUMNS = [
+        'kode_parent' => [
+            'type' => 'text',
+            'expr' => '(select j.kode from {j} j
+            join {f} f on f.job_divisi_id = j.id
+            where f.id = {t}.job_divisi_form_order_id limit 1)',
+        ],
+        'pekerjaan' => [
+            'type' => 'text',
+            'expr' => '(select f.nama from {f} f where f.id = {t}.job_divisi_form_order_id limit 1)',
+        ],
+        'start_date' => [
+            'type' => 'date',
+            'expr' => '{t}.start_date',
+        ],
+        'end_date' => [
+            'type' => 'date',
+            'expr' => '{t}.end_date',
+        ],
+        'dibuat_oleh' => [
+            'type' => 'text',
+            'expr' => '(select u.name from {u} u where u.id = {t}.created_by limit 1)',
+        ],
+    ];
 
-    public function index()
+
+    public function index(Request $request)
     {
-        $items = Dispo::orderBy("id", "desc")
-            ->with("jobDivisiFormOrder.jobDivisi", "dibuat")
-            ->paginate(12);
+        // whitelist
+        $sortInput = $request->query('sort');
+        $sort = is_string($sortInput) && isset(self::SORT_COLUMNS[$sortInput]) ? $sortInput : null;
+        $direction = in_array($request->query('direction'), ['asc', 'desc', 'empty'], true)
+            ? $request->query('direction')
+            : 'asc';
 
-        return view("pages.dispo.index", compact("items"));
+        $query = Dispo::orderBy("id", "desc")
+            ->with("jobDivisiFormOrder.jobDivisi", "dibuat");
+        $this->applySort($query, $sort, $direction);
+
+        $items = $query->paginate(12)->withQueryString();
+
+        return view("pages.dispo.index", compact("items", "sort", "direction"));
+    }
+
+    private function applySort($query, ?string $sort, string $direction)
+    {
+        $col = self::SORT_COLUMNS[$sort] ?? null;
+
+        // gak ada sort aktif: urutan default (id desc) tetap jalan
+        if (!$col) {
+            return $query;
+        }
+
+        // nama tabel diambil dari model, jadi gak perlu nebak
+        $t = (new Dispo)->getTable();
+        $expr = str_replace(
+            ['{t}', '{f}', '{j}', '{u}'],
+            [
+                $t,
+                (new JobDivisiFormOrder)->getTable(),
+                (new \App\Models\JobDivisi)->getTable(),
+                (new User)->getTable(),
+            ],
+            $col['expr']
+        );
+
+        $isEmpty = $col['type'] === 'text'
+            ? "NULLIF(TRIM($expr), '') IS NULL"
+            : "($expr) IS NULL";
+
+        $query->reorder();
+
+        if ($direction === 'empty') {
+            $query->orderByRaw("$isEmpty DESC")->orderByRaw("($expr) ASC");
+        } else {
+            $query->orderByRaw("$isEmpty ASC")
+                ->orderByRaw("($expr) " . ($direction === 'desc' ? 'DESC' : 'ASC'));
+        }
+
+        return $query->orderByDesc("$t.id");
     }
 
     /**

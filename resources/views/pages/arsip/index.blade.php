@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title')
-    Bundle Nomor
+    Bundle Nomor {{ $tipe === 'ppat' ? 'PPAT' : 'Akta' }}
 @endsection
 
 @section('content')
@@ -13,14 +13,16 @@
                 </div>
             @endcan
             <div class="table-responsive">
-                <table class="table table-bordered table-sm">
+                <table class="table table-bordered table-sm" data-sortable="false">
                     <thead>
                         <tr>
-                            <th>Nomor Bundle</th>
-                            <th>Total Nomor</th>
-                            <th>Tahun</th>
-                            <th>Bulan</th>
-                            <th>Tanggal Penginputan</th>
+                            <x-sortable-th column="nomor" :sort="$sort" :direction="$direction">Nomor Bundle</x-sortable-th>
+                            <x-sortable-th column="total_nomor" :sort="$sort" :direction="$direction">Total
+                                Nomor</x-sortable-th>
+                            <x-sortable-th column="tahun" :sort="$sort" :direction="$direction">Tahun</x-sortable-th>
+                            <x-sortable-th column="bulan" :sort="$sort" :direction="$direction">Bulan</x-sortable-th>
+                            <x-sortable-th column="created_at" :sort="$sort" :direction="$direction">Tanggal
+                                Penginputan</x-sortable-th>
                             <th></th>
                         </tr>
                     </thead>
@@ -39,7 +41,8 @@
                                             Detail
                                         </button>
                                         @can('arsip/ppat/delete')
-                                            <form action="{{ route('arsip.bundle.destroy', [$item->id, 'tipe' => $tipe]) }}" method="POST">
+                                            <form action="{{ route('arsip.bundle.destroy', [$item->id, 'tipe' => $tipe]) }}"
+                                                method="POST">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="btn btn-danger btn-sm confirm_delete"

@@ -14,6 +14,17 @@ class BundleController extends Controller
     /**
      * Display a listing of the resource.
      */
+
+    // Ekspresi SQL per kolom. Statis (bukan input user), input cuma dipakai milih key.
+    private const SORT_COLUMNS = [
+        // nomor bundle dianggap angka, biar 2 < 10
+        'nomor'        => ['type' => 'number', 'expr' => 'CAST({t}.nomor AS UNSIGNED)'],
+        // alias dari withCount("nomorPpat")
+        'total_nomor'  => ['type' => 'number', 'expr' => 'nomor_ppat_count'],
+        'tahun'        => ['type' => 'number', 'expr' => '{t}.tahun'],
+        'bulan'        => ['type' => 'number', 'expr' => '{t}.bulan'],
+        'created_at'   => ['type' => 'date',   'expr' => '{t}.created_at'],
+    ];
     public function index(Request $request)
     {
         $tipe = $request->tipe ?? "notaris";
@@ -28,16 +39,25 @@ class BundleController extends Controller
             $bulan = null;
         }
 
-        $items = BundleNomor::orderBy("id", "desc")
+        // whitelist
+        $sortInput = $request->query('sort');
+        $sort = is_string($sortInput) && isset(self::SORT_COLUMNS[$sortInput]) ? $sortInput : null;
+        $direction = in_array($request->query('direction'), ['asc', 'desc', 'empty'], true)
+            ? $request->query('direction')
+            : 'asc';
+
+        $query = BundleNomor::orderBy("id", "desc")
             ->where("kategori", $tipe)
             ->where("tahun", $tahun)
             ->when($bulan, function ($query) use ($bulan) {
                 $query->where("bulan", $bulan);
             })
             ->with(["nomorPpat.formOrder.jobDivisi.debitur", "nomorPpat.formOrder.jobDivisi.objek", "nomorPpat.pekerjaan"])
-            ->withCount("nomorPpat")
-            ->paginate(12)
-            ->withQueryString();
+            ->withCount("nomorPpat");
+
+        $this->applySort($query, $sort, $direction);
+
+        $items = $query->paginate(12)->withQueryString();
 
         $dataNomor = collect();
         $tahunList = collect(range(now()->year, now()->subYears(10)->year));
@@ -97,8 +117,37 @@ class BundleController extends Controller
             ]);
         }
 
-        return view("pages.arsip.index", compact("items", "dataNomor", "tipe", "bulan", "tahun", "bulanList", "tahunList"));
+        // return view("pages.arsip.index", compact("items", "dataNomor", "tipe", "bulan", "tahun", "bulanList", "tahunList"));
+        return view("pages.arsip.index", compact("items", "dataNomor", "tipe", "bulan", "tahun", "bulanList", "tahunList", "sort", "direction"));
     }
+    private function applySort($query, ?string $sort, string $direction)
+{
+    $col = self::SORT_COLUMNS[$sort] ?? null;
+
+    // gak ada sort aktif: urutan default (id desc) tetap jalan
+    if (!$col) {
+        return $query;
+    }
+
+    // nama tabel diambil dari model, jadi gak perlu nebak
+    $t = (new BundleNomor)->getTable();
+    $expr = str_replace('{t}', $t, $col['expr']);
+
+    $isEmpty = $col['type'] === 'text'
+        ? "NULLIF(TRIM($expr), '') IS NULL"
+        : "($expr) IS NULL";
+
+    $query->reorder();
+
+    if ($direction === 'empty') {
+        $query->orderByRaw("$isEmpty DESC")->orderByRaw("($expr) ASC");
+    } else {
+        $query->orderByRaw("$isEmpty ASC")
+            ->orderByRaw("($expr) " . ($direction === 'desc' ? 'DESC' : 'ASC'));
+    }
+
+    return $query->orderByDesc("$t.id");
+}
 
     /**
      * Show the form for creating a new resource.

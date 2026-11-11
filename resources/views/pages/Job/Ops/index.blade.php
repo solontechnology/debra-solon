@@ -51,21 +51,34 @@
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0 text-nowrap">
+                    <input type="hidden" name="sort" value="{{ $sort }}">
+                    <input type="hidden" name="direction" value="{{ $direction }}">
                     <thead class="bg-light">
                         <tr>
-                            {{-- <th class="py-3 ps-4 text-secondary text-uppercase font-monospace small fw-bold" style="width: 50px;">No</th> --}}
-                            <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Parent</th>
-                            <th class="py-3 text-center text-secondary text-uppercase font-monospace small fw-bold">Status
-                                Akad</th>
-                            <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Proses</th>
-                            <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nomor Objek</th>
-                            <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nama Penghadap</th>
-                            <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nama Bank</th>
+                            <x-sortable-th column="parent" :sort="$sort" :direction="$direction"
+                                class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Parent</x-sortable-th>
+                            <x-sortable-th column="status_akad" :sort="$sort" :direction="$direction"
+                                class="py-3 text-center text-secondary text-uppercase font-monospace small fw-bold">Status
+                                Akad</x-sortable-th>
+                            <x-sortable-th column="proses" :sort="$sort" :direction="$direction"
+                                class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Proses</x-sortable-th>
+                            <x-sortable-th column="nomor_objek" :sort="$sort" :direction="$direction"
+                                class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nomor
+                                Objek</x-sortable-th>
+                            <x-sortable-th column="nama_penghadap" :sort="$sort" :direction="$direction"
+                                class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nama
+                                Penghadap</x-sortable-th>
+                            <x-sortable-th column="bank" :sort="$sort" :direction="$direction"
+                                class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nama
+                                Bank</x-sortable-th>
                             @can('job/ops/biaya proses')
-                                <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Biaya Proses</th>
+                                <x-sortable-th column="biaya_proses" :sort="$sort" :direction="$direction"
+                                    class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Biaya
+                                    Proses</x-sortable-th>
                             @endcan
-                            <th class="py-3 text-center text-secondary text-uppercase font-monospace small fw-bold">Status
-                                Pengerjaan</th>
+                            <x-sortable-th column="status_pengerjaan" :sort="$sort" :direction="$direction"
+                                class="py-3 text-center text-secondary text-uppercase font-monospace small fw-bold">Status
+                                Pengerjaan</x-sortable-th>
                             <th class="py-3 pe-4 text-center text-secondary text-uppercase font-monospace small fw-bold">
                                 Aksi</th>
                         </tr>
@@ -223,9 +236,9 @@
 
                                             {{-- EDIT STATUS / PENUGASAN --}}
                                             @if ($status != 'Selesai')
-                                            <x-job.ops.edit-status-ops :formOrder="$item" :key="$key" :jobDivisi="$item->jobDivisi"
-                                                :statusOps="$item->statusJobOps" :userOps="$userOps" :userPermission="$permissionAll" />
-                                                
+                                                <x-job.ops.edit-status-ops :formOrder="$item" :key="$key"
+                                                    :jobDivisi="$item->jobDivisi" :statusOps="$item->statusJobOps" :userOps="$userOps"
+                                                    :userPermission="$permissionAll" />
                                             @endif
 
                                             {{-- DISPO --}}

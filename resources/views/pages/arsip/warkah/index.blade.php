@@ -16,19 +16,26 @@
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-bordered">
+                <table class="table table-bordered" data-sortable="false">
+                    <input type="hidden" name="sort" value="{{ $sort }}">
+                    <input type="hidden" name="direction" value="{{ $direction }}">
                     <thead>
                         <tr>
-                            <th>Kode</th>
-                            <th>Status</th>
-                            <th>Nama Penghadap</th>
-                            <th>Bank</th>
-                            <th>Objek</th>
-                            <th>Jenis Akad</th>
-                            <th>Piutang</th>
-                            <th>Tanggal Akad</th>
-                            <th>Estimasi Selesai Internal</th>
-                            <th>Estimasi Selesai Eksternal</th>
+                            <x-sortable-th column="kode" :sort="$sort" :direction="$direction">Kode</x-sortable-th>
+                            <x-sortable-th column="status" :sort="$sort" :direction="$direction">Status</x-sortable-th>
+                            <x-sortable-th column="nama_penghadap" :sort="$sort" :direction="$direction">Nama
+                                Penghadap</x-sortable-th>
+                            <x-sortable-th column="bank" :sort="$sort" :direction="$direction">Bank</x-sortable-th>
+                            <x-sortable-th column="objek" :sort="$sort" :direction="$direction">Objek</x-sortable-th>
+                            <x-sortable-th column="jenis_akad" :sort="$sort" :direction="$direction">Jenis
+                                Akad</x-sortable-th>
+                            <x-sortable-th column="piutang" :sort="$sort" :direction="$direction">Piutang</x-sortable-th>
+                            <x-sortable-th column="tanggal_akad_arsip" :sort="$sort" :direction="$direction">Tanggal
+                                Akad</x-sortable-th>
+                            <x-sortable-th column="est_internal" :sort="$sort" :direction="$direction">Estimasi Selesai
+                                Internal</x-sortable-th>
+                            <x-sortable-th column="est_eksternal" :sort="$sort" :direction="$direction">Estimasi Selesai
+                                Eksternal</x-sortable-th>
                             <th>Aksi</th>
                         </tr>
                     </thead>

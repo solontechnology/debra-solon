@@ -8,6 +8,7 @@ use App\Models\StatusJobOps;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AktaService
 {
@@ -23,6 +24,7 @@ class AktaService
         'bank',
         'status_akad',
     ];
+    private const SORTABLE = ['parent', 'proses', 'nomor_akta', 'penugasan', 'status_akad'];
 
     public function __construct(private WorkflowAktaService $workflowAktaService) {}
 
@@ -31,8 +33,17 @@ class AktaService
         $tipe = $tipe ?: 'notaris';
         $filters = $this->resolveFilters($request, $tipe);
 
+        // whitelist: input dari URL gak boleh langsung masuk ke query
+        $sort = in_array($request->query('sort'), self::SORTABLE, true) ? $request->query('sort') : null;
+        // $direction = $request->query('direction') === 'asc' ? 'asc' : 'desc';
+        $direction = in_array($request->query('direction'), ['asc', 'desc', 'empty'], true)
+            ? $request->query('direction')
+            : 'desc';
+
         return [
-            "items" => $this->getItems($filters, $tipe),
+            "items" => $this->getItems($filters, $tipe, $sort, $direction),
+            "sort" => $sort,
+            "direction" => $direction,
             "user_ops" => $this->getUserOps(),
             "tipe" => $tipe,
             "filters" => $filters,
@@ -161,28 +172,92 @@ class AktaService
             ->when($filters['status_akad'], fn($q, $v) => $q->whereHas('jobDivisi', fn($j) => $j->where('status', $v)));
     }
 
-    private function getItems(array $filters, string $tipe)
+    // private function getItems(array $filters, string $tipe)
+    // {
+    //     return $this->baseQuery($filters, $tipe)
+    //         ->with([
+    //             'jobDivisi.jenisAkad',
+    //             'jobDivisi.listBank',
+    //             'jobDivisi.debitur',
+    //             'jobDivisi.objek',
+    //             'statusJobOps.createdBy',
+    //             'statusJobOps.user',
+    //             'statusJobOps.nextUser',
+    //             'statusJobOps.workflowStage.users',
+    //             'statusJobOps.workflowStage.roles',
+    //             'statusJobOps.workflowStage.assignerUsers',
+    //             'statusJobOps.workflowStage.assignerRoles',
+    //             'statusJobOps.approvedBy',
+    //             'nomorPpat',
+    //         ])
+    //         ->paginate(10)
+    //         ->withQueryString()
+    //         ->appends(['apply_filter' => null, 'reset_filter' => null]);
+    // }
+
+    private function getItems(array $filters, string $tipe, ?string $sort = null, string $direction = 'desc')
     {
-        return $this->baseQuery($filters, $tipe)
+        return $this->applySort($this->baseQuery($filters, $tipe), $sort, $direction)
             ->with([
-                'jobDivisi.jenisAkad',
-                'jobDivisi.listBank',
-                'jobDivisi.debitur',
-                'jobDivisi.objek',
-                'statusJobOps.createdBy',
-                'statusJobOps.user',
-                'statusJobOps.nextUser',
-                'statusJobOps.workflowStage.users',
-                'statusJobOps.workflowStage.roles',
-                'statusJobOps.workflowStage.assignerUsers',
-                'statusJobOps.workflowStage.assignerRoles',
-                'statusJobOps.approvedBy',
-                'nomorPpat',
+                // ... isi with() lu yang lama, gak berubah
             ])
             ->paginate(10)
             ->withQueryString()
             ->appends(['apply_filter' => null, 'reset_filter' => null]);
     }
+
+    private function applySort(Builder $query, ?string $sort, string $direction): Builder
+{
+    $query->reorder();
+
+    $subquery = match ($sort) {
+        'parent' => DB::table('job_divisis')
+            ->select('kode')
+            ->whereColumn('job_divisis.id', 'job_divisi_form_orders.job_divisi_id'),
+
+        'status_akad' => DB::table('job_divisis')
+            ->select('status')
+            ->whereColumn('job_divisis.id', 'job_divisi_form_orders.job_divisi_id'),
+
+        'nomor_akta' => DB::table('nomor_ppats')
+            ->select('nomor')
+            ->whereColumn('nomor_ppats.job_divisi_form_order_id', 'job_divisi_form_orders.id')
+            ->limit(1),
+
+        'penugasan' => DB::table('status_job_ops')
+            ->leftJoin('users', 'users.id', '=', 'status_job_ops.user_id')
+            ->select('users.name')
+            ->whereColumn('status_job_ops.job_divisi_form_order_id', 'job_divisi_form_orders.id')
+            ->orderByDesc('status_job_ops.id')
+            ->limit(1),
+
+        'proses' => DB::table('job_divisi_form_orders as o2')
+            ->select('o2.nama')
+            ->whereColumn('o2.id', 'job_divisi_form_orders.id'),
+
+        default => null,
+    };
+
+    if ($subquery) {
+        $sql = $subquery->toSql();
+        $bindings = $subquery->getBindings();
+
+        // NULL atau string kosong dianggap "kosong"
+        $isEmpty = "NULLIF(($sql), '') IS NULL";
+
+        if ($direction === 'empty') {
+            // kosong di atas, sisanya urut A-Z
+            $query->orderByRaw("$isEmpty DESC", $bindings)
+                ->orderByRaw("($sql) ASC", $bindings);
+        } else {
+            // kosong selalu di bawah, sisanya A-Z / Z-A
+            $query->orderByRaw("$isEmpty ASC", $bindings)
+                ->orderByRaw("($sql) " . ($direction === 'asc' ? 'ASC' : 'DESC'), $bindings);
+        }
+    }
+
+    return $query->orderByDesc('job_divisi_form_orders.id');
+}
 
     public function getItemsForExport(Request $request, string $tipe)
     {

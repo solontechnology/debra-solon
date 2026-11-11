@@ -1,7 +1,12 @@
 @extends('layouts.admin')
 
 @section('title')
-    Laporan Penomoran
+    Laporan Penomoran {{ match ($kategori) {
+    'ppat' => 'PPAT',
+    'covernot' => 'Cover Note',
+    'surat-keluar' => 'Surat Keluar',
+    default => str($kategori)->replace(['-', '_'], ' ')->headline(),
+} }}
 @endsection
 
 @push('page-title')
@@ -72,8 +77,8 @@
                     </div>
                     <div class="col-md-2 month-filter">
                         <label for="year" class="form-label">Tahun</label>
-                        <input type="number" name="year" id="year" class="form-control" min="1900" max="2200"
-                            value="{{ $filters['year'] ?? '' }}" placeholder="YYYY">
+                        <input type="number" name="year" id="year" class="form-control" min="1900"
+                            max="2200" value="{{ $filters['year'] ?? '' }}" placeholder="YYYY">
                     </div>
                     <div class="col-md-3 d-flex gap-2">
                         <button type="submit" class="btn btn-primary">
@@ -84,39 +89,35 @@
                 </div>
             </form>
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0 text-nowrap">
+                <table class="table table-hover align-middle mb-0 text-nowrap" data-sortable="false">
+                       <input type="hidden" name="sort" value="{{ $sort ?? '' }}">
+   <input type="hidden" name="direction" value="{{ $direction ?? '' }}">
                     <thead class="bg-light">
                         <tr>
-                            <th class="py-3 ps-4 text-secondary text-uppercase font-monospace small fw-bold">
-                                Parent
-                            </th>
-                            <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">
-                                Nomor
-                            </th>
-                            <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">
-                                Proses
-                            </th>
-                            <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">
-                                Notaris Rekanan
-                            </th>
-                            <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">
-                                Tanggal
-                            </th>
-                            <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">
-                                Nama Debitur
-                            </th>
-                            <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">
-                                Nomor Objek
-                            </th>
-                            <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">
-                                Pemilik / Pemakai Nomor
-                            </th>
-                            <th class="py-3 text-center text-secondary text-uppercase font-monospace small fw-bold">
-                                Upload Doc
-                            </th>
+                            <x-sortable-th column="parent" :sort="$sort" :direction="$direction"
+                                class="py-3 ps-4 text-secondary text-uppercase font-monospace small fw-bold">Parent</x-sortable-th>
+                            <x-sortable-th column="nomor" :sort="$sort" :direction="$direction"
+                                class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nomor</x-sortable-th>
+                            <x-sortable-th column="proses" :sort="$sort" :direction="$direction"
+                                class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Proses</x-sortable-th>
+                            <x-sortable-th column="notaris_rekanan" :sort="$sort" :direction="$direction"
+                                class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Notaris
+                                Rekanan</x-sortable-th>
+                            <x-sortable-th column="tanggal" :sort="$sort" :direction="$direction"
+                                class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Tanggal</x-sortable-th>
+                            <x-sortable-th column="nama_debitur" :sort="$sort" :direction="$direction"
+                                class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nama
+                                Debitur</x-sortable-th>
+                            <x-sortable-th column="nomor_objek" :sort="$sort" :direction="$direction"
+                                class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nomor
+                                Objek</x-sortable-th>
+
+                            <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Pemilik / Pemakai
+                                Nomor</th>
+                            <th class="py-3 text-center text-secondary text-uppercase font-monospace small fw-bold">Upload
+                                Doc</th>
                             <th class="py-3 pe-4 text-center text-secondary text-uppercase font-monospace small fw-bold">
-                                Aksi
-                            </th>
+                                Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="border-top-0">
@@ -174,7 +175,8 @@
                                     <div class="d-flex flex-column gap-1">
                                         @forelse ($pihak as $peran => $nama)
                                             <span>
-                                                <small class="text-muted">{{ $peran }}:</small> {{ $nama }}
+                                                <small class="text-muted">{{ $peran }}:</small>
+                                                {{ $nama }}
                                             </span>
                                         @empty
                                             <span class="text-muted">-</span>
@@ -187,7 +189,8 @@
                                 <td>
                                     <div class="d-flex flex-column">
                                         <span><small class="text-muted">Pemilik:</small> {{ $item->pemilik_nomor }}</span>
-                                        <span><small class="text-muted">Dipakai oleh:</small> {{ $item->pemakai_nomor }}</span>
+                                        <span><small class="text-muted">Dipakai oleh:</small>
+                                            {{ $item->pemakai_nomor }}</span>
                                     </div>
                                 </td>
 

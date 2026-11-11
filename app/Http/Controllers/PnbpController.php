@@ -16,46 +16,61 @@ class PnbpController extends Controller
     /**
      * Display a listing of the resource.
      */
-  public function index(Request $request)
-{
-    $filters     = \App\Services\Job\PnbpFilter::resolve($request);
-    $countFilter = \App\Services\Job\PnbpFilter::count($filters);
+    public function index(Request $request)
+    {
+        $filters     = \App\Services\Job\PnbpFilter::resolve($request);
+        $countFilter = \App\Services\Job\PnbpFilter::count($filters);
 
-    $prosesOptions = JobDivisiFormOrder::query()
-        ->whereNotIn("status", ["rejected", "Dibatalkan", "pending"])
-        ->where("kategori", "pnbp_voucher")
-        ->whereHas("jobDivisi")
-        ->select('nama')->distinct()->orderBy('nama')->pluck('nama');
+        $prosesOptions = JobDivisiFormOrder::query()
+            ->whereNotIn("status", ["rejected", "Dibatalkan", "pending"])
+            ->where("kategori", "pnbp_voucher")
+            ->whereHas("jobDivisi")
+            ->select('nama')->distinct()->orderBy('nama')->pluck('nama');
 
-    $statusOptions = Pnbp::query()
-        ->whereNotNull('status')
-        ->select('status')->distinct()->orderBy('status')->pluck('status')
-        ->prepend('Belum dikerjakan')->unique()->values();
+        $statusOptions = Pnbp::query()
+            ->whereNotNull('status')
+            ->select('status')->distinct()->orderBy('status')->pluck('status')
+            ->prepend('Belum dikerjakan')->unique()->values();
 
-    $bankOptions = \App\Models\Bank::where('is_active', 1)->orderBy('nama')->pluck('nama');
-    $statusAkadOptions = ['Pra Akad', 'Akad', 'Batal Akad', 'Selesai'];
+        $bankOptions = \App\Models\Bank::where('is_active', 1)->orderBy('nama')->pluck('nama');
+        $statusAkadOptions = ['Pra Akad', 'Akad', 'Batal Akad', 'Selesai'];
 
-    $items = JobDivisiFormOrder::orderBy("id", "desc")
-        ->with(
-            "pnbp.user", "jobDivisi.objek", "jobDivisi.debitur",
-            "jobDivisi.listPembeli", "jobDivisi.listPenjual", "jobDivisi.listBank"
-        )
-        ->whereNotIn("status", ["rejected", "Dibatalkan", "pending"])
-        ->where("kategori", "pnbp_voucher")
-        ->whereHas("jobDivisi");
+        $items = JobDivisiFormOrder::orderBy("id", "desc")
+            ->with(
+                "pnbp.user",
+                "jobDivisi.objek",
+                "jobDivisi.debitur",
+                "jobDivisi.listPembeli",
+                "jobDivisi.listPenjual",
+                "jobDivisi.listBank"
+            )
+            ->whereNotIn("status", ["rejected", "Dibatalkan", "pending"])
+            ->where("kategori", "pnbp_voucher")
+            ->whereHas("jobDivisi");
 
-    \App\Services\Job\PnbpFilter::apply($items, $filters);
+        \App\Services\Job\PnbpFilter::apply($items, $filters);
+        $sort = \App\Services\Job\PnbpFilter::sortKey($request->query('sort'));
+        $direction = \App\Services\Job\PnbpFilter::sortDirection($request->query('direction'));
+        \App\Services\Job\PnbpFilter::applySort($items, $sort, $direction);
 
-    $items = $items->paginate(12)->withQueryString()
-        ->appends(['apply_filter' => null, 'reset_filter' => null]);
+        $items = $items->paginate(12)->withQueryString()
+            ->appends(['apply_filter' => null, 'reset_filter' => null]);
 
-    $users = User::orderBy('name')->get();
+        $users = User::orderBy('name')->get();
 
-    return view("pages.Job.Pnbp.index", compact(
-        "items", "countFilter", "filters", "prosesOptions", "statusOptions",
-        "bankOptions", "statusAkadOptions", "users"
-    ));
-}
+        return view("pages.Job.Pnbp.index", compact(
+            "items",
+            "countFilter",
+            "filters",
+            "prosesOptions",
+            "statusOptions",
+            "bankOptions",
+            "statusAkadOptions",
+            "users",
+            "sort",
+            "direction"
+        ));
+    }
 
     /**
      * Show the form for creating a new resource.
@@ -193,47 +208,47 @@ class PnbpController extends Controller
     //     }
     // }
 
-        // public function assign(Request $request, string $id)
-        // {
-        //     $request->validate([
-        //         'user_id' => 'required|exists:users,id'
-        //     ]);
+    // public function assign(Request $request, string $id)
+    // {
+    //     $request->validate([
+    //         'user_id' => 'required|exists:users,id'
+    //     ]);
 
-        //     DB::beginTransaction();
+    //     DB::beginTransaction();
 
-        //     try {
+    //     try {
 
-        //         $item = Pnbp::findOrFail($id);
+    //         $item = Pnbp::findOrFail($id);
 
-        //         if ($item->status !== 'Penugasan') {
-        //             return back()->with(
-        //                 'error',
-        //                 'Status tidak valid'
-        //             );
-        //         }
+    //         if ($item->status !== 'Penugasan') {
+    //             return back()->with(
+    //                 'error',
+    //                 'Status tidak valid'
+    //             );
+    //         }
 
-        //         $item->update([
-        //             'user_id' => $request->user_id,
-        //             'status' => 'Sedang Online',
-        //             'assigned_at' => now()
-        //         ]);
+    //         $item->update([
+    //             'user_id' => $request->user_id,
+    //             'status' => 'Sedang Online',
+    //             'assigned_at' => now()
+    //         ]);
 
-        //         DB::commit();
+    //         DB::commit();
 
-        //         return back()->with(
-        //             'success',
-        //             'User berhasil ditugaskan'
-        //         );
-        //     } catch (Exception $th) {
+    //         return back()->with(
+    //             'success',
+    //             'User berhasil ditugaskan'
+    //         );
+    //     } catch (Exception $th) {
 
-        //         DB::rollBack();
+    //         DB::rollBack();
 
-        //         return back()->with(
-        //             'error',
-        //             'Terjadi kesalahan server'
-        //         );
-        //     }
-        // }
+    //         return back()->with(
+    //             'error',
+    //             'Terjadi kesalahan server'
+    //         );
+    //     }
+    // }
 
     public function inputVa(Request $request, string $id)
     {

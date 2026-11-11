@@ -8,30 +8,20 @@
     <div class="card">
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-bordered">
+                <table class="table table-bordered" data-sortable="false">
                     <thead>
                         <tr>
-                            <th>
-                                Kode Job
-                            </th>
-                            <th>
-                                Status
-                            </th>
-                            <th>
-                                Diajukan Oleh
-                            </th>
-                            <th>
-                                Tanggal Pengajuan
-                            </th>
-                            <th>
-                                Tanggal Mulai Freeze
-                            </th>
-                            <th>
-                                Tanggal Selesai Freeze
-                            </th>
-                            <th>
-                                Aksi
-                            </th>
+                            <x-sortable-th column="kode_job" :sort="$sort" :direction="$direction">Kode Job</x-sortable-th>
+                            <x-sortable-th column="status" :sort="$sort" :direction="$direction">Status</x-sortable-th>
+                            <x-sortable-th column="diajukan_oleh" :sort="$sort" :direction="$direction">Diajukan
+                                Oleh</x-sortable-th>
+                            <x-sortable-th column="tanggal_pengajuan" :sort="$sort" :direction="$direction">Tanggal
+                                Pengajuan</x-sortable-th>
+                            <x-sortable-th column="start_date" :sort="$sort" :direction="$direction">Tanggal Mulai
+                                Freeze</x-sortable-th>
+                            <x-sortable-th column="end_date" :sort="$sort" :direction="$direction">Tanggal Selesai
+                                Freeze</x-sortable-th>
+                            <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -60,10 +50,9 @@
                                 </td>
                                 <td>
                                     @can('berkas-bermasalah/freeze/detail')
-                                        
-                                    <a href="{{ route('berkas-bermasalah.freeze.show', $item->id) }}"
-                                        class="btn btn-primary">Detail</a>
-                                        @endcan
+                                        <a href="{{ route('berkas-bermasalah.freeze.show', $item->id) }}"
+                                            class="btn btn-primary">Detail</a>
+                                    @endcan
                                 </td>
                             </tr>
                         @endforeach

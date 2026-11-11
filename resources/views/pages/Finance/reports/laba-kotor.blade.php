@@ -45,13 +45,15 @@
                 <table class="table table-striped table-bordered">
                     <thead>
                         <tr>
-                            <th>Tanggal</th>
-                            <th>Kode Job</th>
-                            <th>Item Proses</th>
-                            <th>Status</th>
-                            <th>Pendapatan</th>
-                            <th>Modal</th>
-                            <th>Laba Kotor</th>
+                            <x-sortable-th column="tanggal" :sort="$sort" :direction="$direction">Tanggal</x-sortable-th>
+                            <x-sortable-th column="kode" :sort="$sort" :direction="$direction">Kode Job</x-sortable-th>
+                            <x-sortable-th column="item" :sort="$sort" :direction="$direction">Item Proses</x-sortable-th>
+                            <x-sortable-th column="status" :sort="$sort" :direction="$direction">Status</x-sortable-th>
+                            <x-sortable-th column="pendapatan" :sort="$sort"
+                                :direction="$direction">Pendapatan</x-sortable-th>
+                            <x-sortable-th column="modal" :sort="$sort" :direction="$direction">Modal</x-sortable-th>
+                            <x-sortable-th column="laba_kotor" :sort="$sort" :direction="$direction">Laba
+                                Kotor</x-sortable-th>
                         </tr>
                     </thead>
                     <tbody>
@@ -69,7 +71,8 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center text-secondary">Belum ada item pekerjaan untuk periode ini.</td>
+                                <td colspan="7" class="text-center text-secondary">Belum ada item pekerjaan untuk periode
+                                    ini.</td>
                             </tr>
                         @endforelse
                     </tbody>

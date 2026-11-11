@@ -18,6 +18,42 @@ class FinanceJobDivisiController extends Controller
 {
     public function __construct(protected ApprovalWorkflowService $approvalWorkflowService) {}
 
+    // Ekspresi SQL per kolom. Statis (bukan input user), input cuma dipakai milih key.
+    private const SORT_COLUMNS = [
+        'tanggal' => [
+            'type' => 'date',
+            'expr' => '{t}.tanggal',
+        ],
+        'item_proses' => [
+            'type' => 'text',
+            'expr' => '(select f.nama from {f} f where f.id = {t}.job_divisi_form_order_id limit 1)',
+        ],
+        'total' => [
+            'type' => 'number',
+            'expr' => '{t}.total',
+        ],
+        'tipe' => [
+            'type' => 'text',
+            'expr' => '{t}.tipe',
+        ],
+        'peruntukan' => [
+            'type' => 'text',
+            'expr' => '{t}.peruntukan',
+        ],
+        'parent' => [
+            'type' => 'text',
+            'expr' => '(select j.kode from {j} j where j.id = {t}.job_divisi_id limit 1)',
+        ],
+        'status' => [
+            'type' => 'text',
+            'expr' => '{t}.status',
+        ],
+        'keterangan' => [
+            'type' => 'text',
+            'expr' => '{t}.keterangan',
+        ],
+    ];
+
     /**
      * Display a listing of the resource.
      */
@@ -27,20 +63,28 @@ class FinanceJobDivisiController extends Controller
             auth()->user()->canAny(['finance/list', 'finance/approve']),
             403
         );
-        $items = JobDivisiFinance::orderBy("id", 'desc')
+        // whitelist
+        $sortInput = $request->query('sort');
+        $sort = is_string($sortInput) && isset(self::SORT_COLUMNS[$sortInput]) ? $sortInput : null;
+        $direction = in_array($request->query('direction'), ['asc', 'desc', 'empty'], true)
+            ? $request->query('direction')
+            : 'asc';
+
+        $query = JobDivisiFinance::orderBy("id", 'desc')
             ->with(
                 "jobDivisi.userOps",
                 "jobDivisi.jenisAkad",
                 'jobDivisi.debitur',
                 "jobDivisi.objek.desa.kecamatan.kota",
                 "formOrder.pembatalanItemDetail.pembatalanItem",
-
                 "user",
                 "pembuat"
             )
             ->whereHas("jobDivisi")
-            ->where("tipe", $request->type)
-            ->get();
+            ->where("tipe", $request->type);
+
+        $this->applySort($query, $sort, $direction);
+        $items = $query->get();
         $items->each(function (JobDivisiFinance $item) {
             $item->can_approve = $item->status === 'Menunggu persetujuan finance'
                 && auth()->user()->can('finance/approve')
@@ -55,9 +99,48 @@ class FinanceJobDivisiController extends Controller
         return view("pages.Finance.index", [
             "items" => $items,
             "type" => $type,
-            "jobDivisi" => $jobDivisi
+            "jobDivisi" => $jobDivisi,
+            "sort" => $sort,
+            "direction" => $direction,
         ]);
     }
+
+    private function applySort($query, ?string $sort, string $direction)
+{
+    $col = self::SORT_COLUMNS[$sort] ?? null;
+
+    // gak ada sort aktif: urutan default (id desc) tetap jalan
+    if (!$col) {
+        return $query;
+    }
+
+    // nama tabel diambil dari model, jadi gak perlu nebak
+    $t = (new JobDivisiFinance)->getTable();
+    $expr = str_replace(
+        ['{t}', '{f}', '{j}'],
+        [
+            $t,
+            (new \App\Models\JobDivisiFormOrder)->getTable(),
+            (new JobDivisi)->getTable(),
+        ],
+        $col['expr']
+    );
+
+    $isEmpty = $col['type'] === 'text'
+        ? "NULLIF(TRIM($expr), '') IS NULL"
+        : "($expr) IS NULL";
+
+    $query->reorder();
+
+    if ($direction === 'empty') {
+        $query->orderByRaw("$isEmpty DESC")->orderByRaw("($expr) ASC");
+    } else {
+        $query->orderByRaw("$isEmpty ASC")
+            ->orderByRaw("($expr) " . ($direction === 'desc' ? 'DESC' : 'ASC'));
+    }
+
+    return $query->orderByDesc("$t.id");
+}
 
     /**
      * Show the form for creating a new resource.

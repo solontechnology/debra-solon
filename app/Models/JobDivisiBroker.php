@@ -40,4 +40,9 @@ class JobDivisiBroker extends Model
     {
         return $this->belongsTo(User::class, 'updated_by', 'id');
     }
+
+    public function jobDivisi()
+    {
+        return $this->belongsTo(JobDivisi::class, 'job_divisi_id', 'id');
+    }
 }

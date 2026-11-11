@@ -490,14 +490,14 @@
                         <div class="dropdown-menu {{ request()->is('arsip*') ? 'show' : '' }}">
                             @can('arsip/akta/list')
                                 @if ($tenantMenus->isEnabled('menu_arsip_akta'))
-                                <a href="{{ route('arsip.bundle.index') }}" class="dropdown-item ">
+                                <a href="{{ route('arsip.bundle.index') }}" class="{{ request()->is('arsip/bundle*') && !request()->get('tipe') ? 'active' : '' }} dropdown-item ">
                                     Akta
                                 </a>
                                 @endif
                             @endcan
                             @can('arsip/ppat/list')
                                 @if ($tenantMenus->isEnabled('menu_arsip_ppat'))
-                                <a href="{{ route('arsip.bundle.index', ['tipe' => 'ppat']) }}" class="dropdown-item ">
+                                <a href="{{ route('arsip.bundle.index', ['tipe' => 'ppat'])  }}" class="{{ request()->is('arsip/bundle*') && request()->get('tipe') === 'ppat' ? 'active' : '' }} dropdown-item ">
                                     PPAT
                                 </a>
                                 @endif
@@ -572,7 +572,7 @@
                                     @if ($tenantMenus->isEnabled('menu_laporan_nomor_covernot'))
                                     <a href="{{ route('laporan.nomor-notaris', 'covernot') }}"
                                         class="dropdown-item {{ request()->is('laporan/nomor-notaris/covernot*') ? 'active' : '' }}">
-                                        Cover Not
+                                        Cover Note
                                     </a>
                                     @endif
                                 @endcan

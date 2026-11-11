@@ -8,13 +8,109 @@ use Illuminate\Support\Facades\Auth;
 class OpsFilter
 {
     public const KEYS = [
-        'parent', 'status_akad', 'proses', 'nomor_objek', 'nama_penghadap',
-        'bank', 'biaya_min', 'biaya_max', 'status_pengerjaan',
+        'parent',
+        'status_akad',
+        'proses',
+        'nomor_objek',
+        'nama_penghadap',
+        'bank',
+        'biaya_min',
+        'biaya_max',
+        'status_pengerjaan',
     ];
 
     public const BIAYA_COLUMN = 'harga_proses';
 
     private const SESSION_KEY = 'ops_filter';
+    private const J = 'job_divisi_form_orders.job_divisi_id';
+
+    private const SORT_COLUMNS = [
+        'parent' => [
+            'type' => 'text',
+            'expr' => '(select j.kode from job_divisis j where j.id = job_divisi_form_orders.job_divisi_id limit 1)',
+        ],
+        'status_akad' => [
+            'type' => 'text',
+            'expr' => '(select j.status from job_divisis j where j.id = job_divisi_form_orders.job_divisi_id limit 1)',
+        ],
+        'proses' => [
+            'type' => 'text',
+            'expr' => 'job_divisi_form_orders.nama',
+        ],
+        'nomor_objek' => [
+            'type' => 'text',
+            'expr' => '(select min(o.no_sertifikat) from job_divisi_objeks o where o.job_divisi_id = job_divisi_form_orders.job_divisi_id)',
+        ],
+        // prioritas ngikutin view: Debitur, Pembeli, Penjual
+        'nama_penghadap' => [
+            'type' => 'text',
+            'expr' => "COALESCE(
+            NULLIF((select min(d.nama) from debiturs d where d.job_divisi_id = job_divisi_form_orders.job_divisi_id), ''),
+            NULLIF((select min(p.nama) from pembelis p where p.job_divisi_id = job_divisi_form_orders.job_divisi_id), ''),
+            NULLIF((select min(j.nama) from penjuals j where j.job_divisi_id = job_divisi_form_orders.job_divisi_id), '')
+        )",
+        ],
+        'bank' => [
+            'type' => 'text',
+            'expr' => '(select min(b.nama_bank) from job_banks b where b.job_divisi_id = job_divisi_form_orders.job_divisi_id)',
+        ],
+        'biaya_proses' => [
+            'type' => 'number',
+            'expr' => 'job_divisi_form_orders.harga_proses',
+        ],
+        // sama kayak view: dispo -> 'Dispo', kalau gak ada status -> 'Belum dikerjakan'
+        'status_pengerjaan' => [
+            'type' => 'text',
+            'expr' => "CASE WHEN job_divisi_form_orders.status = 'dispo' THEN 'Dispo'
+            ELSE COALESCE((select s.status from status_job_ops s
+                where s.job_divisi_form_order_id = job_divisi_form_orders.id
+                order by s.id desc limit 1), 'Belum dikerjakan') END",
+        ],
+    ];
+
+    /** Whitelist: input URL cuma dipakai buat milih key, bukan masuk query. */
+    public static function sortKey($input): ?string
+    {
+        if (!is_string($input) || !isset(self::SORT_COLUMNS[$input])) {
+            return null;
+        }
+        // kolom biaya cuma boleh buat yang punya izin
+        if ($input === 'biaya_proses' && !Auth::user()->can('job/ops/biaya proses')) {
+            return null;
+        }
+        return $input;
+    }
+
+    public static function sortDirection($input): string
+    {
+        return in_array($input, ['asc', 'desc', 'empty'], true) ? $input : 'asc';
+    }
+
+    public static function applySort($query, ?string $sort, string $direction)
+    {
+        $col = self::SORT_COLUMNS[$sort] ?? null;
+
+        // gak ada sort aktif: urutan default (id desc) tetap jalan
+        if (!$col) {
+            return $query;
+        }
+
+        $query->reorder();
+        $expr = $col['expr'];
+
+        $isEmpty = $col['type'] === 'text'
+            ? "NULLIF(TRIM($expr), '') IS NULL"
+            : "($expr) IS NULL";
+
+        if ($direction === 'empty') {
+            $query->orderByRaw("$isEmpty DESC")->orderByRaw("($expr) ASC");
+        } else {
+            $query->orderByRaw("$isEmpty ASC")
+                ->orderByRaw("($expr) " . ($direction === 'desc' ? 'DESC' : 'ASC'));
+        }
+
+        return $query->orderByDesc('job_divisi_form_orders.id');
+    }
 
     /** $persist = false dipakai export: baca session saja, tanpa simpan/hapus. */
     public static function resolve(Request $request, bool $persist = true): array

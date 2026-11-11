@@ -50,19 +50,23 @@
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-striped table-bordered">
+                <table class="table table-striped table-bordered" data-sortable="false">
                     <thead>
                         <tr>
-                            <th>Tanggal</th>
-                            <th>Kode Job</th>
-                            <th>Tipe</th>
-                            <th>Akun Debit</th>
-                            <th>Akun Kredit</th>
-                            <th>Debit</th>
-                            <th>Kredit</th>
-                            <th>Peruntukan</th>
-                            <th>Keterangan</th>
-                            <th>User</th>
+                            <x-sortable-th column="tanggal" :sort="$sort" :direction="$direction">Tanggal</x-sortable-th>
+                            <x-sortable-th column="kode" :sort="$sort" :direction="$direction">Kode Job</x-sortable-th>
+                            <x-sortable-th column="tipe" :sort="$sort" :direction="$direction">Tipe</x-sortable-th>
+                            <x-sortable-th column="debit_account" :sort="$sort" :direction="$direction">Akun
+                                Debit</x-sortable-th>
+                            <x-sortable-th column="credit_account" :sort="$sort" :direction="$direction">Akun
+                                Kredit</x-sortable-th>
+                            <x-sortable-th column="debit" :sort="$sort" :direction="$direction">Debit</x-sortable-th>
+                            <x-sortable-th column="credit" :sort="$sort" :direction="$direction">Kredit</x-sortable-th>
+                            <x-sortable-th column="peruntukan" :sort="$sort"
+                                :direction="$direction">Peruntukan</x-sortable-th>
+                            <x-sortable-th column="keterangan" :sort="$sort"
+                                :direction="$direction">Keterangan</x-sortable-th>
+                            <x-sortable-th column="user" :sort="$sort" :direction="$direction">User</x-sortable-th>
                         </tr>
                     </thead>
                     <tbody>
@@ -81,7 +85,8 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="10" class="text-center text-secondary">Belum ada transaksi finance disetujui pada periode ini.</td>
+                                <td colspan="10" class="text-center text-secondary">Belum ada transaksi finance disetujui
+                                    pada periode ini.</td>
                             </tr>
                         @endforelse
                     </tbody>

@@ -26,6 +26,52 @@ use Illuminate\Validation\ValidationException;
 class PenomoranController extends Controller
 {
 
+    // ID job divisi lewat form order. Dipakai ulang di beberapa kolom.
+    private const JOB_ID = '(select fo.job_divisi_id from {fo} fo
+    where fo.id = {t}.job_divisi_form_order_id limit 1)';
+
+    // Ekspresi SQL per kolom. Statis (bukan input user), input cuma dipakai milih key.
+    private const SORT_COLUMNS = [
+        'parent' => [
+            'type' => 'text',
+            'expr' => '(select j.kode from {j} j where j.id = ' . self::JOB_ID . ' limit 1)',
+        ],
+        // nomor dianggap angka (sama kayak sort di BundleController), tie-breaker teks ada di applySort
+        'nomor' => [
+            'type' => 'number',
+            'expr' => 'CAST({t}.nomor AS UNSIGNED)',
+        ],
+        // sama kayak view: kalau form_order_id ada pakai nama pekerjaan, kalau gak pakai nama form order
+        'proses' => [
+            'type' => 'text',
+            'expr' => 'CASE WHEN {t}.form_order_id IS NOT NULL AND {t}.form_order_id <> 0
+            THEN (select p.nama from {pk} p where p.id = {t}.form_order_id limit 1)
+            ELSE (select fo.nama from {fo} fo where fo.id = {t}.job_divisi_form_order_id limit 1) END',
+        ],
+        'notaris_rekanan' => [
+            'type' => 'text',
+            'expr' => '(select n.nama from {nr} n where n.id = {t}.notaris_rekanan_id limit 1)',
+        ],
+        'tanggal' => [
+            'type' => 'date',
+            'expr' => '{t}.tanggal',
+        ],
+        // prioritas ngikutin view: Debitur, Pembeli, Penjual, lalu fallback nama notaris pengambil
+        'nama_debitur' => [
+            'type' => 'text',
+            'expr' => "COALESCE(
+            NULLIF((select min(d.nama) from {d} d where d.job_divisi_id = " . self::JOB_ID . "), ''),
+            NULLIF((select min(pb.nama) from {pb} pb where pb.job_divisi_id = " . self::JOB_ID . "), ''),
+            NULLIF((select min(pj.nama) from {pj} pj where pj.job_divisi_id = " . self::JOB_ID . "), ''),
+            NULLIF({t}.nama_debitur_notaris_pengambil, '')
+        )",
+        ],
+        'nomor_objek' => [
+            'type' => 'text',
+            'expr' => '(select min(o.no_sertifikat) from {o} o where o.job_divisi_id = ' . self::JOB_ID . ')',
+        ],
+    ];
+
     public function __construct(protected InputNomorServis $inputNomorServis) {}
 
     public function index(Request $request, $kategori = null)
@@ -40,7 +86,14 @@ class PenomoranController extends Controller
             ? PenomoranSetting::query()->where('kategori', $kategori)->first()
             : null;
 
-        $items = NomorPpat::with([
+        // whitelist
+        $sortInput = $request->query('sort');
+        $sort = is_string($sortInput) && isset(self::SORT_COLUMNS[$sortInput]) ? $sortInput : null;
+        $direction = in_array($request->query('direction'), ['asc', 'desc', 'empty'], true)
+            ? $request->query('direction')
+            : 'asc';
+
+        $query = NomorPpat::with([
             'formOrder.jobDivisi.debitur',
             'formOrder.objek',
             'notarisRekanan',
@@ -54,9 +107,11 @@ class PenomoranController extends Controller
                 $query->whereDate('tanggal', '>=', $filters['start_date'])
                     ->whereDate('tanggal', '<=', $filters['end_date']);
             })
-            ->orderBy('id', 'desc')
-            ->paginate(12)
-            ->appends($request->query());
+            ->orderBy('id', 'desc');
+
+        $this->applySort($query, $sort, $direction);
+
+        $items = $query->paginate(12)->appends($request->query());
 
         $notarisRekanan = NotarisRekanan::query()->with('kota')->orderBy('nama')->get();
 
@@ -66,8 +121,57 @@ class PenomoranController extends Controller
             'masterPekerjaan',
             'notarisRekanan',
             'penomoranSetting',
-            'filters'
+            'filters',
+            'sort',
+            'direction'
         ));
+    }
+
+    private function applySort($query, ?string $sort, string $direction)
+    {
+        $col = self::SORT_COLUMNS[$sort] ?? null;
+
+        // gak ada sort aktif: urutan default (id desc) tetap jalan
+        if (!$col) {
+            return $query;
+        }
+
+        $t = (new NomorPpat)->getTable();
+        $expr = str_replace(
+            ['{t}', '{fo}', '{j}', '{pk}', '{nr}', '{d}', '{pb}', '{pj}', '{o}'],
+            [
+                $t,
+                (new JobDivisiFormOrder)->getTable(),
+                (new \App\Models\JobDivisi)->getTable(),
+                (new Pekerjaan)->getTable(),
+                (new NotarisRekanan)->getTable(),
+                (new \App\Models\Debitur)->getTable(),
+                (new \App\Models\Pembeli)->getTable(),
+                (new \App\Models\Penjual)->getTable(),
+                (new \App\Models\JobDivisiObjek)->getTable(),
+            ],
+            $col['expr']
+        );
+
+        $isEmpty = $col['type'] === 'text'
+            ? "NULLIF(TRIM($expr), '') IS NULL"
+            : "($expr) IS NULL";
+
+        $query->reorder();
+
+        if ($direction === 'empty') {
+            $query->orderByRaw("$isEmpty DESC")->orderByRaw("($expr) ASC");
+        } else {
+            $query->orderByRaw("$isEmpty ASC")
+                ->orderByRaw("($expr) " . ($direction === 'desc' ? 'DESC' : 'ASC'));
+        }
+
+        // nomor: kalau angkanya sama (atau bukan angka), urutin teks aslinya
+        if ($sort === 'nomor') {
+            $query->orderBy("$t.nomor", $direction === 'desc' ? 'desc' : 'asc');
+        }
+
+        return $query->orderByDesc("$t.id");
     }
 
     public function inputNomorRekanan(Request $request)
@@ -138,7 +242,67 @@ class PenomoranController extends Controller
             'laporan-penomoran-' . $kategori . '.xlsx'
         );
     }
+    // [tipe, field di $row]
+    private const PEMAKAIAN_SORT_COLUMNS = [
+        'notaris_rekanan' => ['text',   'notaris_rekanan'],
+        'kategori'        => ['text',   'kategori_label'], // urut berdasarkan label yang tampil
+        'nomor'           => ['text',   'nomor'],          // natural sort, jadi 2 < 10
+        'tanggal_job'     => ['text',   'tanggal_job'],
+        'tanggal_report'  => ['text',   'tanggal_report'],
+        'job_count'       => ['number', 'job_count'],
+        'report_count'    => ['number', 'report_count'],
+        'status'          => ['text',   'status'],
+    ];
 
+    /** Sort Collection of array di PHP. Kosong = null, '' atau '-'. */
+    private function sortRows($rows, array $columns, ?string $sort, string $direction)
+    {
+        $rows = collect($rows)->values();
+
+        if (!$sort || !isset($columns[$sort])) {
+            return $rows;
+        }
+
+        [$type, $field] = $columns[$sort];
+
+        $value = function ($row) use ($field, $type) {
+            $v = $row[$field] ?? null;
+            if ($type === 'number') {
+                return is_numeric($v) ? (float) $v : null;
+            }
+            $v = trim((string) $v);
+            return ($v === '' || $v === '-') ? null : $v;
+        };
+
+        return $rows
+            ->map(fn($row, $i) => ['row' => $row, 'i' => $i, 'v' => $value($row)])
+            ->sort(function ($a, $b) use ($type, $direction) {
+                $aEmpty = $a['v'] === null;
+                $bEmpty = $b['v'] === null;
+
+                if ($aEmpty !== $bEmpty) {
+                    // asc/desc: kosong di bawah, empty: kosong di atas
+                    $emptyFirst = $direction === 'empty';
+                    return $aEmpty ? ($emptyFirst ? -1 : 1) : ($emptyFirst ? 1 : -1);
+                }
+                if ($aEmpty) {
+                    return $a['i'] <=> $b['i'];
+                }
+
+                $cmp = $type === 'text'
+                    ? strnatcasecmp($a['v'], $b['v'])
+                    : $a['v'] <=> $b['v'];
+
+                if ($direction === 'desc') {
+                    $cmp = -$cmp;
+                }
+
+                // tie-breaker: urutan asli, biar stabil
+                return $cmp ?: $a['i'] <=> $b['i'];
+            })
+            ->pluck('row')
+            ->values();
+    }
     public function pemakaianNomor(Request $request)
     {
         abort_unless($request->user()->can('laporan/pemakaian-nomor/list'), 403);
@@ -209,15 +373,30 @@ class PenomoranController extends Controller
             ->sortBy(fn($row) => strtolower($row['notaris_rekanan'] . '|' . $row['kategori'] . '|' . $row['nomor']))
             ->values();
         $categories = PenomoranSetting::kategori();
+        // whitelist
+$sortInput = $request->query('sort');
+$sort = is_string($sortInput) && isset(self::PEMAKAIAN_SORT_COLUMNS[$sortInput]) ? $sortInput : null;
+$direction = in_array($request->query('direction'), ['asc', 'desc', 'empty'], true)
+    ? $request->query('direction')
+    : 'asc';
 
-        return view('pages.Laporan.pemakaian-nomor.index', compact(
-            'notarisRekanan',
-            'categories',
-            'selectedRekananId',
-            'kategori',
-            'comparison',
-            'filters'
-        ));
+// label kategori yang tampil di view, dipakai buat sort kolom Kategori
+$comparison = $comparison->map(function ($row) use ($categories) {
+    $row['kategori_label'] = $categories[$row['kategori']] ?? $row['kategori'];
+    return $row;
+});
+
+$comparison = $this->sortRows($comparison, self::PEMAKAIAN_SORT_COLUMNS, $sort, $direction);
+return view('pages.Laporan.pemakaian-nomor.index', compact(
+    'notarisRekanan',
+    'categories',
+    'selectedRekananId',
+    'kategori',
+    'comparison',
+    'filters',
+    'sort',
+    'direction'
+));
     }
 
     private function validateDateFilters(Request $request): array

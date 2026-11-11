@@ -19,43 +19,26 @@
         <div class="card-body">
 
             <div class="table-responsive">
-                <table class="table table-striped table-bordered">
+                <table class="table table-striped table-bordered" data-sortable="false">
                     <thead>
                         <tr>
-                            <th>
-                                Tanggal
-                            </th>
-                            <th>
-                                Item Proses
-                            </th>
-                            <th>
-                                Total
-                            </th>
-                            <th>
-                                Tipe
-                            </th>
-                            <th>
-                                Peruntukan
-                            </th>
-                            <th>
-                                Parent
-                            </th>
-
-
-                            <th>
-                                Status
-                            </th>
-                            <th>
-                                Keterangan
-                            </th>
-                            <th>
-                                Aksi
-                            </th>
+                            <x-sortable-th column="tanggal" :sort="$sort" :direction="$direction">Tanggal</x-sortable-th>
+                            <x-sortable-th column="item_proses" :sort="$sort" :direction="$direction">Item
+                                Proses</x-sortable-th>
+                            <x-sortable-th column="total" :sort="$sort" :direction="$direction">Total</x-sortable-th>
+                            <x-sortable-th column="tipe" :sort="$sort" :direction="$direction">Tipe</x-sortable-th>
+                            <x-sortable-th column="peruntukan" :sort="$sort"
+                                :direction="$direction">Peruntukan</x-sortable-th>
+                            <x-sortable-th column="parent" :sort="$sort" :direction="$direction">Parent</x-sortable-th>
+                            <x-sortable-th column="status" :sort="$sort" :direction="$direction">Status</x-sortable-th>
+                            <x-sortable-th column="keterangan" :sort="$sort"
+                                :direction="$direction">Keterangan</x-sortable-th>
+                            <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach ($items as $index => $item)
-                            @if ($item->formOrder->pembatalanItemDetail->pembatalanItem->status ?? null === 'Disetujui')
+                              @if (($item->formOrder->pembatalanItemDetail->pembatalanItem->status ?? null) === 'Disetujui')
                                 @continue
                             @endif
 

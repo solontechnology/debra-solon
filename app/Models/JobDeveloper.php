@@ -44,4 +44,9 @@ protected $guarded = [];
     {
         return $this->belongsTo(Developer::class, "developer_id", "id");
     }
+
+    public function jobDivisi()
+    {
+        return $this->belongsTo(JobDivisi::class, 'job_divisi_id', 'id');
+    }
 }

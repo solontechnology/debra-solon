@@ -44,4 +44,9 @@ class Debitur extends Model
     {
         return $this->morphMany(JobDivisiFile::class, 'fileable');
     }
+
+    public function jobDivisi()
+    {
+        return $this->belongsTo(JobDivisi::class, 'job_divisi_id', 'id');
+    }
 }

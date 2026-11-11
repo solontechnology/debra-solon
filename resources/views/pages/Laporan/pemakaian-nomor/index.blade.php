@@ -8,7 +8,8 @@
             <div>
                 <h3 class="card-title mb-1">Laporan Pemakaian Nomor</h3>
                 <div class="text-secondary small">
-                    Job memakai nomor milik notaris rekanan untuk digunakan {{ \App\Models\Setting::namaNotaris() }}; Pelaporan mencatat nomor milik {{ \App\Models\Setting::namaNotaris() }}
+                    Job memakai nomor milik notaris rekanan untuk digunakan {{ \App\Models\Setting::namaNotaris() }};
+                    Pelaporan mencatat nomor milik {{ \App\Models\Setting::namaNotaris() }}
                     yang dipakai notaris rekanan. Kedua arah pemakaian ditampilkan terpisah untuk dibandingkan.
                 </div>
             </div>
@@ -32,7 +33,8 @@
                         <select id="kategori-filter" name="kategori" class="form-select">
                             <option value="">Semua Kategori</option>
                             @foreach ($categories as $key => $label)
-                                <option value="{{ $key }}" @selected($kategori === $key)>{{ $label }}</option>
+                                <option value="{{ $key }}" @selected($kategori === $key)>{{ $label }}
+                                </option>
                             @endforeach
                         </select>
                     </div>
@@ -69,8 +71,8 @@
                     </div>
                     <div class="col-md-3 month-filter">
                         <label for="year" class="form-label">Tahun</label>
-                        <input type="number" name="year" id="year" class="form-control" min="1900" max="2200"
-                            value="{{ $filters['year'] ?? '' }}" placeholder="YYYY">
+                        <input type="number" name="year" id="year" class="form-control" min="1900"
+                            max="2200" value="{{ $filters['year'] ?? '' }}" placeholder="YYYY">
                     </div>
                     <div class="col-md-3 d-flex gap-2">
                         <button class="btn btn-primary" type="submit">
@@ -82,17 +84,24 @@
             </form>
 
             <div class="table-responsive">
-                <table class="table table-hover align-middle">
+                <table class="table table-hover align-middle" data-sortable="false">
+                    <input type="hidden" name="sort" value="{{ $sort ?? '' }}">
+                    <input type="hidden" name="direction" value="{{ $direction ?? '' }}">
                     <thead>
                         <tr>
-                            <th>Notaris Rekanan</th>
-                            <th>Kategori</th>
-                            <th>Nomor</th>
-                            <th>Job: nomor milik rekanan</th>
-                            <th>Pelaporan: nomor milik {{ \App\Models\Setting::namaNotaris() }}</th>
-                            <th>Jumlah di Job</th>
-                            <th>Jumlah di Pelaporan</th>
-                            <th>Status</th>
+                            <x-sortable-th column="notaris_rekanan" :sort="$sort" :direction="$direction">Notaris
+                                Rekanan</x-sortable-th>
+                            <x-sortable-th column="kategori" :sort="$sort" :direction="$direction">Kategori</x-sortable-th>
+                            <x-sortable-th column="nomor" :sort="$sort" :direction="$direction">Nomor</x-sortable-th>
+                            <x-sortable-th column="tanggal_job" :sort="$sort" :direction="$direction">Job: nomor milik
+                                rekanan</x-sortable-th>
+                            <x-sortable-th column="tanggal_report" :sort="$sort" :direction="$direction">Pelaporan: nomor
+                                milik {{ \App\Models\Setting::namaNotaris() }}</x-sortable-th>
+                            <x-sortable-th column="job_count" :sort="$sort" :direction="$direction">Jumlah di
+                                Job</x-sortable-th>
+                            <x-sortable-th column="report_count" :sort="$sort" :direction="$direction">Jumlah di
+                                Pelaporan</x-sortable-th>
+                            <x-sortable-th column="status" :sort="$sort" :direction="$direction">Status</x-sortable-th>
                         </tr>
                     </thead>
                     <tbody>
@@ -106,7 +115,8 @@
                                 <td>{{ $row['job_count'] }}</td>
                                 <td>{{ $row['report_count'] }}</td>
                                 <td>
-                                    <span class="badge {{ str_starts_with($row['status'], 'Nomor sama') ? 'bg-info text-dark' : 'bg-warning text-dark' }}">
+                                    <span
+                                        class="badge {{ str_starts_with($row['status'], 'Nomor sama') ? 'bg-info text-dark' : 'bg-warning text-dark' }}">
                                         {{ $row['status'] }}
                                     </span>
                                 </td>

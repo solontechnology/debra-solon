@@ -9,25 +9,17 @@
     <div class="card">
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-bordered">
+                <table class="table table-bordered" data-sortable="false">
                     <thead>
                         <tr>
-
-                            <th>
-                                Kode
-                            </th>
-                            <th>
-                                Tanggal Mulai
-                            </th>
-                            <th>
-                                Tanggal Selesai
-                            </th>
-                            <th>
-                                Penambahan SLA
-                            </th>
-                            <th>
-                                Aksi
-                            </th>
+                            <x-sortable-th column="kode" :sort="$sort" :direction="$direction">Kode</x-sortable-th>
+                            <x-sortable-th column="start_date" :sort="$sort" :direction="$direction">Tanggal
+                                Mulai</x-sortable-th>
+                            <x-sortable-th column="end_date" :sort="$sort" :direction="$direction">Tanggal
+                                Selesai</x-sortable-th>
+                            <x-sortable-th column="penambahan_sla" :sort="$sort" :direction="$direction">Penambahan
+                                SLA</x-sortable-th>
+                            <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>

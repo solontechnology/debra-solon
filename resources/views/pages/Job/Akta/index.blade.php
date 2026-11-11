@@ -40,7 +40,7 @@
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0 text-nowrap table-freeze-akta">
-                    <thead class="bg-light">
+                    {{-- <thead class="bg-light">
                         <tr>
                             <th class="py-3 ps-4 freeze-parent text-secondary text-uppercase font-monospace small fw-bold">
                                 Parent</th>
@@ -58,184 +58,224 @@
                             <th class="py-3 pe-4 text-center text-secondary text-uppercase font-monospace small fw-bold">
                                 Aksi</th>
                         </tr>
-                    </thead>
-                    <tbody class="border-top-0">
-                        @forelse ($items as $key => $item)
-                            <tr class="{{ isset($item->statusJobOps->last()->status_penolakan) ? 'bg-red-lt' : '' }}">
-                                {{-- Sticky Column 1: Parent --}}
-                                <td class="ps-4 freeze-parent fw-semibold">
-                                    <a href="{{ route('job.divisi.show', $item->jobDivisi->id) }}"
-                                        class="text-decoration-none">
-                                        <span class="text-primary">{{ $item->jobDivisi->kode ?? '-' }}</span>
+                    </thead> --}}
+                    <input type="hidden" name="sort" value="{{ $sort }}">
+                    <input type="hidden" name="direction" value="{{ $direction }}">
+                    <table class="table table-hover align-middle mb-0 text-nowrap table-freeze-akta" data-sortable="false">
+                        <thead class="bg-light">
+                            <tr>
+                                <x-sortable-th column="parent" :sort="$sort" :direction="$direction"
+                                    class="py-3 ps-4 freeze-parent text-secondary text-uppercase font-monospace small fw-bold">Parent</x-sortable-th>
+                                <x-sortable-th column="proses" :sort="$sort" :direction="$direction"
+                                    class="py-3 freeze-proses text-secondary text-uppercase font-monospace small fw-bold">Proses</x-sortable-th>
+                                <x-sortable-th column="nomor_akta" :sort="$sort" :direction="$direction"
+                                    class="py-3 freeze-nomor-akta text-secondary text-uppercase font-monospace small fw-bold">Nomor
+                                    Akta</x-sortable-th>
 
-                                    </a>
-                                </td>
+                                <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Status</th>
 
-                                {{-- Sticky Column 2: Proses --}}
-                                <td class="freeze-proses fw-medium">
-                                    {{ $item->nama === 'Covernot' ? 'Cover note' : $item->nama }}
-                                </td>
+                                <x-sortable-th column="penugasan" :sort="$sort" :direction="$direction"
+                                    class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Petugasan</x-sortable-th>
 
-                                {{-- Sticky Column 3: Nomor Akta --}}
-                                <td class="freeze-nomor-akta">
-                                    <div class="fw-semibold">
-                                        {{ $item->nomorPpat?->nomor ?? '-' }}
-                                        @if ($item->nomorPpat?->rekanan === 1)
-                                            <span
-                                                class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 ms-1">Rekanan</span>
-                                        @endif
-                                    </div>
-                                    @if ($item->nomorPpat?->tanggal)
-                                        <div class="text-muted small">
-                                            Tgl. {{ $item->nomorPpat?->tanggal }}
+                                <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nomor Objek</th>
+                                <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nama Penghadap
+                                </th>
+                                <th class="py-3 text-secondary text-uppercase font-monospace small fw-bold">Nama Bank</th>
+
+                                <x-sortable-th column="status_akad" :sort="$sort" :direction="$direction"
+                                    class="py-3 text-center text-secondary text-uppercase font-monospace small fw-bold">Status
+                                    Akad</x-sortable-th>
+
+                                <th
+                                    class="py-3 pe-4 text-center text-secondary text-uppercase font-monospace small fw-bold">
+                                    Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="border-top-0">
+                            @forelse ($items as $key => $item)
+                                <tr class="{{ isset($item->statusJobOps->last()->status_penolakan) ? 'bg-red-lt' : '' }}">
+                                    {{-- Sticky Column 1: Parent --}}
+                                    <td class="ps-4 freeze-parent fw-semibold">
+                                        <a href="{{ route('job.divisi.show', $item->jobDivisi->id) }}"
+                                            class="text-decoration-none">
+                                            <span class="text-primary">{{ $item->jobDivisi->kode ?? '-' }}</span>
+
+                                        </a>
+                                    </td>
+
+                                    {{-- Sticky Column 2: Proses --}}
+                                    <td class="freeze-proses fw-medium">
+                                        {{ $item->nama === 'Covernot' ? 'Cover note' : $item->nama }}
+                                    </td>
+
+                                    {{-- Sticky Column 3: Nomor Akta --}}
+                                    <td class="freeze-nomor-akta">
+                                        <div class="fw-semibold">
+                                            {{ $item->nomorPpat?->nomor ?? '-' }}
+                                            @if ($item->nomorPpat?->rekanan === 1)
+                                                <span
+                                                    class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 ms-1">Rekanan</span>
+                                            @endif
                                         </div>
-                                    @endif
-                                </td>
-
-                                {{-- Status Process --}}
-                                <td>
-                                    @if ($item->statusJobOps->last())
-                                        @if ($item->statusJobOps->last()->status_penolakan)
-                                            <span
-                                                class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-2.5 py-1.5 fw-medium">
-                                                {{ $item->statusJobOps->last()->status_penolakan }} Perlu Perbaikan
-                                            </span>
-                                        @else
-                                            <span
-                                                class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2.5 py-1.5 fw-medium">
-                                                {{ $item->nextStep }}
-                                            </span>
+                                        @if ($item->nomorPpat?->tanggal)
+                                            <div class="text-muted small">
+                                                Tgl. {{ $item->nomorPpat?->tanggal }}
+                                            </div>
                                         @endif
-                                    @else
-                                        <span class="badge bg-light text-secondary border px-2.5 py-1.5 fw-medium">Belum
-                                            diproses</span>
-                                    @endif
-                                </td>
+                                    </td>
 
-                                {{-- Penugasan --}}
-                                <td>
-                                    <span class="text-secondary">
-                                        {{ $item->statusJobOps->last()->user->name ?? 'Belum diproses' }}
-                                    </span>
-                                </td>
+                                    {{-- Status Process --}}
+                                    <td>
+                                        @if ($item->statusJobOps->last())
+                                            @if ($item->statusJobOps->last()->status_penolakan)
+                                                <span
+                                                    class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-2.5 py-1.5 fw-medium">
+                                                    {{ $item->statusJobOps->last()->status_penolakan }} Perlu Perbaikan
+                                                </span>
+                                            @else
+                                                <span
+                                                    class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2.5 py-1.5 fw-medium">
+                                                    {{ $item->nextStep }}
+                                                </span>
+                                            @endif
+                                        @else
+                                            <span class="badge bg-light text-secondary border px-2.5 py-1.5 fw-medium">Belum
+                                                diproses</span>
+                                        @endif
+                                    </td>
 
-                                {{-- Penugasan QC --}}
-                                {{-- <td>
+                                    {{-- Penugasan --}}
+                                    <td>
+                                        <span class="text-secondary">
+                                            {{ $item->statusJobOps->last()->user->name ?? 'Belum diproses' }}
+                                        </span>
+                                    </td>
+
+                                    {{-- Penugasan QC --}}
+                                    {{-- <td>
                                     <span class="text-secondary">
                                         {{ $item->statusJobOps->last()->nextUser->name ?? 'Belum diproses' }}
                                     </span>
                                 </td> --}}
 
-                                {{-- Nomor Objek --}}
-                                <td>
-                                    <span class="text-muted">
-                                        {{ $item->jobDivisi?->objek?->pluck('no_sertifikat')->implode(', ') ?: '-' }}
-                                    </span>
-                                </td>
+                                    {{-- Nomor Objek --}}
+                                    <td>
+                                        <span class="text-muted">
+                                            {{ $item->jobDivisi?->objek?->pluck('no_sertifikat')->implode(', ') ?: '-' }}
+                                        </span>
+                                    </td>
 
-                                {{-- Nama Debitur --}}
-                                @php
-                                    $pihak = array_filter([
-                                        'Debitur' => $item->jobDivisi->debitur->pluck('nama')->filter()->join(', '),
-                                        'Pembeli' => $item->jobDivisi->listPembeli->pluck('nama')->filter()->join(', '),
-                                        'Penjual' => $item->jobDivisi->listPenjual->pluck('nama')->filter()->join(', '),
-                                    ]);
-                                @endphp
-
-                                <td class="text-uppercase">
-                                    <div class="d-flex flex-column gap-1">
-                                        @forelse ($pihak as $peran => $nama)
-                                            <span>
-                                                <small class="text-muted">{{ $peran }}:</small> {{ $nama }}
-                                            </span>
-                                        @empty
-                                            <span class="text-muted">-</span>
-                                        @endforelse
-                                    </div>
-                                </td>
-
-                                {{-- Nama Bank --}}
-                                <td>
-                                    <div class="d-flex flex-wrap gap-1">
-                                        @forelse ($item->jobDivisi->listBank as $bank)
-                                            <span class="badge bg-light text-dark border">{{ $bank->nama_bank }}</span>
-                                        @empty
-                                            <span class="text-muted">-</span>
-                                        @endforelse
-                                    </div>
-                                </td>
-
-                                {{-- Status Akad --}}
-                                <td class="text-center">
+                                    {{-- Nama Debitur --}}
                                     @php
-                                        $statusClass = [
-                                            'Pra Akad' =>
-                                                'bg-info bg-opacity-10 text-info border border-info border-opacity-25',
-                                            'Akad' =>
-                                                'bg-success bg-opacity-10 text-success border border-success border-opacity-25',
-                                            'Pending' =>
-                                                'bg-warning bg-opacity-10 text-dark border border-warning border-opacity-25',
-                                            'Batal Akad' =>
-                                                'bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25',
-                                            'Selesai' =>
-                                                'bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25',
-                                        ];
-                                        $status = $item->jobDivisi->status ?? '';
+                                        $pihak = array_filter([
+                                            'Debitur' => $item->jobDivisi->debitur->pluck('nama')->filter()->join(', '),
+                                            'Pembeli' => $item->jobDivisi->listPembeli
+                                                ->pluck('nama')
+                                                ->filter()
+                                                ->join(', '),
+                                            'Penjual' => $item->jobDivisi->listPenjual
+                                                ->pluck('nama')
+                                                ->filter()
+                                                ->join(', '),
+                                        ]);
                                     @endphp
 
-                                    <span
-                                        class="badge rounded-pill {{ $statusClass[$status] ?? 'bg-secondary' }} px-3 py-2 fw-medium text-uppercase"
-                                        style="font-size: 0.75rem;">
-                                        {{ $status ?: '-' }}
-                                    </span>
-                                </td>
+                                    <td class="text-uppercase">
+                                        <div class="d-flex flex-column gap-1">
+                                            @forelse ($pihak as $peran => $nama)
+                                                <span>
+                                                    <small class="text-muted">{{ $peran }}:</small>
+                                                    {{ $nama }}
+                                                </span>
+                                            @empty
+                                                <span class="text-muted">-</span>
+                                            @endforelse
+                                        </div>
+                                    </td>
 
-                                {{-- Action Buttons --}}
-                                <td class="pe-4 text-center">
-                                    <div class="d-flex align-items-center justify-content-center gap-2">
-                                        @if ($item->jobDivisi->status !== 'Batal Akad')
-                                            @if ($item->jobDivisi->status !== 'Selesai')
-                                                <x-job.akta.edit-akta :formOrder="$item" :jobDivisi="$item->jobDivisi" :key="$key"
-                                                    :statusJobOps="$item->statusJobOps" :tipe="$tipe" :users="$user_ops" />
-                                            @endif
+                                    {{-- Nama Bank --}}
+                                    <td>
+                                        <div class="d-flex flex-wrap gap-1">
+                                            @forelse ($item->jobDivisi->listBank as $bank)
+                                                <span class="badge bg-light text-dark border">{{ $bank->nama_bank }}</span>
+                                            @empty
+                                                <span class="text-muted">-</span>
+                                            @endforelse
+                                        </div>
+                                    </td>
 
-                                            @if (!$item->nomorPpat)
-                                                @include('pages.Job.Akta._input-no-ppat', [
-                                                    'formOrder' => $item,
+                                    {{-- Status Akad --}}
+                                    <td class="text-center">
+                                        @php
+                                            $statusClass = [
+                                                'Pra Akad' =>
+                                                    'bg-info bg-opacity-10 text-info border border-info border-opacity-25',
+                                                'Akad' =>
+                                                    'bg-success bg-opacity-10 text-success border border-success border-opacity-25',
+                                                'Pending' =>
+                                                    'bg-warning bg-opacity-10 text-dark border border-warning border-opacity-25',
+                                                'Batal Akad' =>
+                                                    'bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25',
+                                                'Selesai' =>
+                                                    'bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25',
+                                            ];
+                                            $status = $item->jobDivisi->status ?? '';
+                                        @endphp
+
+                                        <span
+                                            class="badge rounded-pill {{ $statusClass[$status] ?? 'bg-secondary' }} px-3 py-2 fw-medium text-uppercase"
+                                            style="font-size: 0.75rem;">
+                                            {{ $status ?: '-' }}
+                                        </span>
+                                    </td>
+
+                                    {{-- Action Buttons --}}
+                                    <td class="pe-4 text-center">
+                                        <div class="d-flex align-items-center justify-content-center gap-2">
+                                            @if ($item->jobDivisi->status !== 'Batal Akad')
+                                                @if ($item->jobDivisi->status !== 'Selesai')
+                                                    <x-job.akta.edit-akta :formOrder="$item" :jobDivisi="$item->jobDivisi"
+                                                        :key="$key" :statusJobOps="$item->statusJobOps" :tipe="$tipe"
+                                                        :users="$user_ops" />
+                                                @endif
+
+                                                @if (!$item->nomorPpat)
+                                                    @include('pages.Job.Akta._input-no-ppat', [
+                                                        'formOrder' => $item,
+                                                        'key' => $key,
+                                                        'nama_proses' => $item->nama,
+                                                    ])
+                                                @endif
+
+                                                @include('pages.Job.Ops._modal_riwayat', [
+                                                    'statusJobOps' => $item->statusJobOps->sortByDesc('id'),
                                                     'key' => $key,
-                                                    'nama_proses' => $item->nama,
+                                                    'formOrder' => $item,
                                                 ])
+                                                <x-job.file.file-job-divisi :jobDivisi="$item->jobDivisi" :nama="$tipe" />
+                                            @else
+                                                <span class="text-muted small fs-7">Tidak ada aksi</span>
                                             @endif
-
-                                            @include('pages.Job.Ops._modal_riwayat', [
-                                                'statusJobOps' => $item->statusJobOps->sortByDesc('id'),
-                                                'key' => $key,
-                                                'formOrder' => $item,
-                                            ])
-                                            <x-job.file.file-job-divisi :jobDivisi="$item->jobDivisi" :nama="$tipe" />
-                                        @else
-                                            <span class="text-muted small fs-7">Tidak ada aksi</span>
-                                        @endif
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="11" class="text-center py-5 text-muted">
-                                    <div class="d-flex flex-column align-items-center justify-content-center">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48"
-                                            fill="currentColor" class="bi bi-inbox text-secondary mb-2 opacity-50"
-                                            viewBox="0 0 16 16">
-                                            <path
-                                                d="M4.98 4a.5.5 0 0 0-.39.188L1.54 8H6a.5.5 0 0 1 .5.5 1.5 1.5 0 1 0 3 0A.5.5 0 0 1 10 8h4.46l-3.05-3.812A.5.5 0 0 0 11.02 4H4.98zm-1.17-.437A1.5 1.5 0 0 1 4.98 3h6.04a1.5 1.5 0 0 1 1.17.563l3.7 4.625a.5.5 0 0 1 .106.374l-.39 3.124A1.5 1.5 0 0 1 14.117 13H1.883a1.5 1.5 0 0 1-1.489-1.314l-.39-3.124a.5.5 0 0 1 .106-.374l3.7-4.625z" />
-                                        </svg>
-                                        <span class="fw-medium">Belum ada data Job {{ strtoupper($tipe) }}</span>
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="11" class="text-center py-5 text-muted">
+                                        <div class="d-flex flex-column align-items-center justify-content-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48"
+                                                fill="currentColor" class="bi bi-inbox text-secondary mb-2 opacity-50"
+                                                viewBox="0 0 16 16">
+                                                <path
+                                                    d="M4.98 4a.5.5 0 0 0-.39.188L1.54 8H6a.5.5 0 0 1 .5.5 1.5 1.5 0 1 0 3 0A.5.5 0 0 1 10 8h4.46l-3.05-3.812A.5.5 0 0 0 11.02 4H4.98zm-1.17-.437A1.5 1.5 0 0 1 4.98 3h6.04a1.5 1.5 0 0 1 1.17.563l3.7 4.625a.5.5 0 0 1 .106.374l-.39 3.124A1.5 1.5 0 0 1 14.117 13H1.883a1.5 1.5 0 0 1-1.489-1.314l-.39-3.124a.5.5 0 0 1 .106-.374l3.7-4.625z" />
+                                            </svg>
+                                            <span class="fw-medium">Belum ada data Job {{ strtoupper($tipe) }}</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
             </div>
         </div>
 
